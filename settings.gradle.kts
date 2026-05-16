@@ -21,3 +21,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "FlexAura"
 include(":app")
+include(":core:designsystem")
+include(":core:database")
+include(":core:network")
+include(":features:auth")
+include(":data")
