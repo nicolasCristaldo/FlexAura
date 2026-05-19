@@ -41,6 +41,9 @@ serialization = "1.7.3"
 # Navigation compose
 navigationCompose = "2.8.3"
 
+# Secrets
+secretsPlugin = "2.0.1"
+
 # Testing tools
 mockk = "1.13.13"
 turbine = "1.1.0"
@@ -77,9 +80,9 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
 # Supabase
-supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt", version.ref = "supabase" }
-supabase-auth = { group = "io.github.jan-tennert.supabase", name = "gotrue-kt", version.ref = "supabase" }
-supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt", version.ref = "supabase" }
+supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
+supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
+supabase-auth = { group = "io.github.jan-tennert.supabase", name = "auth-kt" }
 
 # Retrofit & Okhttp
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
@@ -118,7 +121,7 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 
 # Ksp
-google-devtools-ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.26" }
+kotlin-ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.26" }
 
 # Firebase & Crashlytics
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesPlugin" }
@@ -127,4 +130,7 @@ firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "
 # Kotlinx serialization
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+
+# Secrets
+google-secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secretsPlugin" }
 
