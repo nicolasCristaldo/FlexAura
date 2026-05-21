@@ -1,6 +1,7 @@
 package com.flexaura.data.mapper
 
 import com.flexaura.core.database.model.UserEntity
+import com.flexaura.core.network.model.UserDto
 import com.flexaura.core.network.model.UserProfileDto
 import com.flexaura.data.model.User
 
@@ -27,4 +28,17 @@ fun UserEntity.toDomain(): User = User(
     followersCount = followersCount,
     followingCount = followingCount,
     isFollowedByCurrentUser = isFollowedByCurrentUser
+)
+
+fun UserDto.toEntity(isCurrentUserFollowing: Boolean = false): UserEntity = UserEntity(
+    id = id,
+    username = username,
+    displayName = displayName,
+    imageUrl = imageUrl,
+    bio = bio,
+    totalAura = totalAura,
+    followersCount = followersCount,
+    followingCount = followingCount,
+    createdAt = createdAt,
+    isFollowedByCurrentUser = isCurrentUserFollowing
 )
