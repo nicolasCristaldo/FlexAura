@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 data class PostEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "author_id") val authorId: String,
-    val content: String?,
+    @ColumnInfo(name = "content") val content: String?,
     @ColumnInfo(name = "image_url") val imageUrl: String?,
     @ColumnInfo(name = "created_at") val createdAt: String,
     @ColumnInfo(name = "comments_count") val commentsCount: Int,
