@@ -26,41 +26,35 @@ class UserRepositoryImpl @Inject constructor(
 ): UserRepository {
     override fun getUserFlow(userId: String): Flow<User?> =
         userDao.getUserIdFlow(userId)
-            .map { userEntity -> userEntity.toDomain() }
+            .map { userEntity -> userEntity?.toDomain() }
             .flowOn(dispatcher)
 
-    override suspend fun syncUserProfile(
-        currentUserId: String,
-        userId: String
-    ): Result<Unit> = withContext(dispatcher) {
-        runCatching {
-            val remoteUser = networkDataSource.getUserProfile(
-                userId,
-                currentUserId
-            ) ?: throw Exception("No user found")
-            val userEntity = remoteUser.toEntity()
+    override suspend fun syncUserProfile(userId: String): Result<Unit> =
+        withContext(dispatcher) {
+            runCatching {
+                val remoteUser = networkDataSource.getUserProfile(userId)
+                    ?: throw Exception("No user found")
+                val userEntity = remoteUser.toEntity()
 
-            userDao.upsertUser(userEntity)
+                userDao.upsertUser(userEntity)
+            }
         }
-    }
 
-    override suspend fun toggleFollowUser(
-        currentUserId: String,
-        targetUserId: String
-    ): Result<Unit> = scope.async(dispatcher) {
-        runCatching {
-            val targetUserLocal = userDao.getUserById(targetUserId)
-                ?: throw Exception("No user found")
-            val wasFollowing = targetUserLocal.isFollowedByCurrentUser
-            val newFollowState = !wasFollowing
-            val countChange = if (newFollowState) 1 else -1
+    override suspend fun toggleFollowUser(targetUserId: String): Result<Unit> =
+        scope.async(dispatcher) {
+            runCatching {
+                val targetUserLocal = userDao.getUserById(targetUserId)
+                    ?: throw Exception("No user found")
+                val wasFollowing = targetUserLocal.isFollowedByCurrentUser
+                val newFollowState = !wasFollowing
+                val countChange = if (newFollowState) 1 else -1
 
-            userDao.updateFollowState(targetUserId, newFollowState, countChange)
+                userDao.updateFollowState(targetUserId, newFollowState, countChange)
 
-            if (newFollowState) networkDataSource.followUser(currentUserId, targetUserId)
-            else networkDataSource.unfollowUser(currentUserId, targetUserId)
-        }
-    }.await()
+                if (newFollowState) networkDataSource.followUser(targetUserId)
+                else networkDataSource.unfollowUser(targetUserId)
+            }
+        }.await()
 
     override suspend fun updateProfile(
         userId: String,

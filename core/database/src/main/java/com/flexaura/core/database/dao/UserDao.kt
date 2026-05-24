@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserDao {
     @Query("SELECT * FROM users WHERE id = :userId")
-    fun getUserIdFlow(userId: String): Flow<UserEntity>
+    fun getUserIdFlow(userId: String): Flow<UserEntity?>
 
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun getUserById(userId: String): UserEntity?

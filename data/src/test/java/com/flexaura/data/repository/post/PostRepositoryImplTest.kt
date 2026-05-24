@@ -44,7 +44,6 @@ class PostRepositoryImplTest {
     @Test
     fun `syncPosts successful fetches And Upserts To Local Cache`() = runTest {
         // Given
-        val currentUserId = "user_123"
         val page = 1
         val pageSize = 10
         val mockRemotePost = PostWithInteractionsDto(
@@ -60,7 +59,7 @@ class PostRepositoryImplTest {
         fakeSupabaseRemoteDataSource.remotePosts.add(mockRemotePost)
 
         // When
-        val result = postRepositoryImpl.syncPosts(currentUserId, page, pageSize)
+        val result = postRepositoryImpl.syncPosts(page, pageSize)
 
         // Then
         val localPosts = fakePostDao.getPostsFlow().first()
@@ -74,7 +73,7 @@ class PostRepositoryImplTest {
     @Test
     fun `toggleSavePost, currently unsaved, updates local post to saved and calls remote save`() = runTest {
         // Given
-        val currentUserId = "user_123"
+        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
         val postId = "post_123"
         val remotePost = PostWithInteractionsDto(
             post = PostDto(
@@ -117,7 +116,7 @@ class PostRepositoryImplTest {
     @Test
     fun `toggleSavePost, currently saved, updates local post to unsaved and calls remote unsave`() = runTest {
         // Given
-        val currentUserId = "user_123"
+        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
         val postId = "post_123"
         val remotePost = PostWithInteractionsDto(
             post = PostDto(

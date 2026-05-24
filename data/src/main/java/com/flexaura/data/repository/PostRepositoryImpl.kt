@@ -29,20 +29,18 @@ class PostRepositoryImpl @Inject constructor(
 ) : PostRepository {
     override fun getPostsFlow(): Flow<List<Post>> =
         postDao.getPostsFlow()
-            .map { postEntities ->
-                postEntities.map { it.toDomain() }
-            }.flowOn(dispatcher)
+            .map { postEntities -> postEntities.map { it.toDomain() } }
+            .flowOn(dispatcher)
 
     override suspend fun getPostById(postId: String): Post? =
         postDao.getPostById(postId)?.toDomain()
 
     override suspend fun syncPosts(
-        currentUserId: String,
         page: Int,
         pageSize: Int
     ): Result<Unit> = withContext(dispatcher) {
         runCatching {
-            val remotePosts = networkDataSource.getPosts(currentUserId, page, pageSize)
+            val remotePosts = networkDataSource.getPosts(page, pageSize)
             val postEntities = remotePosts.map { it.toEntity() }
 
             postDao.upsertPosts(postEntities)
@@ -54,23 +52,22 @@ class PostRepositoryImpl @Inject constructor(
         content: String,
         imageUrl: String
     ): Result<Unit> = scope.async(dispatcher) {
-            runCatching {
-                val newPostDto = PostDto(
-                    id = UUID.randomUUID().toString(),
-                    authorId = currentUserId,
-                    content = content,
-                    imageUrl = imageUrl,
-                    createdAt = ""
-                )
+        runCatching {
+            val newPostDto = PostDto(
+                id = UUID.randomUUID().toString(),
+                authorId = currentUserId,
+                content = content,
+                imageUrl = imageUrl,
+                createdAt = ""
+            )
 
-                networkDataSource.createPost(newPostDto)
+            networkDataSource.createPost(newPostDto)
 
-                syncPosts(
-                    currentUserId = currentUserId,
-                    page = 1,
-                    pageSize = 10
-                ).getOrThrow()
-            }
+            syncPosts(
+                page = 1,
+                pageSize = 10
+            ).getOrThrow()
+        }
     }.await()
 
     override suspend fun toggleSavePost(
@@ -92,26 +89,23 @@ class PostRepositoryImpl @Inject constructor(
                         postId = postId
                     )
                 )
-            } else {
-                networkDataSource.unsavePost(currentUserId, postId)
-            }
+            } else networkDataSource.unsavePost(postId)
         }
     }.await()
 
-    override suspend fun deletePost(postId: String): Result<Unit> = scope.async(dispatcher) {
-        runCatching {
-            postDao.deletePostByid(postId)
-            networkDataSource.deletePost(postId)
-        }
-    }.await()
+    override suspend fun deletePost(postId: String): Result<Unit> =
+        scope.async(dispatcher) {
+            runCatching {
+                postDao.deletePostByid(postId)
+                networkDataSource.deletePost(postId)
+            }
+        }.await()
 
     override suspend fun updateLocalVote(
         postId: String,
         voteValue: Int
     ): Result<Unit> = withContext(dispatcher) {
-        runCatching {
-            postDao.updateLocalVote(postId, voteValue)
-        }
+        runCatching { postDao.updateLocalVote(postId, voteValue) }
     }
 
     override suspend fun remoteUpsertVote(
@@ -131,12 +125,8 @@ class PostRepositoryImpl @Inject constructor(
         }
     }.await()
 
-    override suspend fun remoteDeleteVote(
-        currentUserId: String,
-        postId: String
-    ): Result<Unit> = scope.async(dispatcher) {
-        runCatching {
-            networkDataSource.deleteVote(currentUserId, postId)
-        }
-    }.await()
+    override suspend fun remoteDeleteVote(postId: String): Result<Unit> =
+        scope.async(dispatcher) {
+            runCatching { networkDataSource.deleteVote(postId) }
+        }.await()
 }
