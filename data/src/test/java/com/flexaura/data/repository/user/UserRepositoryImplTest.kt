@@ -5,15 +5,23 @@ import com.flexaura.core.network.model.FollowDto
 import com.flexaura.core.network.model.UserDto
 import com.flexaura.data.fakes.FakeSupabaseRemoteDataSource
 import com.flexaura.data.fakes.FakeUserDao
+import com.flexaura.data.repository.UserRepositoryImpl
+import com.flexaura.data.rule.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserRepositoryImplTest {
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+    private val testScope = TestScope(mainDispatcherRule.testDispatcher)
+
     private lateinit var fakeUserDao: FakeUserDao
     private lateinit var fakeSupabaseRemoteDataSource: FakeSupabaseRemoteDataSource
     private lateinit var userRepositoryImpl: UserRepositoryImpl
@@ -24,7 +32,9 @@ class UserRepositoryImplTest {
         fakeSupabaseRemoteDataSource = FakeSupabaseRemoteDataSource()
         userRepositoryImpl = UserRepositoryImpl(
             userDao = fakeUserDao,
-            networkDataSource = fakeSupabaseRemoteDataSource
+            networkDataSource = fakeSupabaseRemoteDataSource,
+            dispatcher = mainDispatcherRule.testDispatcher,
+            scope = testScope
         )
     }
 

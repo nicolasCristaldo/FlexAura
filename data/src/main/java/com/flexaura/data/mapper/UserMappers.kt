@@ -3,7 +3,7 @@ package com.flexaura.data.mapper
 import com.flexaura.core.database.model.UserEntity
 import com.flexaura.core.network.model.UserDto
 import com.flexaura.core.network.model.UserProfileDto
-import com.flexaura.data.model.User
+import com.flexaura.data.domain.model.User
 
 fun UserProfileDto.toEntity(): UserEntity = UserEntity(
     id = user.id,

@@ -2,7 +2,7 @@ package com.flexaura.data.mapper
 
 import com.flexaura.core.database.model.PostEntity
 import com.flexaura.core.network.model.PostWithInteractionsDto
-import com.flexaura.data.model.Post
+import com.flexaura.data.domain.model.Post
 
 fun PostWithInteractionsDto.toEntity(): PostEntity {
     val totalAura = post.votes1 + (post.votes3 * 3) + (post.votes5 * 5) - post.votesMinus1

@@ -3,7 +3,7 @@ package com.flexaura.data.mapper
 import com.flexaura.core.database.model.CommentEntity
 import com.flexaura.core.network.model.CommentDto
 import com.flexaura.core.network.model.UserDto
-import com.flexaura.data.model.Comment
+import com.flexaura.data.domain.model.Comment
 
 fun CommentDto.toEntity(author: UserDto): CommentEntity = CommentEntity(
     id = id,

@@ -6,17 +6,25 @@ import com.flexaura.core.network.model.PostWithInteractionsDto
 import com.flexaura.core.network.model.UserSaveIdDto
 import com.flexaura.data.fakes.FakePostDao
 import com.flexaura.data.fakes.FakeSupabaseRemoteDataSource
+import com.flexaura.data.repository.PostRepositoryImpl
+import com.flexaura.data.rule.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PostRepositoryImplTest {
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+    private val testScope = TestScope(mainDispatcherRule.testDispatcher)
+
     private lateinit var fakePostDao: FakePostDao
     private lateinit var fakeSupabaseRemoteDataSource: FakeSupabaseRemoteDataSource
     private lateinit var postRepositoryImpl: PostRepositoryImpl
@@ -27,7 +35,9 @@ class PostRepositoryImplTest {
         fakeSupabaseRemoteDataSource = FakeSupabaseRemoteDataSource()
         postRepositoryImpl = PostRepositoryImpl(
             postDao = fakePostDao,
-            networkDataSource = fakeSupabaseRemoteDataSource
+            networkDataSource = fakeSupabaseRemoteDataSource,
+            dispatcher = mainDispatcherRule.testDispatcher,
+            scope = testScope
         )
     }
 

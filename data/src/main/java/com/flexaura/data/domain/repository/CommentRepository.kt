@@ -1,6 +1,6 @@
-package com.flexaura.data.repository.comment
+package com.flexaura.data.domain.repository
 
-import com.flexaura.data.model.Comment
+import com.flexaura.data.domain.model.Comment
 import kotlinx.coroutines.flow.Flow
 
 interface CommentRepository {

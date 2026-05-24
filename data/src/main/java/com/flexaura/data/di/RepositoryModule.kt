@@ -1,11 +1,11 @@
 package com.flexaura.data.di
 
-import com.flexaura.data.repository.comment.CommentRepository
-import com.flexaura.data.repository.comment.CommentRepositoryImpl
-import com.flexaura.data.repository.post.PostRepository
-import com.flexaura.data.repository.post.PostRepositoryImpl
-import com.flexaura.data.repository.user.UserRepository
-import com.flexaura.data.repository.user.UserRepositoryImpl
+import com.flexaura.data.domain.repository.CommentRepository
+import com.flexaura.data.repository.CommentRepositoryImpl
+import com.flexaura.data.domain.repository.PostRepository
+import com.flexaura.data.repository.PostRepositoryImpl
+import com.flexaura.data.domain.repository.UserRepository
+import com.flexaura.data.repository.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
