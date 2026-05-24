@@ -67,10 +67,11 @@ class CommentRepositoryImpl @Inject constructor(
         }
     }.await()
 
-    override suspend fun deleteComment(commentId: String): Result<Unit> = scope.async(dispatcher) {
-        runCatching {
-            commentDao.deleteCommentById(commentId)
-            networkDataSource.deleteComment(commentId)
-        }
-    }.await()
+    override suspend fun deleteComment(commentId: String): Result<Unit> =
+        scope.async(dispatcher) {
+            runCatching {
+                commentDao.deleteCommentById(commentId)
+                networkDataSource.deleteComment(commentId)
+            }
+        }.await()
 }

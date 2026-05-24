@@ -5,8 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
     fun getUserFlow(userId: String): Flow<User?>
-    suspend fun syncUserProfile(currentUserId: String, userId: String): Result<Unit>
-    suspend fun toggleFollowUser(currentUserId: String, targetUserId: String): Result<Unit>
+    suspend fun syncUserProfile(userId: String): Result<Unit>
+    suspend fun toggleFollowUser(targetUserId: String): Result<Unit>
     suspend fun updateProfile(
         userId: String,
         username: String,

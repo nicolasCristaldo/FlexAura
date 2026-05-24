@@ -41,7 +41,6 @@ class UserRepositoryImplTest {
     @Test
     fun `syncUserProfile successful fetches remote And Upserts To Local Cache`() = runTest {
         // Given
-        val currentUserId = "current_user_123"
         val userId = "user_123"
         val remoteUser = UserDto(
             id = userId,
@@ -55,7 +54,7 @@ class UserRepositoryImplTest {
         fakeSupabaseRemoteDataSource.remoteUsers[userId] = remoteUser
 
         // When
-        val result = userRepositoryImpl.syncUserProfile(currentUserId, remoteUser.id)
+        val result = userRepositoryImpl.syncUserProfile(remoteUser.id)
 
         // Then
         val localUser = fakeUserDao.getUserById(userId)
@@ -69,7 +68,7 @@ class UserRepositoryImplTest {
     @Test
     fun `toggleFollowUser, currently not following, follows and calls remote follow`() = runTest {
         // Given
-        val currentUserId = "current_user_123"
+        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
         val targetUserId = "user_123"
         val remoteUser = UserDto(
             id = targetUserId,
@@ -99,7 +98,7 @@ class UserRepositoryImplTest {
         fakeUserDao.usersTable.value = listOf(targetLocalUser)
 
         // When
-        val result = userRepositoryImpl.toggleFollowUser(currentUserId, targetUserId)
+        val result = userRepositoryImpl.toggleFollowUser(targetUserId)
 
         // Then
         val updatedLocalUser = fakeUserDao.getUserById(targetUserId)
@@ -113,7 +112,7 @@ class UserRepositoryImplTest {
     @Test
     fun `toggleFollowUser, currently following, unfollow and calls remote unfollow`() = runTest {
         // Given
-        val currentUserId = "current_user_123"
+        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
         val targetUserId = "user_123"
         val remoteUser = UserDto(
             id = targetUserId,
@@ -149,7 +148,7 @@ class UserRepositoryImplTest {
         )
 
         // When
-        val result = userRepositoryImpl.toggleFollowUser(currentUserId, targetUserId)
+        val result = userRepositoryImpl.toggleFollowUser(targetUserId)
 
         // Then
         val updatedLocalUser = fakeUserDao.getUserById(targetUserId)

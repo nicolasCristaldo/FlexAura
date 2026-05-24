@@ -19,6 +19,9 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
     val remoteFollows = mutableListOf<FollowDto>()
     val remoteVotes = mutableListOf<VoteDto>()
 
+    override val currentUserId: String?
+        get() = "current_user"
+
     override suspend fun getUser(userId: String): UserDto? =
         remoteUsers[userId]
 
@@ -27,41 +30,38 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
         return user
     }
 
-    override suspend fun getUserProfile(
-        userId: String,
-        currentUserId: String
-    ): UserProfileDto? {
+    override suspend fun getUserProfile(userId: String): UserProfileDto? {
         val user = remoteUsers[userId] ?: return null
         return UserProfileDto(user = user)
     }
 
-    override suspend fun followUser(followerId: String, followingId: String) {
+    override suspend fun followUser(followingId: String) {
         remoteUsers[followingId] = remoteUsers[followingId]?.copy(
             followersCount = (remoteUsers[followingId]?.followersCount ?: 0) + 1
         ) ?: remoteUsers[followingId]!!
 
-        remoteUsers[followerId] = remoteUsers[followerId]?.copy(
-            followingCount = (remoteUsers[followerId]?.followingCount ?: 0) + 1
-        ) ?: remoteUsers[followerId]!!
+        remoteUsers[currentUserId!!] = remoteUsers[currentUserId!!]?.copy(
+            followingCount = (remoteUsers[currentUserId!!]?.followingCount ?: 0) + 1
+        ) ?: remoteUsers[currentUserId!!]!!
 
         remoteFollows.add(
             FollowDto(
-                followerId = followerId,
+                followerId = currentUserId!!,
                 followingId = followingId
             )
         )
     }
 
-    override suspend fun unfollowUser(followerId: String, followingId: String) {
+    override suspend fun unfollowUser(followingId: String) {
         remoteUsers[followingId] = remoteUsers[followingId]?.copy(
             followersCount = (remoteUsers[followingId]?.followersCount ?: 0) - 1
         ) ?: remoteUsers[followingId]!!
 
-        remoteUsers[followerId] = remoteUsers[followerId]?.copy(
-            followingCount = (remoteUsers[followerId]?.followingCount ?: 0) - 1
-        ) ?: remoteUsers[followerId]!!
+        remoteUsers[currentUserId!!] = remoteUsers[currentUserId!!]?.copy(
+            followingCount = (remoteUsers[currentUserId!!]?.followingCount ?: 0) - 1
+        ) ?: remoteUsers[currentUserId!!]!!
 
-        remoteFollows.removeAll { it.followerId == followerId && it.followingId == followingId }
+        remoteFollows.removeAll { it.followerId == currentUserId!! && it.followingId == followingId }
     }
 
     override suspend fun getFollowers(
@@ -85,11 +85,8 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
     override suspend fun getPost(postId: String): PostDto? =
         remotePosts.map { it.post }.find { it.id == postId }
 
-    override suspend fun getPosts(
-        currentUserId: String,
-        page: Int,
-        pageSize: Int
-    ): List<PostWithInteractionsDto> = remotePosts
+    override suspend fun getPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto>
+        = remotePosts
 
     override suspend fun createPost(post: PostDto): PostDto {
         remotePosts.add(PostWithInteractionsDto(post))
@@ -106,8 +103,8 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
         else remoteVotes.add(vote)
     }
 
-    override suspend fun deleteVote(userId: String, postId: String) {
-        remoteVotes.removeAll { it.userId == userId && it.postId == postId }
+    override suspend fun deleteVote(postId: String) {
+        remoteVotes.removeAll { it.userId == currentUserId!! && it.postId == postId }
     }
 
     override suspend fun getComments(postId: String): List<CommentDto> =
@@ -132,21 +129,20 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
         remoteSaves.add(save)
     }
 
-    override suspend fun unsavePost(userId: String, postId: String) {
+    override suspend fun unsavePost(postId: String) {
         val index = remotePosts.indexOfFirst { it.post.id == postId }
         if (index != -1) {
             val currentPost = remotePosts[index]
-            val updatedUserSave = currentPost.userSave.filter { it.id != userId }
+            val updatedUserSave = currentPost.userSave.filter { it.id != currentUserId!! }
             remotePosts[index] = currentPost.copy(userSave = updatedUserSave)
         }
-        remoteSaves.removeAll { it.userId == userId && it.postId == postId }
+        remoteSaves.removeAll { it.userId == currentUserId!! && it.postId == postId }
     }
 
     override suspend fun getSavedPosts(
-        userId: String,
         page: Int,
         pageSize: Int
     ): List<PostDto> = remotePosts.filter {
-        it.userSave.any { userSave -> userSave.id == userId }
+        it.userSave.any { userSave -> userSave.id == currentUserId!! }
     }.map { it.post }
 }
