@@ -1,4 +1,4 @@
-package com.flexaura.data.model
+package com.flexaura.data.domain.model
 
 data class Comment(
     val id: String,

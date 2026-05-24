@@ -1,6 +1,6 @@
-package com.flexaura.data.repository.post
+package com.flexaura.data.domain.repository
 
-import com.flexaura.data.model.Post
+import com.flexaura.data.domain.model.Post
 import kotlinx.coroutines.flow.Flow
 
 interface PostRepository {

@@ -5,16 +5,24 @@ import com.flexaura.core.network.model.CommentDto
 import com.flexaura.core.network.model.UserDto
 import com.flexaura.data.fakes.FakeCommentDao
 import com.flexaura.data.fakes.FakeSupabaseRemoteDataSource
+import com.flexaura.data.repository.CommentRepositoryImpl
+import com.flexaura.data.rule.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CommentRepositoryImplTest {
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+    private val testScope = TestScope(mainDispatcherRule.testDispatcher)
+
     private lateinit var fakeCommentDao: FakeCommentDao
     private lateinit var fakeSupabaseRemoteDataSource: FakeSupabaseRemoteDataSource
     private lateinit var repository: CommentRepositoryImpl
@@ -25,7 +33,9 @@ class CommentRepositoryImplTest {
         fakeSupabaseRemoteDataSource = FakeSupabaseRemoteDataSource()
         repository = CommentRepositoryImpl(
             commentDao = fakeCommentDao,
-            networkDataSource = fakeSupabaseRemoteDataSource
+            networkDataSource = fakeSupabaseRemoteDataSource,
+            dispatcher = mainDispatcherRule.testDispatcher,
+            scope = testScope
         )
     }
 

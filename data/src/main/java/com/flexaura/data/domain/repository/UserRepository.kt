@@ -1,6 +1,6 @@
-package com.flexaura.data.repository.user
+package com.flexaura.data.domain.repository
 
-import com.flexaura.data.model.User
+import com.flexaura.data.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
