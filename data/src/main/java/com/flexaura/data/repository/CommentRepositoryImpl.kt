@@ -2,7 +2,6 @@ package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.CommentDao
 import com.flexaura.core.network.datasource.SupabaseRemoteDataSource
-import com.flexaura.core.network.model.CommentDto
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.Comment
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import javax.inject.Inject
 
 class CommentRepositoryImpl @Inject constructor(
@@ -49,20 +47,11 @@ class CommentRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createComment(
-        currentUserId: String,
         postId: String,
         content: String
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            val newCommentDto = CommentDto(
-                id = UUID.randomUUID().toString(),
-                postId = postId,
-                authorId = currentUserId,
-                content = content,
-                createdAt = ""
-            )
-
-            networkDataSource.createComment(newCommentDto)
+            networkDataSource.createComment(postId = postId, content = content)
             syncComments(postId).getOrThrow()
         }
     }.await()

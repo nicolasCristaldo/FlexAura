@@ -10,6 +10,7 @@ import com.flexaura.core.network.model.UserDto
 import com.flexaura.core.network.model.UserProfileDto
 import com.flexaura.core.network.model.UserSaveIdDto
 import com.flexaura.core.network.model.VoteDto
+import java.util.UUID
 
 class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
     val remoteComments = mutableListOf<CommentDto>()
@@ -25,7 +26,18 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
     override suspend fun getUser(userId: String): UserDto? =
         remoteUsers[userId]
 
-    override suspend fun updateUser(user: UserDto): UserDto {
+    override suspend fun updateProfile(
+        username: String,
+        displayName: String,
+        imageUrl: String?,
+        bio: String?
+    ): UserDto {
+        val user = remoteUsers[currentUserId!!]!!.copy(
+            username = username,
+            displayName = displayName,
+            imageUrl = imageUrl,
+            bio = bio
+        )
         remoteUsers[user.id] = user
         return user
     }
@@ -88,7 +100,14 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
     override suspend fun getPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto>
         = remotePosts
 
-    override suspend fun createPost(post: PostDto): PostDto {
+    override suspend fun createPost(content: String?, imageUrl: String?): PostDto {
+        val post = PostDto(
+            id = UUID.randomUUID().toString(),
+            authorId = currentUserId!!,
+            content = content,
+            imageUrl = imageUrl,
+            createdAt = ""
+        )
         remotePosts.add(PostWithInteractionsDto(post))
         return post
     }
@@ -97,7 +116,13 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
         remotePosts.removeAll { it.post.id == postId }
     }
 
-    override suspend fun upsertVote(vote: VoteDto) {
+    override suspend fun upsertVote(postId: String, value: Int) {
+        val vote = VoteDto(
+            id = UUID.randomUUID().toString(),
+            userId = currentUserId!!,
+            postId = postId,
+            value = value
+        )
         val index = remoteVotes.indexOfFirst { it.userId == vote.userId && it.postId == vote.postId }
         if (index != -1) remoteVotes[index] = vote
         else remoteVotes.add(vote)
@@ -110,7 +135,14 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
     override suspend fun getComments(postId: String): List<CommentDto> =
         remoteComments.filter { it.postId == postId }
 
-    override suspend fun createComment(comment: CommentDto): CommentDto {
+    override suspend fun createComment(postId: String, content: String): CommentDto {
+        val comment = CommentDto(
+            id = UUID.randomUUID().toString(),
+            postId = postId,
+            authorId = currentUserId!!,
+            content = content,
+            createdAt = ""
+        )
         remoteComments.add(comment)
         return comment
     }
@@ -119,7 +151,12 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
         remoteComments.removeAll { it.id == commentId }
     }
 
-    override suspend fun savePost(save: SaveDto) {
+    override suspend fun savePost(postId: String) {
+        val save = SaveDto(
+            id = UUID.randomUUID().toString(),
+            userId = currentUserId!!,
+            postId = postId
+        )
         val index = remotePosts.indexOfFirst { it.post.id == save.postId }
         if (index != -1) {
             val currentPost = remotePosts[index]

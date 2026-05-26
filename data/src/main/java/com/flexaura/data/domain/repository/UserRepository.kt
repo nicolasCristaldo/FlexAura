@@ -8,11 +8,9 @@ interface UserRepository {
     suspend fun syncUserProfile(userId: String): Result<Unit>
     suspend fun toggleFollowUser(targetUserId: String): Result<Unit>
     suspend fun updateProfile(
-        userId: String,
         username: String,
         displayName: String,
         imageUrl: String?,
-        bio: String?,
-        createdAt: String
+        bio: String?
     ): Result<Unit>
 }

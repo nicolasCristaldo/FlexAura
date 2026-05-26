@@ -2,9 +2,6 @@ package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.PostDao
 import com.flexaura.core.network.datasource.SupabaseRemoteDataSource
-import com.flexaura.core.network.model.PostDto
-import com.flexaura.core.network.model.SaveDto
-import com.flexaura.core.network.model.VoteDto
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.Post
@@ -18,7 +15,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import javax.inject.Inject
 
 class PostRepositoryImpl @Inject constructor(
@@ -48,21 +44,11 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createPost(
-        currentUserId: String,
         content: String,
         imageUrl: String
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            val newPostDto = PostDto(
-                id = UUID.randomUUID().toString(),
-                authorId = currentUserId,
-                content = content,
-                imageUrl = imageUrl,
-                createdAt = ""
-            )
-
-            networkDataSource.createPost(newPostDto)
-
+            networkDataSource.createPost(content = content, imageUrl =  imageUrl)
             syncPosts(
                 page = 1,
                 pageSize = 10
@@ -70,28 +56,19 @@ class PostRepositoryImpl @Inject constructor(
         }
     }.await()
 
-    override suspend fun toggleSavePost(
-        currentUserId: String,
-        postId: String
-    ): Result<Unit> = scope.async(dispatcher) {
-        runCatching {
-            val currentPost =
-                postDao.getPostById(postId) ?: throw Exception("No post found")
-            val newSaveState = !currentPost.isSavedByUser
+    override suspend fun toggleSavePost(postId: String): Result<Unit> =
+        scope.async(dispatcher) {
+            runCatching {
+                val currentPost =
+                    postDao.getPostById(postId) ?: throw Exception("No post found")
+                val newSaveState = !currentPost.isSavedByUser
 
-            postDao.updateLocalSaveState(postId, newSaveState)
+                postDao.updateLocalSaveState(postId, newSaveState)
 
-            if (newSaveState) {
-                networkDataSource.savePost(
-                    SaveDto(
-                        id = UUID.randomUUID().toString(),
-                        userId = currentUserId,
-                        postId = postId
-                    )
-                )
-            } else networkDataSource.unsavePost(postId)
-        }
-    }.await()
+                if (newSaveState) networkDataSource.savePost(postId)
+                else networkDataSource.unsavePost(postId)
+            }
+        }.await()
 
     override suspend fun deletePost(postId: String): Result<Unit> =
         scope.async(dispatcher) {
@@ -109,20 +86,10 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun remoteUpsertVote(
-        currentUserId: String,
         postId: String,
         voteValue: Int
     ): Result<Unit> = scope.async(dispatcher) {
-        runCatching {
-            networkDataSource.upsertVote(
-                VoteDto(
-                    id = UUID.randomUUID().toString(),
-                    userId = currentUserId,
-                    postId = postId,
-                    value = voteValue
-                )
-            )
-        }
+        runCatching { networkDataSource.upsertVote(postId = postId, value = voteValue) }
     }.await()
 
     override suspend fun remoteDeleteVote(postId: String): Result<Unit> =

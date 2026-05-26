@@ -100,7 +100,7 @@ class PostRepositoryImplTest {
         fakePostDao.upsertPosts(listOf(localPost))
 
         // When
-        val result = postRepositoryImpl.toggleSavePost(currentUserId, postId)
+        val result = postRepositoryImpl.toggleSavePost(postId)
 
         // Then
         val updatedLocalPost = fakePostDao.getPostById(postId)
@@ -144,7 +144,7 @@ class PostRepositoryImplTest {
         fakePostDao.upsertPosts(listOf(localPost))
 
         // When
-        val result = postRepositoryImpl.toggleSavePost(currentUserId, postId)
+        val result = postRepositoryImpl.toggleSavePost(postId)
 
         // Then
         val updatedLocalPost = fakePostDao.getPostById(postId)
