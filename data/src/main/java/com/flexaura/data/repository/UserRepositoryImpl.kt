@@ -2,7 +2,6 @@ package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.UserDao
 import com.flexaura.core.network.datasource.SupabaseRemoteDataSource
-import com.flexaura.core.network.model.UserDto
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.User
@@ -57,25 +56,20 @@ class UserRepositoryImpl @Inject constructor(
         }.await()
 
     override suspend fun updateProfile(
-        userId: String,
         username: String,
         displayName: String,
         imageUrl: String?,
-        bio: String?,
-        createdAt: String
+        bio: String?
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            val updatedUserDto = UserDto(
-                id = userId,
+            val currentId = networkDataSource.currentUserId ?: throw Exception("No user logged in")
+            val updatedUserDto = networkDataSource.updateProfile(
                 username = username,
                 displayName = displayName,
                 imageUrl = imageUrl,
-                bio = bio,
-                createdAt = createdAt
+                bio = bio
             )
-            networkDataSource.updateUser(updatedUserDto)
-
-            val currentUserEntity = userDao.getUserById(userId)
+            val currentUserEntity = userDao.getUserById(currentId)
             val isFollowed = currentUserEntity?.isFollowedByCurrentUser ?: false
 
             userDao.upsertUser(updatedUserDto.toEntity(isFollowed))
