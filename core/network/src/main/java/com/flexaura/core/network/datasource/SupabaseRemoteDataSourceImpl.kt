@@ -9,9 +9,13 @@ import com.flexaura.core.network.model.UserDto
 import com.flexaura.core.network.model.UserProfileDto
 import com.flexaura.core.network.model.VoteDto
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,6 +23,12 @@ import javax.inject.Singleton
 class SupabaseRemoteDataSourceImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
 ) : SupabaseRemoteDataSource {
+    override val currentUserId: String?
+        get() = supabaseClient.auth.currentUserOrNull()?.id
+
+    private fun requireCurrentUserId(): String =
+        currentUserId ?: throw Exception("No user logged in")
+
     // -------------------- Users --------------------
     override suspend fun getUser(userId: String): UserDto? =
         supabaseClient.postgrest["users"]
@@ -26,35 +36,53 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 filter { eq("id", userId) }
             }.decodeSingleOrNull<UserDto>()
 
-    override suspend fun updateUser(user: UserDto): UserDto =
-        supabaseClient.postgrest["users"]
-            .update(user) {
-                filter { eq("id", user.id) }
-            }.decodeSingle<UserDto>()
+    override suspend fun updateProfile(
+        username: String,
+        displayName: String,
+        imageUrl: String?,
+        bio: String?
+    ): UserDto {
+        val currentId = requireCurrentUserId()
+        val updateBody = buildJsonObject {
+            put("username", username)
+            put("display_name", displayName)
+            put("image_url", imageUrl)
+            put("bio", bio)
+        }
 
-    override suspend fun getUserProfile(
-        userId: String,
-        currentUserId: String
-    ): UserProfileDto? =
-        supabaseClient.postgrest["users"]
-            .select(columns = Columns.raw("""
+        return supabaseClient.postgrest["users"]
+            .update(updateBody) {
+                filter { eq("id", currentId) }
+            }.decodeSingle<UserDto>()
+    }
+
+    override suspend fun getUserProfile(userId: String): UserProfileDto? {
+        val currentId = requireCurrentUserId()
+        return supabaseClient.postgrest["users"]
+            .select(
+                columns = Columns.raw(
+                    """
                 *,
-                follows!following_id(id).filter(follower_id.eq.$currentUserId),
-            """)) {
+                follows!following_id(id).filter(follower_id.eq.$currentId),
+            """)
+            ) {
                 filter { eq("id", userId) }
             }.decodeSingleOrNull<UserProfileDto>()
+    }
 
     // -------------------- Followers --------------------
-    override suspend fun followUser(followerId: String, followingId: String) {
-        val follow = FollowDto(followerId = followerId, followingId = followingId)
+    override suspend fun followUser(followingId: String) {
+        val currentId = requireCurrentUserId()
+        val follow = FollowDto(followerId = currentId, followingId = followingId)
         supabaseClient.postgrest["follows"].insert(follow)
     }
 
-    override suspend fun unfollowUser(followerId: String, followingId: String) {
+    override suspend fun unfollowUser(followingId: String) {
+        val currentId = requireCurrentUserId()
         supabaseClient.postgrest["follows"]
             .delete {
                 filter {
-                    eq("follower_id", followerId)
+                    eq("follower_id", currentId)
                     eq("following_id", followingId)
                 }
             }
@@ -96,30 +124,37 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 filter { eq("id", postId) }
             }.decodeSingleOrNull<PostDto>()
 
-    override suspend fun getPosts(
-        currentUserId: String,
-        page: Int,
-        pageSize: Int
-    ): List<PostWithInteractionsDto> {
+    override suspend fun getPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto> {
+        val currentId = requireCurrentUserId()
         val from = (page - 1) * pageSize
         val to = page * pageSize -1
 
         return supabaseClient.postgrest["posts"]
             .select(columns = Columns.raw("""
                 *,
-                votes(value).filter(user_id.eq.$currentUserId),
-                saves(id).filter(user_id.eq.$currentUserId)
+                votes(value).filter(user_id.eq.$currentId),
+                saves(id).filter(user_id.eq.$currentId)
             """)) {
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
             }.decodeList<PostWithInteractionsDto>()
     }
 
-    override suspend fun createPost(post: PostDto): PostDto =
-        supabaseClient.postgrest["posts"]
+    override suspend fun createPost(content: String?, imageUrl: String?): PostDto {
+        val currentId = requireCurrentUserId()
+        val post = PostDto(
+            id = UUID.randomUUID().toString(),
+            authorId = currentId,
+            content = content,
+            imageUrl = imageUrl,
+            createdAt = ""
+        )
+
+        return supabaseClient.postgrest["posts"]
             .insert(post) {
                 select()
             }.decodeSingle<PostDto>()
+    }
 
     override suspend fun deletePost(postId: String) {
         supabaseClient.postgrest["posts"]
@@ -128,16 +163,25 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             }
     }
     // -------------------- Votes --------------------
-    override suspend fun upsertVote(vote: VoteDto) {
+    override suspend fun upsertVote(postId: String, value: Int) {
+        val currentId = requireCurrentUserId()
+        val vote = VoteDto(
+            id = UUID.randomUUID().toString(),
+            userId = currentId,
+            postId = postId,
+            value = value
+        )
+
         supabaseClient.postgrest["votes"].upsert(vote)
     }
 
-    override suspend fun deleteVote(userId: String, postId: String) {
+    override suspend fun deleteVote(postId: String) {
+        val currentId = requireCurrentUserId()
         supabaseClient.postgrest["votes"]
             .delete {
                 filter {
                     eq("post_id", postId)
-                    eq("user_id", userId)
+                    eq("user_id", currentId)
                 }
             }
     }
@@ -150,11 +194,21 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 order("created_at", Order.DESCENDING)
             }.decodeList<CommentDto>()
 
-    override suspend fun createComment(comment: CommentDto): CommentDto =
-        supabaseClient.postgrest["comments"]
+    override suspend fun createComment(postId: String, content: String): CommentDto {
+        val currentId = requireCurrentUserId()
+        val comment = CommentDto(
+            id = UUID.randomUUID().toString(),
+            postId = postId,
+            authorId = currentId,
+            content = content,
+            createdAt = ""
+        )
+
+        return supabaseClient.postgrest["comments"]
             .insert(comment) {
                 select()
             }.decodeSingle<CommentDto>()
+    }
 
     override suspend fun deleteComment(commentId: String) {
         supabaseClient.postgrest["comments"]
@@ -164,31 +218,36 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
     }
 
     // -------------------- Saves --------------------
-    override suspend fun savePost(save: SaveDto) {
+    override suspend fun savePost(postId: String) {
+        val currentId = requireCurrentUserId()
+        val save = SaveDto(
+            id = UUID.randomUUID().toString(),
+            userId = currentId,
+            postId = postId
+        )
+
         supabaseClient.postgrest["saves"].insert(save)
     }
 
-    override suspend fun unsavePost(userId: String, postId: String) {
+    override suspend fun unsavePost(postId: String) {
+        val currentId = requireCurrentUserId()
         supabaseClient.postgrest["saves"]
             .delete {
                 filter {
-                    eq("user_id", userId)
+                    eq("user_id", currentId)
                     eq("post_id", postId)
                 }
             }
     }
 
-    override suspend fun getSavedPosts(
-        userId: String,
-        page: Int,
-        pageSize: Int
-    ): List<PostDto> {
+    override suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostDto> {
+        val currentId = requireCurrentUserId()
         val from = (page - 1) * pageSize
         val to = page * pageSize -1
 
         return supabaseClient.postgrest["saves"]
             .select(columns = Columns.raw("posts(*)")) {
-                filter { eq("user_id", userId) }
+                filter { eq("user_id", currentId) }
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
             }.decodeList<PostDto>()
