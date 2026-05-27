@@ -44,15 +44,12 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createPost(
-        content: String,
-        imageUrl: String
+        content: String?,
+        imageUrl: String?
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            networkDataSource.createPost(content = content, imageUrl =  imageUrl)
-            syncPosts(
-                page = 1,
-                pageSize = 10
-            ).getOrThrow()
+            networkDataSource.createPost(content = content, imageUrl = imageUrl)
+            syncPosts(page = 1, pageSize = 10).getOrThrow()
         }
     }.await()
 
@@ -78,22 +75,15 @@ class PostRepositoryImpl @Inject constructor(
             }
         }.await()
 
-    override suspend fun updateLocalVote(
-        postId: String,
-        voteValue: Int
-    ): Result<Unit> = withContext(dispatcher) {
-        runCatching { postDao.updateLocalVote(postId, voteValue) }
-    }
-
-    override suspend fun remoteUpsertVote(
+    override suspend fun votePost(
         postId: String,
         voteValue: Int
     ): Result<Unit> = scope.async(dispatcher) {
-        runCatching { networkDataSource.upsertVote(postId = postId, value = voteValue) }
-    }.await()
+        runCatching {
+            postDao.updateLocalVote(postId = postId, voteValue = voteValue)
 
-    override suspend fun remoteDeleteVote(postId: String): Result<Unit> =
-        scope.async(dispatcher) {
-            runCatching { networkDataSource.deleteVote(postId) }
-        }.await()
+            if (voteValue == 0) networkDataSource.deleteVote(postId = postId)
+            else networkDataSource.upsertVote(postId = postId, value = voteValue)
+        }
+    }.await()
 }

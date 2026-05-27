@@ -7,10 +7,8 @@ interface PostRepository {
     fun getPostsFlow(): Flow<List<Post>>
     suspend fun getPostById(postId: String): Post?
     suspend fun syncPosts(page: Int, pageSize: Int): Result<Unit>
-    suspend fun createPost(content: String, imageUrl: String): Result<Unit>
+    suspend fun createPost(content: String?, imageUrl: String?): Result<Unit>
     suspend fun toggleSavePost(postId: String): Result<Unit>
     suspend fun deletePost(postId: String): Result<Unit>
-    suspend fun updateLocalVote(postId: String, voteValue: Int): Result<Unit>
-    suspend fun remoteUpsertVote(postId: String, voteValue: Int): Result<Unit>
-    suspend fun remoteDeleteVote(postId: String): Result<Unit>
+    suspend fun votePost(postId: String, voteValue: Int): Result<Unit>
 }
