@@ -22,20 +22,20 @@ interface SupabaseRemoteDataSource  {
     // Posts
     suspend fun getPost(postId: String): PostDto?
     suspend fun getPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto>
-    suspend fun createPost(content: String?, imageUrl: String?): PostDto// modificada
+    suspend fun createPost(content: String?, imageUrl: String?): PostDto
     suspend fun deletePost(postId: String)
 
     // Votes
-    suspend fun upsertVote(postId: String, value: Int)// modificada
+    suspend fun upsertVote(postId: String, value: Int)
     suspend fun deleteVote(postId: String)
 
     // Comments
     suspend fun getComments(postId: String): List<CommentDto>
-    suspend fun createComment(postId: String, content: String): CommentDto// modificada
+    suspend fun createComment(postId: String, content: String): CommentDto
     suspend fun deleteComment(commentId: String)
 
     // Saves
-    suspend fun savePost(postId: String)// modificada
+    suspend fun savePost(postId: String)
     suspend fun unsavePost(postId: String)
     suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostDto>
 }
