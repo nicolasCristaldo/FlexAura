@@ -117,6 +117,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 range(from.toLong(), to.toLong())
             }.decodeList<UserDto>()
     }
+
     // -------------------- Posts --------------------
     override suspend fun getPost(postId: String): PostDto? =
         supabaseClient.postgrest["posts"]
