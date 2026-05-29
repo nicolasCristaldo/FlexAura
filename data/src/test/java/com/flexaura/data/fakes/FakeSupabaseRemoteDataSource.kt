@@ -1,6 +1,6 @@
 package com.flexaura.data.fakes
 
-import com.flexaura.core.network.datasource.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
 import com.flexaura.core.network.model.CommentDto
 import com.flexaura.core.network.model.FollowDto
 import com.flexaura.core.network.model.PostDto
