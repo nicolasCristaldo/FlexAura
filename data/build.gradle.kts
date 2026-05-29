@@ -41,12 +41,17 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+
     // Hilt
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)
 
     // Coroutines Test
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Auth
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

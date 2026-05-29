@@ -1,4 +1,4 @@
-package com.flexaura.core.network.datasource
+package com.flexaura.core.network.datasource.database
 
 import com.flexaura.core.network.model.CommentDto
 import com.flexaura.core.network.model.FollowDto
@@ -60,7 +60,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val currentId = requireCurrentUserId()
         return supabaseClient.postgrest["users"]
             .select(
-                columns = Columns.raw(
+                columns = Columns.Companion.raw(
                     """
                 *,
                 follows!following_id(id).filter(follower_id.eq.$currentId),
@@ -68,6 +68,21 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             ) {
                 filter { eq("id", userId) }
             }.decodeSingleOrNull<UserProfileDto>()
+    }
+
+    override suspend fun insertProfile(
+        userId: String,
+        username: String,
+        displayName: String
+    ): UserDto {
+        val body = buildJsonObject {
+            put("id", userId)
+            put("username", username)
+            put("display_name", displayName)
+        }
+
+        return supabaseClient.postgrest["users"]
+            .insert(body) { select() }.decodeSingle<UserDto>()
     }
 
     // -------------------- Followers --------------------
@@ -97,7 +112,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val to = page * pageSize -1
 
         return supabaseClient.postgrest["follows"]
-            .select(columns = Columns.raw("users!follower_id(*)")) {
+            .select(columns = Columns.Companion.raw("users!follower_id(*)")) {
                 filter { eq("following_id", userId) }
                 range(from.toLong(), to.toLong())
             }.decodeList<UserDto>()
@@ -112,7 +127,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val to = page * pageSize -1
 
         return supabaseClient.postgrest["follows"]
-            .select(columns = Columns.raw("users!following_id(*)")) {
+            .select(columns = Columns.Companion.raw("users!following_id(*)")) {
                 filter { eq("follower_id", userId) }
                 range(from.toLong(), to.toLong())
             }.decodeList<UserDto>()
@@ -131,7 +146,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val to = page * pageSize -1
 
         return supabaseClient.postgrest["posts"]
-            .select(columns = Columns.raw("""
+            .select(columns = Columns.Companion.raw("""
                 *,
                 votes(value).filter(user_id.eq.$currentId),
                 saves(id).filter(user_id.eq.$currentId)
@@ -247,7 +262,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val to = page * pageSize -1
 
         return supabaseClient.postgrest["saves"]
-            .select(columns = Columns.raw("posts(*)")) {
+            .select(columns = Columns.Companion.raw("posts(*)")) {
                 filter { eq("user_id", currentId) }
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())

@@ -1,7 +1,7 @@
 package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.UserDao
-import com.flexaura.core.network.datasource.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.User

@@ -1,5 +1,6 @@
 package com.flexaura.data.di
 
+import com.flexaura.data.domain.repository.AuthRepository
 import com.flexaura.data.domain.repository.CommentRepository
 import com.flexaura.data.repository.CommentRepositoryImpl
 import com.flexaura.data.domain.repository.PostRepository
@@ -32,4 +33,10 @@ abstract class RepositoryModule {
     abstract fun bindCommentRepository(
         commentRepositoryImpl: CommentRepositoryImpl
     ): CommentRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepository: AuthRepository
+    ): AuthRepository
 }
