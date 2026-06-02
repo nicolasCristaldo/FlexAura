@@ -10,4 +10,6 @@ plugins {
     alias(libs.plugins.dagger.hilt.android) apply false
     // Secrets
     alias(libs.plugins.google.secrets) apply false
+    // Serialization
+    alias(libs.plugins.kotlinx.serialization) apply false
 }
