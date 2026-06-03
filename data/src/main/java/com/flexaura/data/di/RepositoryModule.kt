@@ -6,6 +6,7 @@ import com.flexaura.data.repository.CommentRepositoryImpl
 import com.flexaura.data.domain.repository.PostRepository
 import com.flexaura.data.repository.PostRepositoryImpl
 import com.flexaura.data.domain.repository.UserRepository
+import com.flexaura.data.repository.AuthRepositoryImpl
 import com.flexaura.data.repository.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -37,6 +38,6 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(
-        authRepository: AuthRepository
+        authRepository: AuthRepositoryImpl
     ): AuthRepository
 }
