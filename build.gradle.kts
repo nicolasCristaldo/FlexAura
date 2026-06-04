@@ -12,4 +12,8 @@ plugins {
     alias(libs.plugins.google.secrets) apply false
     // Serialization
     alias(libs.plugins.kotlinx.serialization) apply false
+    // Google services
+    alias(libs.plugins.google.services) apply false
+    // Firebase
+    alias(libs.plugins.firebase.crashlytics) apply false
 }

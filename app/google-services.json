@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1022464135086",
+    "project_id": "flexaura-8917e",
+    "storage_bucket": "flexaura-8917e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1022464135086:android:5f256452407ccbf8e9023f",
+        "android_client_info": {
+          "package_name": "com.nicolascristaldo.flexaura"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9e50dRaHHElnPsOQM3fZuV8FkaIenfWY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

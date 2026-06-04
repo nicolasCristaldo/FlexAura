@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
                     val authState = viewModel.authState.collectAsStateWithLifecycle()
                     val navController = rememberNavController()
 
-                    when(authState.value) {
+                    when (authState.value) {
                         is AuthState.Loading -> {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -42,12 +42,15 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
                         }
+
                         is AuthState.Authenticated -> {
+
                             FlexAuraNavHost(
                                 navController = navController,
                                 startDestination = HomeDestination
                             )
                         }
+
                         is AuthState.UnAuthenticated -> {
                             FlexAuraNavHost(
                                 navController = navController,
