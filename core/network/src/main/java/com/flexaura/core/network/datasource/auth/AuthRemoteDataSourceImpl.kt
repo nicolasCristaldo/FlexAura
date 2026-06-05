@@ -7,6 +7,8 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import javax.inject.Inject
 
 class AuthRemoteDataSourceImpl @Inject constructor(
@@ -17,11 +19,17 @@ class AuthRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun signUpWithEmail(
         email: String,
-        password: String
+        password: String,
+        username: String,
+        displayName: String
     ): String {
         val user = supabaseClient.auth.signUpWith(Email) {
             this.email = email
             this.password = password
+            this.data = buildJsonObject {
+                put("username", username)
+                put("display_name", displayName)
+            }
         }
 
         return user?.id ?: throw Exception("Sign up failed: User not found")

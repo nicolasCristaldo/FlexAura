@@ -45,14 +45,15 @@ class AuthRepositoryImpl @Inject constructor(
         displayName: String
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            val newUserId = authRemoteDataSource.signUpWithEmail(email = email, password =  password)
-            val userDto = supabaseRemoteDataSource.insertProfile(
-                userId = newUserId,
+            val newUserId = authRemoteDataSource.signUpWithEmail(
+                email = email,
+                password =  password,
                 username = username,
                 displayName = displayName
             )
+            val remoteUser = supabaseRemoteDataSource.getUser(userId = newUserId) ?: throw Exception("Register failed")
 
-            userDao.upsertUser(userDto.toEntity())
+            userDao.upsertUser(remoteUser.toEntity())
         }
     }.await()
 
@@ -74,20 +75,12 @@ class AuthRepositoryImpl @Inject constructor(
             runCatching {
                 authRemoteDataSource.signInWithGoogle(idToken = idToken)
 
-                val userId = supabaseRemoteDataSource.currentUserId ?: throw Exception("Login failed")
+                val userId = supabaseRemoteDataSource.currentUserId
+                    ?: throw Exception("Login failed")
                 val remoteUser = supabaseRemoteDataSource.getUser(userId = userId)
+                    ?: throw Exception("Login failed")
 
-                if (remoteUser == null) {
-                    val defaultUser = supabaseRemoteDataSource.insertProfile(
-                        userId = userId,
-                        username = "user_${userId.takeLast(5)}",
-                        displayName = "User $userId"
-                    )
-                    userDao.upsertUser(user = defaultUser.toEntity())
-                }
-                else {
-                    userDao.upsertUser(user = remoteUser.toEntity())
-                }
+                userDao.upsertUser(user = remoteUser.toEntity())
             }
         }.await()
 

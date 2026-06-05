@@ -70,21 +70,6 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             }.decodeSingleOrNull<UserProfileDto>()
     }
 
-    override suspend fun insertProfile(
-        userId: String,
-        username: String,
-        displayName: String
-    ): UserDto {
-        val body = buildJsonObject {
-            put("id", userId)
-            put("username", username)
-            put("display_name", displayName)
-        }
-
-        return supabaseClient.postgrest["users"]
-            .insert(body) { select() }.decodeSingle<UserDto>()
-    }
-
     // -------------------- Followers --------------------
     override suspend fun followUser(followingId: String) {
         val currentId = requireCurrentUserId()
