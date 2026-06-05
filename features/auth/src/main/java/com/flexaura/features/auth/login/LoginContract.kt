@@ -18,5 +18,6 @@ data class LoginUiState(
 sealed interface LoginUiEffect {
     object NavigateToRegister: LoginUiEffect
     object NavigateToHome: LoginUiEffect
+    object LaunchGoogleSignIn: LoginUiEffect
     data class ShowSnackBar(val message: String): LoginUiEffect
 }

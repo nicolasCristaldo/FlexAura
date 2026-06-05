@@ -42,15 +42,12 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
                         }
-
                         is AuthState.Authenticated -> {
-
                             FlexAuraNavHost(
                                 navController = navController,
                                 startDestination = HomeDestination
                             )
                         }
-
                         is AuthState.UnAuthenticated -> {
                             FlexAuraNavHost(
                                 navController = navController,
