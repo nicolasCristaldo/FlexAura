@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.google.secrets)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 android {
@@ -60,6 +61,9 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Hilt
     implementation(libs.dagger.hilt.android)
