@@ -52,6 +52,7 @@ class LoginViewModel @Inject constructor(
 
     private fun loginWithGoogle() {
         _uiState.update { it.copy(isLoading = true) }
+        emmitEffect(LoginUiEffect.LaunchGoogleSignIn)
     }
 
     fun onGoogleTokenReceived(token: String) = viewModelScope.launch {
@@ -63,6 +64,10 @@ class LoginViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false) }
                 _uiEffect.emit(LoginUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
+    }
+
+    fun onGoogleSignInCancelled() {
+        _uiState.update { it.copy(isLoading = false) }
     }
 
     private fun emmitEffect(effect: LoginUiEffect) = viewModelScope.launch {

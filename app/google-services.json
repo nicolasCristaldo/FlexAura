@@ -12,7 +12,20 @@
           "package_name": "com.nicolascristaldo.flexaura"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1022464135086-s3ibulca24mfh0uf8bqrs48dgpg0tstt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nicolascristaldo.flexaura",
+            "certificate_hash": "a8f8e2d2aec175a7806ff812729736ff98682056"
+          }
+        },
+        {
+          "client_id": "1022464135086-ee82mdmbao7atfplo187m8fdn28ke0lo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB9e50dRaHHElnPsOQM3fZuV8FkaIenfWY"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1022464135086-ee82mdmbao7atfplo187m8fdn28ke0lo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

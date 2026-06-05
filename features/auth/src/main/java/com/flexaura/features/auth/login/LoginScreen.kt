@@ -15,8 +15,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,22 +34,32 @@ fun LoginRoute(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is LoginUiEffect.NavigateToRegister -> onNavigateToRegister()
                 is LoginUiEffect.NavigateToHome -> onNavigateToHome()
+                is LoginUiEffect.LaunchGoogleSignIn -> {
+                    launchGoogleSignIn(
+                        context = context,
+                        viewModel = viewModel,
+                        coroutineScope = coroutineScope,
+                        snackBarHostState = snackBarHostState
+                    )
+                }
                 is LoginUiEffect.ShowSnackBar -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    snackBarHostState.showSnackbar(effect.message)
                 }
             }
         }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { paddingValues ->
         LoginScreen(
             state = state.value,

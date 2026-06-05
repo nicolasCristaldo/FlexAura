@@ -12,7 +12,6 @@ interface SupabaseRemoteDataSource  {
     suspend fun getUser(userId: String): UserDto?
     suspend fun updateProfile(username: String, displayName: String, imageUrl: String?, bio: String?): UserDto
     suspend fun getUserProfile(userId: String): UserProfileDto?
-    suspend fun insertProfile(userId: String, username: String, displayName: String): UserDto
 
     // Followers
     suspend fun followUser(followingId: String)
