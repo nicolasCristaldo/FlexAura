@@ -13,7 +13,8 @@ import com.flexaura.features.auth.navigation.AuthGraph
 import com.flexaura.features.auth.navigation.LoginRouteDestination
 import com.flexaura.features.auth.navigation.RegisterRouteDestination
 import com.flexaura.features.auth.navigation.authGraph
-import com.nicolascristaldo.flexaura.HomeDestination
+import com.flexaura.features.home.navigation.HomeGraph
+import com.flexaura.features.home.navigation.homeGraph
 
 
 @Composable
@@ -35,19 +36,12 @@ fun FlexAuraNavHost(
                 navController.navigate(RegisterRouteDestination)
             },
             onNavigateToHome = {
-                navController.navigate(HomeDestination) {
+                navController.navigate(HomeGraph) {
                     popUpTo(AuthGraph) { inclusive = true }
                 }
             }
         )
 
-        composable<HomeDestination> {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text("Welcome to FlexAura")
-            }
-        }
+        homeGraph()
     }
 }

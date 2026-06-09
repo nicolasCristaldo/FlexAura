@@ -3,9 +3,9 @@ package com.flexaura.features.auth.login
 sealed interface LoginUiIntent {
     data class OnEmailChanged(val email: String): LoginUiIntent
     data class OnPasswordChanged(val password: String): LoginUiIntent
-    object OnLoginClicked: LoginUiIntent
-    object OnGoogleLoginClicked: LoginUiIntent
-    object OnRegisterNavigated: LoginUiIntent
+    data object OnLoginClicked: LoginUiIntent
+    data object OnGoogleLoginClicked: LoginUiIntent
+    data object OnRegisterNavigated: LoginUiIntent
 }
 
 data class LoginUiState(
@@ -16,8 +16,8 @@ data class LoginUiState(
 )
 
 sealed interface LoginUiEffect {
-    object NavigateToRegister: LoginUiEffect
-    object NavigateToHome: LoginUiEffect
-    object LaunchGoogleSignIn: LoginUiEffect
+    data object NavigateToRegister: LoginUiEffect
+    data object NavigateToHome: LoginUiEffect
+    data object LaunchGoogleSignIn: LoginUiEffect
     data class ShowSnackBar(val message: String): LoginUiEffect
 }

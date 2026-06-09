@@ -131,11 +131,11 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val to = page * pageSize -1
 
         return supabaseClient.postgrest["posts"]
-            .select(columns = Columns.Companion.raw("""
-                *,
-                votes(value).filter(user_id.eq.$currentId),
-                saves(id).filter(user_id.eq.$currentId)
-            """)) {
+            .select(columns = Columns.Companion.raw("*, votes(*), saves(*)")) {
+                filter {
+                    eq("votes.user_id", currentId)
+                    eq("saves.user_id", currentId)
+                }
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
             }.decodeList<PostWithInteractionsDto>()
@@ -143,16 +143,15 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun createPost(content: String?, imageUrl: String?): PostDto {
         val currentId = requireCurrentUserId()
-        val post = PostDto(
-            id = UUID.randomUUID().toString(),
-            authorId = currentId,
-            content = content,
-            imageUrl = imageUrl,
-            createdAt = ""
-        )
+        val postBody = buildJsonObject {
+            put("id", UUID.randomUUID().toString())
+            put("author_id", currentId)
+            put("content", content)
+            put("image_url", imageUrl)
+        }
 
         return supabaseClient.postgrest["posts"]
-            .insert(post) {
+            .insert(postBody) {
                 select()
             }.decodeSingle<PostDto>()
     }
@@ -173,7 +172,9 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             value = value
         )
 
-        supabaseClient.postgrest["votes"].upsert(vote)
+        supabaseClient.postgrest["votes"].upsert(vote) {
+            onConflict = "user_id,post_id"
+        }
     }
 
     override suspend fun deleteVote(postId: String) {
