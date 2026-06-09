@@ -5,8 +5,8 @@ sealed interface RegisterUiIntent {
     data class OnPasswordChanged(val password: String): RegisterUiIntent
     data class OnUsernameChanged(val username: String): RegisterUiIntent
     data class OnDisplayNameChanged(val displayName: String): RegisterUiIntent
-    object OnRegisterClicked: RegisterUiIntent
-    object OnLoginNavigated: RegisterUiIntent
+    data object OnRegisterClicked: RegisterUiIntent
+    data object OnLoginNavigated: RegisterUiIntent
 }
 
 data class RegisterUiState(
@@ -19,7 +19,7 @@ data class RegisterUiState(
 )
 
 sealed interface RegisterUiEffect {
-    object NavigateToLogin: RegisterUiEffect
-    object NavigateToHome: RegisterUiEffect
+    data object NavigateToLogin: RegisterUiEffect
+    data object NavigateToHome: RegisterUiEffect
     data class ShowSnackBar(val message: String): RegisterUiEffect
 }
