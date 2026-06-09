@@ -59,8 +59,10 @@ class PostRepositoryImpl @Inject constructor(
                 val currentPost =
                     postDao.getPostById(postId) ?: throw Exception("No post found")
                 val newSaveState = !currentPost.isSavedByUser
+                val newSavesCount = if (newSaveState) currentPost.savesCount + 1
+                                    else (currentPost.savesCount - 1).coerceAtLeast(0)
 
-                postDao.updateLocalSaveState(postId, newSaveState)
+                postDao.updateLocalSaveState(postId, newSaveState, newSavesCount)
 
                 if (newSaveState) networkDataSource.savePost(postId)
                 else networkDataSource.unsavePost(postId)
@@ -80,7 +82,12 @@ class PostRepositoryImpl @Inject constructor(
         voteValue: Int
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            postDao.updateLocalVote(postId = postId, voteValue = voteValue)
+            val currentPost = postDao.getPostById(postId) ?: throw Exception("No post found")
+            val oldVote = currentPost.currentUserVote
+            val diff = voteValue - oldVote
+            val newTotalAura = currentPost.totalAura + diff
+
+            postDao.updateLocalVote(postId = postId, voteValue = voteValue, newTotalAura = newTotalAura)
 
             if (voteValue == 0) networkDataSource.deleteVote(postId = postId)
             else networkDataSource.upsertVote(postId = postId, value = voteValue)
