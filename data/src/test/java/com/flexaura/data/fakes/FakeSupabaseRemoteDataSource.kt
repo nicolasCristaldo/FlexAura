@@ -116,6 +116,14 @@ class FakeSupabaseRemoteDataSource : SupabaseRemoteDataSource {
         remotePosts.removeAll { it.post.id == postId }
     }
 
+    override suspend fun getPostsByAuthor(
+        authorId: String,
+        page: Int,
+        pageSize: Int
+    ): List<PostWithInteractionsDto> {
+        return remotePosts.filter { it.authorId == authorId }
+    }
+
     override suspend fun upsertVote(postId: String, value: Int) {
         val vote = VoteDto(
             id = UUID.randomUUID().toString(),

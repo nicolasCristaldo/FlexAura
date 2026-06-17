@@ -2,9 +2,11 @@ package com.flexaura.core.network.datasource.database
 
 import com.flexaura.core.network.model.CommentDto
 import com.flexaura.core.network.model.FollowDto
+import com.flexaura.core.network.model.FollowResponseDto
 import com.flexaura.core.network.model.PostDto
 import com.flexaura.core.network.model.PostWithInteractionsDto
 import com.flexaura.core.network.model.SaveDto
+import com.flexaura.core.network.model.SavedPostsResponseDto
 import com.flexaura.core.network.model.UserDto
 import com.flexaura.core.network.model.UserProfileDto
 import com.flexaura.core.network.model.VoteDto
@@ -100,7 +102,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             .select(columns = Columns.Companion.raw("users!follower_id(*)")) {
                 filter { eq("following_id", userId) }
                 range(from.toLong(), to.toLong())
-            }.decodeList<UserDto>()
+            }.decodeList<FollowResponseDto>().map { it.user }
     }
 
     override suspend fun getFollowing(
@@ -115,7 +117,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             .select(columns = Columns.Companion.raw("users!following_id(*)")) {
                 filter { eq("follower_id", userId) }
                 range(from.toLong(), to.toLong())
-            }.decodeList<UserDto>()
+            }.decodeList<FollowResponseDto>().map { it.user }
     }
 
     // -------------------- Posts --------------------
@@ -162,6 +164,28 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 filter { eq("id", postId) }
             }
     }
+
+    override suspend fun getPostsByAuthor(
+        authorId: String,
+        page: Int,
+        pageSize: Int
+    ): List<PostWithInteractionsDto> {
+        val currentId = requireCurrentUserId()
+        val from = (page - 1) * pageSize
+        val to = page * pageSize - 1
+
+        return supabaseClient.postgrest["posts"]
+            .select(columns = Columns.Companion.raw("*, votes(*), saves(*)")) {
+                filter {
+                    eq("author_id", authorId)
+                    eq("votes.user_id", currentId)
+                    eq("saves.user_id", currentId)
+                }
+                order("created_at", Order.DESCENDING)
+                range(from.toLong(), to.toLong())
+            }.decodeList<PostWithInteractionsDto>()
+    }
+
     // -------------------- Votes --------------------
     override suspend fun upsertVote(postId: String, value: Int) {
         val currentId = requireCurrentUserId()
@@ -252,6 +276,6 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 filter { eq("user_id", currentId) }
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
-            }.decodeList<PostDto>()
+            }.decodeList<SavedPostsResponseDto>().map { it.post }
     }
 }

@@ -31,12 +31,30 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun getPostById(postId: String): Post? =
         postDao.getPostById(postId)?.toDomain()
 
+    override fun getPostsByAuthorFlow(userId: String): Flow<List<Post>> =
+        postDao.getPostsByAuthorFlow(userId)
+            .map { postEntities -> postEntities.map { it.toDomain() } }
+            .flowOn(dispatcher)
+
     override suspend fun syncPosts(
         page: Int,
         pageSize: Int
     ): Result<Unit> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.getPosts(page, pageSize)
+            val postEntities = remotePosts.map { it.toEntity() }
+
+            postDao.upsertPosts(postEntities)
+        }
+    }
+
+    override suspend fun syncPostsByAuthor(
+        userId: String,
+        page: Int,
+        pageSize: Int
+    ): Result<Unit> = withContext(dispatcher) {
+        runCatching {
+            val remotePosts = networkDataSource.getPostsByAuthor(userId, page, pageSize)
             val postEntities = remotePosts.map { it.toEntity() }
 
             postDao.upsertPosts(postEntities)
