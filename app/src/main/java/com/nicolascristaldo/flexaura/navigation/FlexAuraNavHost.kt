@@ -1,47 +1,90 @@
 package com.nicolascristaldo.flexaura.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.flexaura.features.auth.navigation.AuthGraph
 import com.flexaura.features.auth.navigation.LoginRouteDestination
 import com.flexaura.features.auth.navigation.RegisterRouteDestination
 import com.flexaura.features.auth.navigation.authGraph
 import com.flexaura.features.home.navigation.HomeGraph
 import com.flexaura.features.home.navigation.homeGraph
-
+import com.flexaura.features.profile.navigation.ProfileRouteDestination
+import com.flexaura.features.profile.navigation.profileGraph
 
 @Composable
 fun FlexAuraNavHost(
     navController: NavHostController,
-    startDestination: Any,
+    startDestination: Any
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
-    ) {
-        authGraph(
-            onNavigateToLogin = {
-                navController.navigate(LoginRouteDestination) {
-                    popUpTo(RegisterRouteDestination) { inclusive = true }
-                }
-            },
-            onNavigateToRegister = {
-                navController.navigate(RegisterRouteDestination)
-            },
-            onNavigateToHome = {
-                navController.navigate(HomeGraph) {
-                    popUpTo(AuthGraph) { inclusive = true }
-                }
-            }
-        )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
-        homeGraph()
+    val destinations = listOf(TopLevelDestination.Home, TopLevelDestination.Profile)
+
+    val showBottomBar = destinations.any { destination ->
+        currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
+    }
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                FlexAuraBottomBar(
+                    destinations = destinations,
+                    currentDestination = currentDestination,
+                    onNavigateToDestination = { destination ->
+                        val route = when(destination) {
+                            TopLevelDestination.Home -> HomeGraph
+                            TopLevelDestination.Profile -> ProfileRouteDestination()
+                            else -> HomeGraph
+                        }
+
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    modifier = Modifier.height(110.dp)
+                )
+            }
+        }
+    ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            authGraph(
+                onNavigateToLogin = {
+                    navController.navigate(LoginRouteDestination) {
+                        popUpTo(RegisterRouteDestination) { inclusive = true }
+                    }
+                },
+                onNavigateToRegister = {
+                    navController.navigate(RegisterRouteDestination)
+                },
+                onNavigateToHome = {
+                    navController.navigate(HomeGraph) {
+                        popUpTo(AuthGraph) { inclusive = true }
+                    }
+                }
+            )
+
+            homeGraph()
+            profileGraph()
+        }
     }
 }
