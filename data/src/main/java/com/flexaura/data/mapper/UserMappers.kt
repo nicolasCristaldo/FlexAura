@@ -6,15 +6,15 @@ import com.flexaura.core.network.model.UserProfileDto
 import com.flexaura.data.domain.model.User
 
 fun UserProfileDto.toEntity(): UserEntity = UserEntity(
-    id = user.id,
-    username = user.username,
-    displayName = user.displayName,
-    imageUrl = user.imageUrl,
-    bio = user.bio,
-    totalAura = user.totalAura,
-    followersCount = user.followersCount,
-    followingCount = user.followingCount,
-    createdAt = user.createdAt,
+    id = id,
+    username = username,
+    displayName = displayName,
+    imageUrl = imageUrl,
+    bio = bio,
+    totalAura = totalAura,
+    followersCount = followersCount,
+    followingCount = followingCount,
+    createdAt = createdAt,
     isFollowedByCurrentUser = isCurrentUserFollowing
 )
 

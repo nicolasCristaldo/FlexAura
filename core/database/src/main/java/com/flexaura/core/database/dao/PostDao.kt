@@ -14,6 +14,9 @@ interface PostDao {
     @Query("SELECT * FROM posts WHERE id = :postId")
     suspend fun getPostById(postId: String): PostEntity?
 
+    @Query("SELECT * FROM posts WHERE author_id = :userId ORDER BY created_at DESC")
+    fun getPostsByAuthorFlow(userId: String): Flow<List<PostEntity>>
+
     @Upsert
     suspend fun upsertPosts(posts: List<PostEntity>)
 
