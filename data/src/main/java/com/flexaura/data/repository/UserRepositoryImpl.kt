@@ -75,4 +75,24 @@ class UserRepositoryImpl @Inject constructor(
             userDao.upsertUser(updatedUserDto.toEntity(isFollowed))
         }
     }.await()
+
+    override suspend fun searchUsers(
+        query: String,
+        page: Int,
+        pageSize: Int
+    ): Result<List<User>> = withContext(dispatcher) {
+        runCatching {
+            val remoteUsers = networkDataSource.searchUsers(query, page, pageSize)
+
+            remoteUsers.map { userDto ->
+                val localUser = userDao.getUserById(userDto.id)
+                val isFollowed = localUser?.isFollowedByCurrentUser ?: false
+                val userEntity = userDto.toEntity(isFollowed)
+
+                userDao.upsertUser(userEntity)
+
+                userEntity.toDomain()
+            }
+        }
+    }
 }
