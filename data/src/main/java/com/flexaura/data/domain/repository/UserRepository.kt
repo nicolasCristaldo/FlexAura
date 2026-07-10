@@ -13,4 +13,5 @@ interface UserRepository {
         imageUrl: String?,
         bio: String?
     ): Result<Unit>
+    suspend fun searchUsers(query: String, page: Int, pageSize: Int): Result<List<User>>
 }

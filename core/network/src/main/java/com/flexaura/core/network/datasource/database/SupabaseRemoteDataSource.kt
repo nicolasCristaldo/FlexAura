@@ -12,6 +12,7 @@ interface SupabaseRemoteDataSource  {
     suspend fun getUser(userId: String): UserDto?
     suspend fun updateProfile(username: String, displayName: String, imageUrl: String?, bio: String?): UserDto
     suspend fun getUserProfile(userId: String): UserProfileDto?
+    suspend fun searchUsers(query: String, page: Int, pageSize: Int): List<UserDto>
 
     // Followers
     suspend fun followUser(followingId: String)
@@ -25,6 +26,7 @@ interface SupabaseRemoteDataSource  {
     suspend fun createPost(content: String?, imageUrl: String?): PostDto
     suspend fun deletePost(postId: String)
     suspend fun getPostsByAuthor(authorId: String, page: Int, pageSize: Int): List<PostWithInteractionsDto>
+    suspend fun searchPosts(query: String, page: Int, pageSize: Int): List<PostWithInteractionsDto>
 
     // Votes
     suspend fun upsertVote(postId: String, value: Int)

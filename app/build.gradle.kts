@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":features:auth"))
     implementation(project(":features:home"))
     implementation(project(":features:profile"))
+    implementation(project(":features:search"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
