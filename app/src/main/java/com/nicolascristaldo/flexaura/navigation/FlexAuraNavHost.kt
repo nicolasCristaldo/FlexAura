@@ -21,6 +21,8 @@ import com.flexaura.features.home.navigation.HomeGraph
 import com.flexaura.features.home.navigation.homeGraph
 import com.flexaura.features.profile.navigation.ProfileRouteDestination
 import com.flexaura.features.profile.navigation.profileGraph
+import com.flexaura.search.navigation.SearchRouteDestination
+import com.flexaura.search.navigation.searchGraph
 
 @Composable
 fun FlexAuraNavHost(
@@ -30,7 +32,7 @@ fun FlexAuraNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val destinations = listOf(TopLevelDestination.Home, TopLevelDestination.Profile)
+    val destinations = provideTopLevelDestinations()
 
     val showBottomBar = destinations.any { destination ->
         currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
@@ -46,6 +48,7 @@ fun FlexAuraNavHost(
                         val route = when(destination) {
                             TopLevelDestination.Home -> HomeGraph
                             TopLevelDestination.Profile -> ProfileRouteDestination()
+                            TopLevelDestination.Search -> SearchRouteDestination
                             else -> HomeGraph
                         }
 
@@ -85,6 +88,7 @@ fun FlexAuraNavHost(
 
             homeGraph()
             profileGraph()
+            searchGraph()
         }
     }
 }

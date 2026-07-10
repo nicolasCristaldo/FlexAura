@@ -17,6 +17,9 @@ interface UserDao {
     @Upsert
     suspend fun upsertUser(user: UserEntity)
 
+    @Upsert
+    suspend fun upsertUsers(users: List<UserEntity>)
+
     @Query("""
         UPDATE users
         SET is_followed_by_current_user = :isFollowing,

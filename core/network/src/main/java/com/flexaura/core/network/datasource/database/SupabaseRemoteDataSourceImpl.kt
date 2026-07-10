@@ -72,6 +72,28 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             }.decodeSingleOrNull<UserProfileDto>()
     }
 
+    override suspend fun searchUsers(
+        query: String,
+        page: Int,
+        pageSize: Int
+    ): List<UserDto> {
+        val searchPattern = "%$query%"
+        val from = (page - 1) * pageSize
+        val to = page * pageSize - 1
+
+        return supabaseClient.postgrest["users"]
+            .select {
+                filter {
+                    or {
+                        ilike("username", searchPattern)
+                        ilike("display_name", searchPattern)
+                        ilike("bio", searchPattern)
+                    }
+                }
+                range(from.toLong(), to.toLong())
+            }.decodeList<UserDto>()
+    }
+
     // -------------------- Followers --------------------
     override suspend fun followUser(followingId: String) {
         val currentId = requireCurrentUserId()
@@ -183,6 +205,31 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 }
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
+            }.decodeList<PostWithInteractionsDto>()
+    }
+
+    override suspend fun searchPosts(
+        query: String,
+        page: Int,
+        pageSize: Int
+    ): List<PostWithInteractionsDto> {
+        val currentId = requireCurrentUserId()
+        val searchPattern = "%$query%"
+        val from = (page - 1) * pageSize
+        val to = page * pageSize - 1
+
+        return supabaseClient.postgrest["posts"]
+            .select(Columns.Companion.raw("""
+                *,
+                 votes!left(*),
+                 saves!left(*)
+            """.trimIndent())) {
+                filter {
+                    ilike("content", searchPattern)
+                    eq("votes.user_id", currentId)
+                    eq("saves.user_id", currentId)
+                }
+                range(from = from.toLong(), to = to.toLong())
             }.decodeList<PostWithInteractionsDto>()
     }
 

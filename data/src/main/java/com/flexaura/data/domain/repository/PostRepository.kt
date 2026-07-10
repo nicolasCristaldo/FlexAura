@@ -13,4 +13,5 @@ interface PostRepository {
     suspend fun toggleSavePost(postId: String): Result<Unit>
     suspend fun deletePost(postId: String): Result<Unit>
     suspend fun votePost(postId: String, voteValue: Int): Result<Unit>
+    suspend fun searchPosts(query: String, page: Int, pageSize: Int): Result<List<Post>>
 }

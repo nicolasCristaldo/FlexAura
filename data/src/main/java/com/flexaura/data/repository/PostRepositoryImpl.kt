@@ -1,6 +1,7 @@
 package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.PostDao
+import com.flexaura.core.database.dao.UserDao
 import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
@@ -19,6 +20,7 @@ import javax.inject.Inject
 
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
+    private val userDao: UserDao,
     private val networkDataSource: SupabaseRemoteDataSource,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
@@ -111,4 +113,18 @@ class PostRepositoryImpl @Inject constructor(
             else networkDataSource.upsertVote(postId = postId, value = voteValue)
         }
     }.await()
+
+    override suspend fun searchPosts(
+        query: String,
+        page: Int,
+        pageSize: Int
+    ): Result<List<Post>> = withContext(dispatcher) {
+        runCatching {
+            val remotePosts = networkDataSource.searchPosts(query, page, pageSize)
+            val postEntities = remotePosts.map { it.toEntity() }
+
+            postDao.upsertPosts(postEntities)
+            postEntities.map { it.toDomain() }
+        }
+    }
 }
