@@ -15,8 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.data.domain.repository.AuthState
-import com.flexaura.features.auth.navigation.AuthGraph
-import com.flexaura.features.home.navigation.HomeGraph
+import com.flexaura.navigation.AuthGraph
+import com.flexaura.navigation.HomeGraph
 import com.nicolascristaldo.flexaura.navigation.FlexAuraNavHost
 import com.nicolascristaldo.flexaura.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint

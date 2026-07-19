@@ -13,15 +13,17 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.flexaura.features.auth.navigation.AuthGraph
-import com.flexaura.features.auth.navigation.LoginRouteDestination
-import com.flexaura.features.auth.navigation.RegisterRouteDestination
 import com.flexaura.features.auth.navigation.authGraph
-import com.flexaura.features.home.navigation.HomeGraph
 import com.flexaura.features.home.navigation.homeGraph
-import com.flexaura.features.profile.navigation.ProfileRouteDestination
 import com.flexaura.features.profile.navigation.profileGraph
-import com.flexaura.search.navigation.SearchRouteDestination
+import com.flexaura.navigation.AuthGraph
+import com.flexaura.navigation.HomeGraph
+import com.flexaura.navigation.LoginRouteDestination
+import com.flexaura.navigation.PostDetailRouteDestination
+import com.flexaura.navigation.ProfileRouteDestination
+import com.flexaura.navigation.RegisterRouteDestination
+import com.flexaura.navigation.SearchRouteDestination
+import com.flexaura.post.navigation.postDetailGraph
 import com.flexaura.search.navigation.searchGraph
 
 @Composable
@@ -86,9 +88,22 @@ fun FlexAuraNavHost(
                 }
             )
 
-            homeGraph()
-            profileGraph()
-            searchGraph()
+            homeGraph(
+                onNavigateToPostDetail = { postId ->
+                    navController.navigate(PostDetailRouteDestination(postId))
+                }
+            )
+            profileGraph(
+                onNavigateToPostDetail = { postId ->
+                    navController.navigate(PostDetailRouteDestination(postId))
+                }
+            )
+            searchGraph(
+                onNavigateToPostDetail = { postId ->
+                    navController.navigate(PostDetailRouteDestination(postId))
+                }
+            )
+            postDetailGraph()
         }
     }
 }

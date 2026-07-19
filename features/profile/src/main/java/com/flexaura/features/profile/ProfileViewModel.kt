@@ -13,7 +13,7 @@ import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.usecase.user.SyncUserUseCase
 import com.flexaura.data.domain.usecase.user.ToggleFollowUserUseCase
-import com.flexaura.features.profile.navigation.ProfileRouteDestination
+import com.flexaura.navigation.ProfileRouteDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -69,6 +69,7 @@ class ProfileViewModel @Inject constructor(
             handleVote(intent.postId, intent.vote, intent.currentVote)
         }
         is ProfileUiIntent.OnSavedClicked -> { toggleSave(intent.postId) }
+        is ProfileUiIntent.OnPostClicked -> emmitEffect(ProfileUiEffect.NavigateToPostDetail(intent.postId))
     }
 
     private fun observeProfileData() = viewModelScope.launch {

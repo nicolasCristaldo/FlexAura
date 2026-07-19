@@ -6,19 +6,19 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.flexaura.features.profile.ProfileRoute
-import kotlinx.serialization.Serializable
-
-@Serializable object ProfileGraph
-@Serializable data class ProfileRouteDestination(val userId: String? = null)
+import com.flexaura.navigation.ProfileGraph
+import com.flexaura.navigation.ProfileRouteDestination
 
 fun NavController.navigateToProfileGraph(navOptions: NavOptions? = null) {
     this.navigate(route = ProfileGraph, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.profileGraph() {
+fun NavGraphBuilder.profileGraph(
+    onNavigateToPostDetail: (String) -> Unit
+) {
     navigation<ProfileGraph>(startDestination = ProfileRouteDestination()) {
         composable<ProfileRouteDestination> {
-            ProfileRoute()
+            ProfileRoute(onNavigateToPostDetail = onNavigateToPostDetail)
         }
     }
 }

@@ -9,6 +9,7 @@ sealed interface ProfileUiIntent {
     data class OnVoteClicked(val postId: String, val vote: Int, val currentVote: Int) : ProfileUiIntent
     data class OnSavedClicked(val postId: String) : ProfileUiIntent
     data object OnToggleFollowClicked : ProfileUiIntent
+    data class OnPostClicked(val postId: String) : ProfileUiIntent
 }
 
 data class ProfileUiState(
@@ -23,4 +24,5 @@ data class ProfileUiState(
 
 sealed interface ProfileUiEffect {
     data class ShowSnackBar(val message: String) : ProfileUiEffect
+    data class NavigateToPostDetail(val postId: String) : ProfileUiEffect
 }

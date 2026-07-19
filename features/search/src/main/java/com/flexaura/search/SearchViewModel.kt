@@ -42,6 +42,7 @@ class SearchViewModel @Inject constructor(
             dispatchDebounceSearch(intent.newText)
         }
         is SearchUiIntent.Refresh -> search(uiState.value.query)
+        is SearchUiIntent.OnPostClicked -> emmitEffect(SearchUiEffect.NavigateToPostDetail(intent.postId))
     }
 
     private fun dispatchDebounceSearch(query: String) {
@@ -81,12 +82,16 @@ class SearchViewModel @Inject constructor(
             }
 
             if(usersResult.isFailure || postsResult.isFailure) {
-                _uiEffect.emit(SearchUiEffect.ShowSnackBar("Something went wrong"))
+                emmitEffect(SearchUiEffect.ShowSnackBar("Something went wrong"))
             }
         }
         catch (e: Exception) {
             _uiState.update { it.copy(isSearching = false, errorMessage = e.localizedMessage) }
-            _uiEffect.emit(SearchUiEffect.ShowSnackBar(e.localizedMessage ?: "Unknown error"))
+            emmitEffect(SearchUiEffect.ShowSnackBar(e.localizedMessage ?: "Unknown error"))
         }
+    }
+
+    private fun emmitEffect(effect: SearchUiEffect) = viewModelScope.launch {
+        _uiEffect.emit(effect)
     }
 }
