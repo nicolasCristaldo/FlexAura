@@ -8,6 +8,7 @@ sealed interface SearchUiIntent {
     data class OnTextChange(val newText: String) : SearchUiIntent
     data class OnSearchClicked(val searchText: String) : SearchUiIntent
     data class OnTabChanged(val tab: SearchTab) : SearchUiIntent
+    data class OnPostClicked(val postId: String) : SearchUiIntent
 }
 
 data class SearchUiState(
@@ -21,6 +22,7 @@ data class SearchUiState(
 
 sealed interface SearchUiEffect {
     data class ShowSnackBar(val message: String) : SearchUiEffect
+    data class NavigateToPostDetail(val postId: String) : SearchUiEffect
 }
 
 enum class SearchTab(val title: String) {

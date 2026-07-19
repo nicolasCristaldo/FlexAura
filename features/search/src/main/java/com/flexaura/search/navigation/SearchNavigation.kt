@@ -5,20 +5,22 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.flexaura.navigation.SearchGraph
+import com.flexaura.navigation.SearchRouteDestination
 import com.flexaura.search.SearchRoute
-import kotlinx.serialization.Serializable
-
-@Serializable object SearchGraph
-@Serializable object SearchRouteDestination
 
 fun NavController.navigateToSearchGraph(navOptions: NavOptions? = null) {
     this.navigate(route = SearchGraph, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.searchGraph() {
+fun NavGraphBuilder.searchGraph(
+    onNavigateToPostDetail: (String) -> Unit
+) {
     navigation<SearchGraph>(startDestination = SearchRouteDestination) {
         composable<SearchRouteDestination> {
-            SearchRoute()
+            SearchRoute(
+                onNavigateToPostDetail = onNavigateToPostDetail
+            )
         }
     }
 }

@@ -7,11 +7,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.flexaura.features.auth.login.LoginRoute
 import com.flexaura.features.auth.register.RegisterRoute
-import kotlinx.serialization.Serializable
-
-@Serializable object AuthGraph
-@Serializable object LoginRouteDestination
-@Serializable object RegisterRouteDestination
+import com.flexaura.navigation.AuthGraph
+import com.flexaura.navigation.LoginRouteDestination
+import com.flexaura.navigation.RegisterRouteDestination
 
 fun NavController.navigateToAuthGraph(navOptions: NavOptions? = null) {
     this.navigate(route = AuthGraph, navOptions = navOptions)
