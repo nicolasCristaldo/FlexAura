@@ -1,5 +1,6 @@
 package com.flexaura.features.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,7 @@ import androidx.compose.ui.Alignment
 
 @Composable
 fun ProfileRoute(
+    onNavigateToPostDetail: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,6 +50,8 @@ fun ProfileRoute(
                 is ProfileUiEffect.ShowSnackBar -> {
                     snackBarHostState.showSnackbar(effect.message)
                 }
+
+                is ProfileUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
             }
         }
     }
@@ -99,6 +103,9 @@ fun ProfileScreen(
                 items(state.posts) { post ->
                     PostCard(
                         post = post,
+                        onPostClicked = { postId ->
+                            onIntent(ProfileUiIntent.OnPostClicked(postId))
+                        },
                         onVoteClicked = { postId, vote, currentVote ->
                             onIntent(ProfileUiIntent.OnVoteClicked(postId, vote, currentVote))
                         },
@@ -115,12 +122,15 @@ fun ProfileScreen(
 @Composable
 fun PostCard(
     post: Post,
+    onPostClicked: (postId: String) -> Unit,
     onVoteClicked: (postId: String, vote: Int, currentVote: Int) -> Unit,
     onSavedClicked: (postId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.padding(16.dp)
+        modifier = modifier
+            .padding(16.dp)
+            .clickable { onPostClicked(post.id) }
     ) {
         post.content?.let {
             Text(text = it)
