@@ -1,5 +1,6 @@
 package com.flexaura.features.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +38,7 @@ import com.flexaura.data.domain.model.Post
 
 @Composable
 fun HomeRoute(
+    onNavigateToPostDetail: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,6 +50,8 @@ fun HomeRoute(
                 is HomeUiEffect.ShowSnackBar -> {
                     snackBarHostState.showSnackbar(effect.message)
                 }
+
+                is HomeUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
             }
         }
     }
@@ -103,6 +107,9 @@ fun HomeScreen(
                     },
                     onSavedClicked = { postId ->
                         onIntent(HomeUiIntent.OnSavedClicked(postId))
+                    },
+                    modifier = Modifier.clickable {
+                        onIntent(HomeUiIntent.OnPostClicked(post.id))
                     }
                 )
             }

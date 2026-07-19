@@ -5,9 +5,9 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.flexaura.features.home.navigation.HomeGraph
-import com.flexaura.features.profile.navigation.ProfileGraph
-import com.flexaura.search.navigation.SearchGraph
+import com.flexaura.navigation.HomeGraph
+import com.flexaura.navigation.ProfileGraph
+import com.flexaura.navigation.SearchGraph
 
 sealed class TopLevelDestination<T: Any>(val route: T, val icon: ImageVector, val label: String) {
     object Home: TopLevelDestination<HomeGraph>(HomeGraph, Icons.Filled.Home, "Home")

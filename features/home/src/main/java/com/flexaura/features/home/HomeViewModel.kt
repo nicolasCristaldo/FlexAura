@@ -47,6 +47,7 @@ class HomeViewModel @Inject constructor(
             currentVote = intent.currentVote
         )
         is HomeUiIntent.Refresh -> syncPosts()
+        is HomeUiIntent.OnPostClicked -> emmitEffect(HomeUiEffect.NavigateToPostDetail(intent.postId))
     }
 
     private fun observeLocalDataBase() = viewModelScope.launch {
@@ -107,7 +108,7 @@ class HomeViewModel @Inject constructor(
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
-                emmitEffect(HomeUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(HomeUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 

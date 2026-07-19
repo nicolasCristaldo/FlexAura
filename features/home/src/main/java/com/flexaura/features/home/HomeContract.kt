@@ -9,6 +9,7 @@ sealed interface HomeUiIntent {
     data class OnSavedClicked(val postId: String) : HomeUiIntent
     data class OnNewPostTextChanged(val newText: String) : HomeUiIntent
     data object OnPublishPostClicked : HomeUiIntent
+    data class OnPostClicked(val postId: String) : HomeUiIntent
 }
 
 data class HomeUiState(
@@ -23,4 +24,5 @@ data class HomeUiState(
 
 sealed interface HomeUiEffect {
     data class ShowSnackBar(val message: String) : HomeUiEffect
+    data class NavigateToPostDetail(val postId: String) : HomeUiEffect
 }

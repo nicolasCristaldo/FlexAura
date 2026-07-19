@@ -47,11 +47,13 @@ android {
 dependencies {
 
     implementation(project(":core:designsystem"))
+    implementation(project(":core:navigation"))
     implementation(project(":data"))
     implementation(project(":features:auth"))
     implementation(project(":features:home"))
     implementation(project(":features:profile"))
     implementation(project(":features:search"))
+    implementation(project(":features:post"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
