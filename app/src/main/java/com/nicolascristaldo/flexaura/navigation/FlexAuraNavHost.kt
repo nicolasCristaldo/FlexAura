@@ -13,17 +13,19 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.flexaura.createpost.navigation.createPostScreen
 import com.flexaura.features.auth.navigation.authGraph
 import com.flexaura.features.home.navigation.homeGraph
 import com.flexaura.features.profile.navigation.profileGraph
 import com.flexaura.navigation.AuthGraph
+import com.flexaura.navigation.CreatePostRouteDestination
 import com.flexaura.navigation.HomeGraph
 import com.flexaura.navigation.LoginRouteDestination
 import com.flexaura.navigation.PostDetailRouteDestination
 import com.flexaura.navigation.ProfileRouteDestination
 import com.flexaura.navigation.RegisterRouteDestination
 import com.flexaura.navigation.SearchRouteDestination
-import com.flexaura.post.navigation.postDetailGraph
+import com.flexaura.post.navigation.postDetailScreen
 import com.flexaura.search.navigation.searchGraph
 
 @Composable
@@ -91,19 +93,35 @@ fun FlexAuraNavHost(
             homeGraph(
                 onNavigateToPostDetail = { postId ->
                     navController.navigate(PostDetailRouteDestination(postId))
+                },
+                onNavigateToCreatePost = {
+                    navController.navigate(CreatePostRouteDestination)
                 }
             )
+
             profileGraph(
                 onNavigateToPostDetail = { postId ->
                     navController.navigate(PostDetailRouteDestination(postId))
+                },
+                onNavigateToCreatePost = {
+                    navController.navigate(CreatePostRouteDestination)
                 }
             )
+
             searchGraph(
                 onNavigateToPostDetail = { postId ->
                     navController.navigate(PostDetailRouteDestination(postId))
+                },
+                onNavigateToCreatePost = {
+                    navController.navigate(CreatePostRouteDestination)
                 }
             )
-            postDetailGraph()
+
+            postDetailScreen()
+
+            createPostScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

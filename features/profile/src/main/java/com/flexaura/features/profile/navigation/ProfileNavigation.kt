@@ -14,11 +14,15 @@ fun NavController.navigateToProfileGraph(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.profileGraph(
-    onNavigateToPostDetail: (String) -> Unit
+    onNavigateToPostDetail: (String) -> Unit,
+    onNavigateToCreatePost: () -> Unit
 ) {
     navigation<ProfileGraph>(startDestination = ProfileRouteDestination()) {
         composable<ProfileRouteDestination> {
-            ProfileRoute(onNavigateToPostDetail = onNavigateToPostDetail)
+            ProfileRoute(
+                onNavigateToPostDetail = onNavigateToPostDetail,
+                onNavigateToCreatePost = onNavigateToCreatePost
+            )
         }
     }
 }
