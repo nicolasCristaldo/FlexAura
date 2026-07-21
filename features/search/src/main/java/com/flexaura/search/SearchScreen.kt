@@ -14,9 +14,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -41,6 +45,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchRoute(
     onNavigateToPostDetail: (String) -> Unit,
+    onNavigateToCreatePost: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,7 +64,17 @@ fun SearchRoute(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal
-        )
+        ),
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToCreatePost
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null
+                )
+            }
+        }
     ) { innerPadding ->
         SearchScreen(
             state = state.value,

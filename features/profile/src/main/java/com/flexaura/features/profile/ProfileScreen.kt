@@ -32,13 +32,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.data.domain.model.Post
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.ui.Alignment
 
 @Composable
 fun ProfileRoute(
     onNavigateToPostDetail: (String) -> Unit,
+    onNavigateToCreatePost: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,7 +63,17 @@ fun ProfileRoute(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal
-        )
+        ),
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToCreatePost
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null
+                )
+            }
+        }
     ) { innerPadding ->
         ProfileScreen(
             state = state.value,

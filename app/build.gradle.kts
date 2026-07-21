@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":features:profile"))
     implementation(project(":features:search"))
     implementation(project(":features:post"))
+    implementation(project(":features:createpost"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
