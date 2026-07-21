@@ -6,7 +6,7 @@ import androidx.navigation.toRoute
 import com.flexaura.navigation.PostDetailRouteDestination
 import com.flexaura.post.PostRoute
 
-fun NavGraphBuilder.postDetailGraph() {
+fun NavGraphBuilder.postDetailScreen() {
     composable<PostDetailRouteDestination> { backStackEntry ->
         val args = backStackEntry.toRoute<PostDetailRouteDestination>()
         PostRoute(postId = args.postId)
