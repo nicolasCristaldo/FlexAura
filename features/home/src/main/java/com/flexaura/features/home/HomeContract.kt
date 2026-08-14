@@ -7,22 +7,21 @@ sealed interface HomeUiIntent {
     data object Refresh : HomeUiIntent
     data class OnVoteClicked(val postId: String, val vote: Int, val currentVote: Int) : HomeUiIntent
     data class OnSavedClicked(val postId: String) : HomeUiIntent
-    data class OnNewPostTextChanged(val newText: String) : HomeUiIntent
-    data object OnPublishPostClicked : HomeUiIntent
     data class OnPostClicked(val postId: String) : HomeUiIntent
+    data class OnAuthorClicked(val authorId: String) : HomeUiIntent
 }
 
 data class HomeUiState(
-    val posts: List<Post> = emptyList(),
+    val discoverPosts: List<Post> = emptyList(),
+    val followingPosts: List<Post> = emptyList(),
     val currentPage: Int = 1,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val errorMessage: String? = null,
-    val newPostText: String = "",
-    val isPostPublishing: Boolean = false
+    val errorMessage: String? = null
 )
 
 sealed interface HomeUiEffect {
     data class ShowSnackBar(val message: String) : HomeUiEffect
     data class NavigateToPostDetail(val postId: String) : HomeUiEffect
+    data class NavigateToAuthorProfile(val authorId: String) : HomeUiEffect
 }

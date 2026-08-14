@@ -15,13 +15,15 @@ fun NavController.navigateToSearchGraph(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.searchGraph(
     onNavigateToPostDetail: (String) -> Unit,
+    onNavigateToAuthorProfile: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit
 ) {
     navigation<SearchGraph>(startDestination = SearchRouteDestination) {
         composable<SearchRouteDestination> {
             SearchRoute(
                 onNavigateToPostDetail = onNavigateToPostDetail,
-                onNavigateToCreatePost = onNavigateToCreatePost
+                onNavigateToCreatePost = onNavigateToCreatePost,
+                onNavigateToAuthorProfile = onNavigateToAuthorProfile
             )
         }
     }

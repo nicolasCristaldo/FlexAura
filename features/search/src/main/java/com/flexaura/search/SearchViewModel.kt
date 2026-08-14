@@ -3,7 +3,10 @@ package com.flexaura.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flexaura.data.domain.usecase.post.SearchPostsUseCase
+import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
+import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.data.domain.usecase.user.SearchUsersUseCase
+import com.flexaura.search.SearchUiEffect.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -21,7 +24,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchPostsUseCase: SearchPostsUseCase,
-    private val searchUsersUseCase: SearchUsersUseCase
+    private val searchUsersUseCase: SearchUsersUseCase,
+    private val votePostUseCase: VotePostUseCase,
+    private val toggleSavePostUseCase: ToggleSavePostUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> get() = _uiState.asStateFlow()
@@ -42,7 +47,14 @@ class SearchViewModel @Inject constructor(
             dispatchDebounceSearch(intent.newText)
         }
         is SearchUiIntent.Refresh -> search(uiState.value.query)
-        is SearchUiIntent.OnPostClicked -> emmitEffect(SearchUiEffect.NavigateToPostDetail(intent.postId))
+        is SearchUiIntent.OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
+        is SearchUiIntent.OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
+        is SearchUiIntent.OnSavedClicked -> toggleSavePost(intent.postId)
+        is SearchUiIntent.OnVoteClicked -> votePost(
+            postId = intent.postId,
+            vote = intent.vote,
+            currentVote = intent.currentVote
+        )
     }
 
     private fun dispatchDebounceSearch(query: String) {
@@ -82,16 +94,30 @@ class SearchViewModel @Inject constructor(
             }
 
             if(usersResult.isFailure || postsResult.isFailure) {
-                emmitEffect(SearchUiEffect.ShowSnackBar("Something went wrong"))
+                emitEffect(ShowSnackBar("Something went wrong"))
             }
         }
         catch (e: Exception) {
             _uiState.update { it.copy(isSearching = false, errorMessage = e.localizedMessage) }
-            emmitEffect(SearchUiEffect.ShowSnackBar(e.localizedMessage ?: "Unknown error"))
+            emitEffect(ShowSnackBar(e.localizedMessage ?: "Unknown error"))
         }
     }
 
-    private fun emmitEffect(effect: SearchUiEffect) = viewModelScope.launch {
+    private fun toggleSavePost(postId: String) = viewModelScope.launch {
+        toggleSavePostUseCase(postId = postId)
+            .onFailure { error ->
+                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+            }
+    }
+
+    private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
+        votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
+            .onFailure { error ->
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+            }
+    }
+
+    private fun emitEffect(effect: SearchUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }
 }
