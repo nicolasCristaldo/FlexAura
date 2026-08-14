@@ -17,7 +17,8 @@ data class PostWithInteractionsDto(
     @SerialName("votes_5") val votes5: Int,
     @SerialName("votes_minus_1") val votesMinus1: Int,
     @SerialName("votes") val userVote: List<UserVoteValueDto> = emptyList(),
-    @SerialName("saves") val userSave: List<UserSaveIdDto> = emptyList()
+    @SerialName("saves") val userSave: List<UserSaveIdDto> = emptyList(),
+    @SerialName("users") val author: UserDto? = null
 ) {
     val currentVoteValue: Int get() = userVote.firstOrNull()?.value ?: 0
     val isSaved: Boolean get() = userSave.isNotEmpty()

@@ -10,5 +10,6 @@ data class Post(
     val savesCount: Int,
     val totalAura: Int,
     val currentUserVote: Int,
-    val isSavedByUser: Boolean
+    val isSavedByUser: Boolean,
+    val author: User? = null
 )

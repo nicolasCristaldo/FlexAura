@@ -1,6 +1,5 @@
 package com.flexaura.search
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flexaura.components.PostCard
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
 import kotlinx.coroutines.launch
@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 fun SearchRoute(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
+    onNavigateToAuthorProfile: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,6 +57,7 @@ fun SearchRoute(
             when(effect) {
                 is SearchUiEffect.ShowSnackBar -> snackBarHostState.showSnackbar(effect.message)
                 is SearchUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
+                is SearchUiEffect.NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
             }
         }
     }
@@ -150,11 +152,10 @@ fun SearchScreen(
                     SearchTab.POSTS -> {
                         PostsResultsList(
                             posts = state.postsResults,
-                            onPostClicked = { postId ->
-                                onIntent(SearchUiIntent.OnPostClicked(postId))
-                            }
+                            onIntent = onIntent
                         )
                     }
+
                 }
             }
         }
@@ -187,7 +188,7 @@ fun UsersResultsList(
 @Composable
 fun PostsResultsList(
     posts: List<Post>,
-    onPostClicked: (postId: String) -> Unit,
+    onIntent: (SearchUiIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if(posts.isEmpty()) {
@@ -199,14 +200,21 @@ fun PostsResultsList(
     else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(posts) { post ->
-                Column(
-                    modifier = Modifier.clickable { onPostClicked(post.id) }
-                ) {
-                    Text(post.content ?: "")
-                    Text("Aura: ${post.totalAura}")
-                    Text("Saves: ${post.savesCount}")
-                    HorizontalDivider()
-                }
+                PostCard(
+                    post = post,
+                    onPostClicked = { postId ->
+                        onIntent(SearchUiIntent.OnPostClicked(postId))
+                    },
+                    onVoteClicked = { postId, vote, currentVote ->
+                        onIntent(SearchUiIntent.OnVoteClicked(postId, vote, currentVote))
+                    },
+                    onSavedClicked = { postId ->
+                        onIntent(SearchUiIntent.OnSavedClicked(postId))
+                    },
+                    onAuthorClicked = { authorId ->
+                        onIntent(SearchUiIntent.OnAuthorClicked(authorId))
+                    }
+                )
             }
         }
     }
