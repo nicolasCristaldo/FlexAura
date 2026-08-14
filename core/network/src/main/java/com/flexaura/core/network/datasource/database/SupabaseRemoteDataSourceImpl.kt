@@ -66,7 +66,8 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                     """
                 *,
                 follows!following_id(id).filter(follower_id.eq.$currentId),
-            """)
+            """
+                )
             ) {
                 filter { eq("id", userId) }
             }.decodeSingleOrNull<UserProfileDto>()
@@ -118,7 +119,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         pageSize: Int
     ): List<UserDto> {
         val from = (page - 1) * pageSize
-        val to = page * pageSize -1
+        val to = page * pageSize - 1
 
         return supabaseClient.postgrest["follows"]
             .select(columns = Columns.Companion.raw("users!follower_id(*)")) {
@@ -133,7 +134,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         pageSize: Int
     ): List<UserDto> {
         val from = (page - 1) * pageSize
-        val to = page * pageSize -1
+        val to = page * pageSize - 1
 
         return supabaseClient.postgrest["follows"]
             .select(columns = Columns.Companion.raw("users!following_id(*)")) {
@@ -152,10 +153,17 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
     override suspend fun getPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto> {
         val currentId = requireCurrentUserId()
         val from = (page - 1) * pageSize
-        val to = page * pageSize -1
+        val to = page * pageSize - 1
 
         return supabaseClient.postgrest["posts"]
-            .select(columns = Columns.Companion.raw("*, votes(*), saves(*)")) {
+            .select(
+                columns = Columns.Companion.raw("""
+                *,
+                users(*),
+                votes!left(*),
+                saves!left(*)
+              """.trimIndent()))
+            {
                 filter {
                     eq("votes.user_id", currentId)
                     eq("saves.user_id", currentId)
@@ -197,7 +205,12 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val to = page * pageSize - 1
 
         return supabaseClient.postgrest["posts"]
-            .select(columns = Columns.Companion.raw("*, votes(*), saves(*)")) {
+            .select(columns = Columns.Companion.raw("""
+                *,
+                users(*),
+                votes!left(*),
+                saves!left(*)
+              """.trimIndent())) {
                 filter {
                     eq("author_id", authorId)
                     eq("votes.user_id", currentId)
@@ -219,11 +232,14 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         val to = page * pageSize - 1
 
         return supabaseClient.postgrest["posts"]
-            .select(Columns.Companion.raw("""
+            .select(
+                columns = Columns.Companion.raw("""
                 *,
-                 votes!left(*),
-                 saves!left(*)
-            """.trimIndent())) {
+                users(*),
+                votes!left(*),
+                saves!left(*)
+              """.trimIndent()))
+            {
                 filter {
                     ilike("content", searchPattern)
                     eq("votes.user_id", currentId)
@@ -316,7 +332,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
     override suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostDto> {
         val currentId = requireCurrentUserId()
         val from = (page - 1) * pageSize
-        val to = page * pageSize -1
+        val to = page * pageSize - 1
 
         return supabaseClient.postgrest["saves"]
             .select(columns = Columns.Companion.raw("posts(*)")) {

@@ -44,8 +44,13 @@ class PostRepositoryImpl @Inject constructor(
     ): Result<Unit> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.getPosts(page, pageSize)
-            val postEntities = remotePosts.map { it.toEntity() }
 
+            val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity(isCurrentUserFollowing = false) }.distinct()
+            if(usersToUpsert.isNotEmpty()) {
+                userDao.upsertUsers(usersToUpsert)
+            }
+
+            val postEntities = remotePosts.map { it.toEntity() }
             postDao.upsertPosts(postEntities)
         }
     }
@@ -57,8 +62,13 @@ class PostRepositoryImpl @Inject constructor(
     ): Result<Unit> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.getPostsByAuthor(userId, page, pageSize)
-            val postEntities = remotePosts.map { it.toEntity() }
 
+            val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity(isCurrentUserFollowing = false) }.distinct()
+            if(usersToUpsert.isNotEmpty()) {
+                userDao.upsertUsers(usersToUpsert)
+            }
+
+            val postEntities = remotePosts.map { it.toEntity() }
             postDao.upsertPosts(postEntities)
         }
     }
@@ -78,9 +88,9 @@ class PostRepositoryImpl @Inject constructor(
             runCatching {
                 val currentPost =
                     postDao.getPostById(postId) ?: throw Exception("No post found")
-                val newSaveState = !currentPost.isSavedByUser
-                val newSavesCount = if (newSaveState) currentPost.savesCount + 1
-                                    else (currentPost.savesCount - 1).coerceAtLeast(0)
+                val newSaveState = !currentPost.post.isSavedByUser
+                val newSavesCount = if (newSaveState) currentPost.post.savesCount + 1
+                                    else (currentPost.post.savesCount - 1).coerceAtLeast(0)
 
                 postDao.updateLocalSaveState(postId, newSaveState, newSavesCount)
 
@@ -92,7 +102,7 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun deletePost(postId: String): Result<Unit> =
         scope.async(dispatcher) {
             runCatching {
-                postDao.deletePostByid(postId)
+                postDao.deletePostById(postId)
                 networkDataSource.deletePost(postId)
             }
         }.await()
@@ -103,9 +113,9 @@ class PostRepositoryImpl @Inject constructor(
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
             val currentPost = postDao.getPostById(postId) ?: throw Exception("No post found")
-            val oldVote = currentPost.currentUserVote
+            val oldVote = currentPost.post.currentUserVote
             val diff = voteValue - oldVote
-            val newTotalAura = currentPost.totalAura + diff
+            val newTotalAura = currentPost.post.totalAura + diff
 
             postDao.updateLocalVote(postId = postId, voteValue = voteValue, newTotalAura = newTotalAura)
 
@@ -121,8 +131,13 @@ class PostRepositoryImpl @Inject constructor(
     ): Result<List<Post>> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.searchPosts(query, page, pageSize)
-            val postEntities = remotePosts.map { it.toEntity() }
 
+            val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity(isCurrentUserFollowing = false) }.distinct()
+            if(usersToUpsert.isNotEmpty()) {
+                userDao.upsertUsers(usersToUpsert)
+            }
+
+            val postEntities = remotePosts.map { it.toEntity() }
             postDao.upsertPosts(postEntities)
             postEntities.map { it.toDomain() }
         }

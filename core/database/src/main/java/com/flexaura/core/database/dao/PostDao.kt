@@ -2,20 +2,25 @@ package com.flexaura.core.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.flexaura.core.database.model.PostEntity
+import com.flexaura.core.database.model.PostWithAuthorRelation
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PostDao {
+    @Transaction
     @Query("SELECT * FROM posts ORDER BY created_at DESC")
-    fun getPostsFlow(): Flow<List<PostEntity>>
+    fun getPostsFlow(): Flow<List<PostWithAuthorRelation>>
 
+    @Transaction
     @Query("SELECT * FROM posts WHERE id = :postId")
-    suspend fun getPostById(postId: String): PostEntity?
+    suspend fun getPostById(postId: String): PostWithAuthorRelation?
 
+    @Transaction
     @Query("SELECT * FROM posts WHERE author_id = :userId ORDER BY created_at DESC")
-    fun getPostsByAuthorFlow(userId: String): Flow<List<PostEntity>>
+    fun getPostsByAuthorFlow(userId: String): Flow<List<PostWithAuthorRelation>>
 
     @Upsert
     suspend fun upsertPosts(posts: List<PostEntity>)
@@ -35,7 +40,7 @@ interface PostDao {
     suspend fun updateLocalSaveState(postId: String, isSaved: Boolean, savesCount: Int)
 
     @Query("DELETE FROM posts WHERE id = :postId")
-    suspend fun deletePostByid(postId: String)
+    suspend fun deletePostById(postId: String)
 
     @Query("DELETE FROM posts")
     suspend fun deleteAllPosts()
