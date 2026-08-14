@@ -40,7 +40,7 @@ class FakePostDao : PostDao {
         }
     }
 
-    override suspend fun deletePostByid(postId: String) {
+    override suspend fun deletePostById(postId: String) {
         postsTable.value = postsTable.value.filter { it.id != postId }
     }
 

@@ -15,13 +15,15 @@ fun NavController.navigateToHomeGraph(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.homeGraph(
     onNavigateToPostDetail: (String) -> Unit,
+    onNavigateToAuthorProfile: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit
 ) {
     navigation<HomeGraph>(startDestination = HomeRouteDestination) {
         composable<HomeRouteDestination> {
             HomeRoute(
                 onNavigateToPostDetail = onNavigateToPostDetail,
-                onNavigateToCreatePost = onNavigateToCreatePost
+                onNavigateToCreatePost = onNavigateToCreatePost,
+                onNavigateToAuthorProfile = onNavigateToAuthorProfile
             )
         }
     }

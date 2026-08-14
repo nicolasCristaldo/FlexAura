@@ -2,46 +2,41 @@ package com.flexaura.features.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.flexaura.data.domain.model.Post
+import com.flexaura.components.PostCard
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeRoute(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
+    onNavigateToAuthorProfile: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,6 +50,7 @@ fun HomeRoute(
                 }
 
                 is HomeUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
+                is HomeUiEffect.NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
             }
         }
     }
@@ -90,85 +86,55 @@ fun HomeScreen(
     onIntent: (HomeUiIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .padding(horizontal = 24.dp)
-            .fillMaxSize()
-    ) {
-        OutlinedTextField(
-            value = state.newPostText,
-            onValueChange = { onIntent(HomeUiIntent.OnNewPostTextChanged(it)) },
-            label = { Text("Publish new Post") }
-        )
-        Button(
-            onClick = { onIntent(HomeUiIntent.OnPublishPostClicked) },
-            enabled = !state.isPostPublishing
-        ) {
-            if (state.isPostPublishing) CircularProgressIndicator()
-            else Text("Publish")
-        }
+    val pagerState = rememberPagerState(pageCount = { 2 })
+    val coroutineScope = rememberCoroutineScope()
+    val tabs = listOf("Discover", "Following")
 
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(state.posts) { post ->
-                PostCard(
-                    post = post,
-                    onVoteClicked = { postId, vote, currentVote ->
-                        onIntent(HomeUiIntent.OnVoteClicked(postId, vote, currentVote))
+    Column(modifier = modifier.fillMaxSize()) {
+        TabRow(selectedTabIndex = pagerState.currentPage) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    text = { Text(title) },
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
                     },
-                    onSavedClicked = { postId ->
-                        onIntent(HomeUiIntent.OnSavedClicked(postId))
-                    },
-                    modifier = Modifier.clickable {
-                        onIntent(HomeUiIntent.OnPostClicked(post.id))
-                    }
                 )
             }
         }
-    }
-}
 
-@Composable
-fun PostCard(
-    post: Post,
-    onVoteClicked: (postId: String, vote: Int, currentVote: Int) -> Unit,
-    onSavedClicked: (postId: String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(16.dp)
-    ) {
-        post.content?.let {
-            Text(text = it)
-        }
-        post.imageUrl?.let {
-            Text(text = it)
-        }
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val posts = if (page == 0) state.discoverPosts else state.followingPosts
 
-        Text(text = "Votes: ${post.totalAura}")
-        Text(text = "Saves: ${post.savesCount}")
-
-        Row {
-            Button(onClick = { onVoteClicked(post.id, 1, post.currentUserVote) }) {
-                Text("+1")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { onVoteClicked(post.id, -1, post.currentUserVote) }) {
-                Text("-1")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            IconButton(
-                onClick = { onSavedClicked(post.id) }
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    imageVector = if(post.isSavedByUser) Icons.Default.Check
-                        else Icons.Default.Close,
-                    contentDescription = null
-                )
+                items(items = posts, key = { it.id }) { post ->
+                    PostCard(
+                        post = post,
+                        onPostClicked = { postId ->
+                            onIntent(HomeUiIntent.OnPostClicked(postId))
+                        },
+                        onVoteClicked = { postId, vote, currentVote ->
+                            onIntent(HomeUiIntent.OnVoteClicked(postId, vote, currentVote))
+                        },
+                        onSavedClicked = { postId ->
+                            onIntent(HomeUiIntent.OnSavedClicked(postId))
+                        },
+                        onAuthorClicked = { authorId ->
+                            onIntent(HomeUiIntent.OnAuthorClicked(authorId))
+                        },
+                        modifier = Modifier.clickable {
+                            onIntent(HomeUiIntent.OnPostClicked(post.id))
+                        }
+                    )
+                }
             }
         }
-        HorizontalDivider()
     }
 }

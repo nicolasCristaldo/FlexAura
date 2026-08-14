@@ -96,6 +96,9 @@ fun FlexAuraNavHost(
                 },
                 onNavigateToCreatePost = {
                     navController.navigate(CreatePostRouteDestination)
+                },
+                onNavigateToAuthorProfile = { authorId ->
+                    navController.navigate(ProfileRouteDestination(authorId))
                 }
             )
 
@@ -114,6 +117,9 @@ fun FlexAuraNavHost(
                 },
                 onNavigateToCreatePost = {
                     navController.navigate(CreatePostRouteDestination)
+                },
+                onNavigateToAuthorProfile = { authorId ->
+                    navController.navigate(ProfileRouteDestination(authorId))
                 }
             )
 
