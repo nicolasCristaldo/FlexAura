@@ -2,6 +2,7 @@ package com.flexaura.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.usecase.post.SearchPostsUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
@@ -104,17 +105,53 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
+        updatePostInState(postId = postId) { post ->
+            val newSaveState = !post.isSavedByUser
+            val newSavesCount = if (newSaveState) post.savesCount + 1
+                else (post.savesCount - 1).coerceAtLeast(0)
+
+            post.copy(isSavedByUser = newSaveState, savesCount = newSavesCount)
+        }
+
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
+                updatePostInState(postId = postId) { post ->
+                    val revertSaveState = !post.isSavedByUser
+                    val revertSavesCount = if (revertSaveState) post.savesCount + 1
+                        else (post.savesCount - 1).coerceAtLeast(0)
+
+                    post.copy(isSavedByUser = revertSaveState, savesCount = revertSavesCount)
+                }
                 _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
+        updatePostInState(postId = postId) { post ->
+            val diff = vote - currentVote
+            val newTotalAura = post.totalAura + diff
+            post.copy(currentUserVote = vote, totalAura = newTotalAura)
+        }
+
         votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
             .onFailure { error ->
+                updatePostInState(postId = postId) { post ->
+                    val revertTotalAura = post.totalAura - (vote - currentVote)
+
+                    post.copy(currentUserVote = currentVote, totalAura = revertTotalAura)
+                }
                 emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
+    }
+
+    private fun updatePostInState(postId: String, update: (Post) -> Post) {
+        _uiState.update { currentState ->
+            val updatedPosts = currentState.postsResults.map { post ->
+                if (post.id == postId) update(post) else post
+            }
+
+            currentState.copy(postsResults = updatedPosts)
+        }
     }
 
     private fun emitEffect(effect: SearchUiEffect) = viewModelScope.launch {

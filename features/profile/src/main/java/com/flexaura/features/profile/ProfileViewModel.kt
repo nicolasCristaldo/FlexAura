@@ -84,8 +84,6 @@ class ProfileViewModel @Inject constructor(
                     getUserByIdUseCase(targetUserId),
                     getPostsByAuthorUseCase(targetUserId)
                 ) { user, posts ->
-                    val authUserId = (authState as? AuthState.Authenticated)?.userId
-
                     ProfileUiState(
                         user = user,
                         posts = posts,
