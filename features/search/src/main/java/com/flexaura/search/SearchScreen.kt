@@ -30,6 +30,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -49,7 +50,7 @@ fun SearchRoute(
     onNavigateToAuthorProfile: (String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
-    val state = viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -79,7 +80,7 @@ fun SearchRoute(
         }
     ) { innerPadding ->
         SearchScreen(
-            state = state.value,
+            state = state,
             onIntent = viewModel::onIntent,
             modifier = Modifier.padding(innerPadding)
         )
@@ -199,7 +200,10 @@ fun PostsResultsList(
     }
     else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(posts) { post ->
+            items(
+                items = posts,
+                key = { post -> post.id}
+            ) { post ->
                 PostCard(
                     post = post,
                     onPostClicked = { postId ->
