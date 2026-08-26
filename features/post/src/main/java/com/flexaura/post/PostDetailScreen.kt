@@ -51,9 +51,7 @@ fun PostRoute(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(
-            WindowInsetsSides.Top + WindowInsetsSides.Horizontal
-        )
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         PostDetailScreen(
             state = state.value,

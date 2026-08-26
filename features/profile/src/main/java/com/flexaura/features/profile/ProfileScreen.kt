@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
@@ -35,6 +38,7 @@ import com.flexaura.components.PostCard
 fun ProfileRoute(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -54,9 +58,17 @@ fun ProfileRoute(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(
-            WindowInsetsSides.Top + WindowInsetsSides.Horizontal
-        ),
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal),
+        topBar = {
+            if (onNavigateBack != null) {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null
+                    )
+                }
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToCreatePost
@@ -97,10 +109,12 @@ fun ProfileScreen(
             Text("Bio: ${state.user?.bio ?: "No bio"}")
             Text("Followers: ${state.user?.followersCount}")
             Text("Following: ${state.user?.followingCount}")
-            Button(
-                onClick = { onIntent(ProfileUiIntent.OnToggleFollowClicked) }
-            ) {
-                Text(text = if (state.user?.isFollowedByCurrentUser == true) "Unfollow" else "Follow")
+            if(!state.isOwnProfile) {
+                Button(
+                    onClick = { onIntent(ProfileUiIntent.OnToggleFollowClicked) }
+                ) {
+                    Text(text = if (state.user?.isFollowedByCurrentUser == true) "Unfollow" else "Follow")
+                }
             }
             Spacer(modifier = Modifier.padding(16.dp))
             LazyColumn(
