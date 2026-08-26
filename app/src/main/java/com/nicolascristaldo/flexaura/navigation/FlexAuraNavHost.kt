@@ -17,11 +17,14 @@ import com.flexaura.createpost.navigation.createPostScreen
 import com.flexaura.features.auth.navigation.authGraph
 import com.flexaura.features.home.navigation.homeGraph
 import com.flexaura.features.profile.navigation.profileGraph
+import com.flexaura.features.profile.navigation.profileScreen
 import com.flexaura.navigation.AuthGraph
 import com.flexaura.navigation.CreatePostRouteDestination
 import com.flexaura.navigation.HomeGraph
+import com.flexaura.navigation.HomeRouteDestination
 import com.flexaura.navigation.LoginRouteDestination
 import com.flexaura.navigation.PostDetailRouteDestination
+import com.flexaura.navigation.ProfileGraph
 import com.flexaura.navigation.ProfileRouteDestination
 import com.flexaura.navigation.RegisterRouteDestination
 import com.flexaura.navigation.SearchRouteDestination
@@ -38,9 +41,11 @@ fun FlexAuraNavHost(
 
     val destinations = provideTopLevelDestinations()
 
-    val showBottomBar = destinations.any { destination ->
-        currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
-    }
+    val showBottomBar = currentDestination?.let { destination ->
+        destination.hasRoute(HomeRouteDestination::class) ||
+        destination.hasRoute(SearchRouteDestination::class) ||
+        (destination.hasRoute(ProfileRouteDestination::class) && destination.parent?.hasRoute(ProfileGraph::class) == true)
+    } ?: false
 
     Scaffold(
         bottomBar = {
@@ -51,7 +56,7 @@ fun FlexAuraNavHost(
                     onNavigateToDestination = { destination ->
                         val route = when(destination) {
                             TopLevelDestination.Home -> HomeGraph
-                            TopLevelDestination.Profile -> ProfileRouteDestination()
+                            TopLevelDestination.Profile -> ProfileGraph
                             TopLevelDestination.Search -> SearchRouteDestination
                             else -> HomeGraph
                         }
@@ -99,6 +104,19 @@ fun FlexAuraNavHost(
                 },
                 onNavigateToAuthorProfile = { authorId ->
                     navController.navigate(ProfileRouteDestination(authorId))
+                },
+                nestedGraphs = {
+                    profileScreen(
+                        onNavigateToPostDetail = { postId ->
+                            navController.navigate(PostDetailRouteDestination(postId))
+                        },
+                        onNavigateToCreatePost = {
+                            navController.navigate(CreatePostRouteDestination)
+                        },
+                        onNavigateBack = {
+                             navController.popBackStack()
+                        }
+                    )
                 }
             )
 
@@ -120,6 +138,19 @@ fun FlexAuraNavHost(
                 },
                 onNavigateToAuthorProfile = { authorId ->
                     navController.navigate(ProfileRouteDestination(authorId))
+                },
+                nestedGraphs = {
+                    profileScreen(
+                        onNavigateToPostDetail = { postId ->
+                            navController.navigate(PostDetailRouteDestination(postId))
+                        },
+                        onNavigateToCreatePost = {
+                            navController.navigate(CreatePostRouteDestination)
+                        },
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             )
 
