@@ -60,13 +60,14 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun getUserProfile(userId: String): UserProfileDto? {
         val currentId = requireCurrentUserId()
+
         return supabaseClient.postgrest["users"]
             .select(
-                columns = Columns.Companion.raw(
+                columns = Columns.raw(
                     """
                 *,
                 follows!following_id(id).filter(follower_id.eq.$currentId),
-            """
+                """.trimIndent()
                 )
             ) {
                 filter { eq("id", userId) }
