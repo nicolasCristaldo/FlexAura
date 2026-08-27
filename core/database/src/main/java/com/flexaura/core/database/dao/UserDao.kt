@@ -23,7 +23,7 @@ interface UserDao {
     @Query("""
         UPDATE users
         SET is_followed_by_current_user = :isFollowing,
-            followers_count = followers_count + :countChange
+            followers_count = MAX(0, followers_count + :countChange)
         WHERE id = :userId
     """)
     suspend fun updateFollowState(userId: String, isFollowing: Boolean, countChange: Int)
