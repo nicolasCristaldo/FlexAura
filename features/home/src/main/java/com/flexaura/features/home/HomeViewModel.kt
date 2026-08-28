@@ -2,17 +2,21 @@ package com.flexaura.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.data.domain.usecase.post.GetFollowingPostsUseCase
 import com.flexaura.data.domain.usecase.post.GetPostsUseCase
+import com.flexaura.data.domain.usecase.post.SyncFollowingPostsUseCase
 import com.flexaura.data.domain.usecase.post.SyncPostsUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.features.home.HomeUiEffect.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +24,9 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getPostsUseCase: GetPostsUseCase,
+    private val getFollowingPostsUseCase: GetFollowingPostsUseCase,
     private val syncPostsUseCase: SyncPostsUseCase,
+    private val syncFollowingPostsUseCase: SyncFollowingPostsUseCase,
     private val votePostUseCase: VotePostUseCase,
     private val toggleSavePostUseCase: ToggleSavePostUseCase
 ) : ViewModel() {
@@ -49,11 +55,16 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun observeLocalDataBase() = viewModelScope.launch {
-        getPostsUseCase().collect { posts ->
+        combine(
+            getPostsUseCase(),
+            getFollowingPostsUseCase()
+        ) { discover, following ->
+            discover to following
+        }.collect { (discover, following) ->
             _uiState.update {
                 it.copy(
-                    discoverPosts = posts,
-                    followingPosts = posts.filter { it.author?.isFollowedByCurrentUser == true }
+                    discoverPosts = discover,
+                    followingPosts = following
                 )
             }
         }
@@ -67,20 +78,31 @@ class HomeViewModel @Inject constructor(
             else it.copy(isLoading = true)
         }
 
-        syncPostsUseCase(page = pageToFetch)
-            .onSuccess {
-                _uiState.update { oldState ->
-                    oldState.copy(
-                        isLoading = false,
-                        isRefreshing = false,
-                        currentPage = if (isRefresh) 2 else oldState.currentPage + 1
-                    )
-                }
+        val discoverSync = async { syncPostsUseCase(page = pageToFetch) }
+        val followingSync = async { syncFollowingPostsUseCase(page = pageToFetch) }
+
+        val discoverResult = discoverSync.await()
+        val followingResult = followingSync.await()
+
+        if (discoverResult.isSuccess || followingResult.isSuccess) {
+            _uiState.update {
+                it.copy(
+                    currentPage = if (isRefresh) 1 else it.currentPage + 1,
+                    isRefreshing = false,
+                    isLoading = false
+                )
             }
-            .onFailure { error ->
-                _uiState.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = error.localizedMessage) }
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+        }
+
+        if (discoverResult.isFailure || followingResult.isFailure) {
+            val error = discoverResult.exceptionOrNull() ?: followingResult.exceptionOrNull()
+
+            _uiState.update {
+                it.copy(isRefreshing = false, isLoading = false, errorMessage = error?.localizedMessage)
             }
+
+            emitEffect(ShowSnackBar(error?.localizedMessage ?: "Unknown error"))
+        }
     }
 
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {

@@ -110,7 +110,7 @@ fun HomeScreen(
             val posts = if (page == 0) state.discoverPosts else state.followingPosts
 
             LazyColumn(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             ) {
                 items(items = posts, key = { it.id }) { post ->
                     PostCard(
