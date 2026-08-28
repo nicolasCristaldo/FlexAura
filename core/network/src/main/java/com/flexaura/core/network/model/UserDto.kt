@@ -11,6 +11,7 @@ data class UserDto(
     @SerialName("image_url") val imageUrl: String? = null,
     @SerialName("bio") val bio: String? = null,
     @SerialName("total_aura") val totalAura: Int = 0,
+    @SerialName("follows") val follows: List<UserFollowCheckDto> = emptyList(),
     @SerialName("followers_count") val followersCount: Int = 0,
     @SerialName("following_count") val followingCount: Int = 0,
     @SerialName("created_at") val createdAt: String

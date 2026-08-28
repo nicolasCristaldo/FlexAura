@@ -160,7 +160,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             .select(
                 columns = Columns.Companion.raw("""
                 *,
-                users(*),
+                users(*, follows!following_id(id)),
                 votes!left(*),
                 saves!left(*)
               """.trimIndent()))
@@ -168,6 +168,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 filter {
                     eq("votes.user_id", currentId)
                     eq("saves.user_id", currentId)
+                    eq("users.follows.follower_id", currentId)
                 }
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
@@ -247,6 +248,31 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                     eq("saves.user_id", currentId)
                 }
                 range(from = from.toLong(), to = to.toLong())
+            }.decodeList<PostWithInteractionsDto>()
+    }
+
+    override suspend fun getFollowingPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto> {
+        val currentId = requireCurrentUserId()
+        val from = (page - 1) * pageSize
+        val to = page * pageSize - 1
+
+        return supabaseClient.postgrest["posts"]
+            .select(
+                columns = Columns.Companion.raw("""
+                *,
+                users!inner(*, follows!following_id!inner(*)),
+                votes!left(*),
+                saves!left(*)
+              """.trimIndent()
+                )
+            ) {
+                filter {
+                    eq("users.follows.follower_id", currentId)
+                    eq("votes.user_id", currentId)
+                    eq("saves.user_id", currentId)
+                }
+                order("created_at", Order.DESCENDING)
+                range(from.toLong(), to.toLong())
             }.decodeList<PostWithInteractionsDto>()
     }
 
