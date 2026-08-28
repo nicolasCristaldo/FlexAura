@@ -27,6 +27,7 @@ interface SupabaseRemoteDataSource  {
     suspend fun deletePost(postId: String)
     suspend fun getPostsByAuthor(authorId: String, page: Int, pageSize: Int): List<PostWithInteractionsDto>
     suspend fun searchPosts(query: String, page: Int, pageSize: Int): List<PostWithInteractionsDto>
+    suspend fun getFollowingPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto>
 
     // Votes
     suspend fun upsertVote(postId: String, value: Int)

@@ -30,7 +30,9 @@ fun UserEntity.toDomain(): User = User(
     isFollowedByCurrentUser = isFollowedByCurrentUser
 )
 
-fun UserDto.toEntity(isCurrentUserFollowing: Boolean = false): UserEntity = UserEntity(
+fun UserDto.toEntity(
+    isCurrentUserFollowing: Boolean = follows.isNotEmpty()
+): UserEntity = UserEntity(
     id = id,
     username = username,
     displayName = displayName,
