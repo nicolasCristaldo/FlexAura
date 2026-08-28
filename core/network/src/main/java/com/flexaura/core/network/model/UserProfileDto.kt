@@ -32,4 +32,4 @@ data class UserProfileDto(
 }
 
 @Serializable
-data class UserFollowCheckDto(@SerialName("id") val id: String)
+data class UserFollowCheckDto(@SerialName("id") val id: String? = null)

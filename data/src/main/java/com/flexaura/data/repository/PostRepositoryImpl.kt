@@ -38,6 +38,11 @@ class PostRepositoryImpl @Inject constructor(
             .map { postEntities -> postEntities.map { it.toDomain() } }
             .flowOn(dispatcher)
 
+    override fun getFollowingPosts(): Flow<List<Post>> =
+        postDao.getFollowingPostsFlow()
+            .map { postEntities -> postEntities.map { it.toDomain() } }
+            .flowOn(dispatcher)
+
     override suspend fun syncPosts(
         page: Int,
         pageSize: Int
@@ -45,7 +50,7 @@ class PostRepositoryImpl @Inject constructor(
         runCatching {
             val remotePosts = networkDataSource.getPosts(page, pageSize)
 
-            val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity(isCurrentUserFollowing = false) }.distinct()
+            val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity() }.distinct()
             if(usersToUpsert.isNotEmpty()) {
                 userDao.upsertUsers(usersToUpsert)
             }
@@ -72,6 +77,23 @@ class PostRepositoryImpl @Inject constructor(
             postDao.upsertPosts(postEntities)
         }
     }
+
+    override suspend fun syncFollowingPosts(page: Int, pageSize: Int): Result<Unit> =
+        withContext(dispatcher) {
+            runCatching {
+                val remotePosts = networkDataSource.getFollowingPosts(page, pageSize)
+                val usersToUpsert = remotePosts.mapNotNull {
+                    it.author?.toEntity(isCurrentUserFollowing = true)
+                }.distinct()
+
+                if(usersToUpsert.isNotEmpty()) {
+                    userDao.upsertUsers(usersToUpsert)
+                }
+
+                val postsEntities = remotePosts.map { it.toEntity() }
+                postDao.upsertPosts(postsEntities)
+            }
+        }
 
     override suspend fun createPost(
         content: String?,
