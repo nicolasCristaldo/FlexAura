@@ -2,9 +2,17 @@ package com.flexaura.post
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.data.domain.repository.AuthState
+import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
+import com.flexaura.data.domain.usecase.comment.CreateCommentUseCase
+import com.flexaura.data.domain.usecase.comment.DeleteCommentUseCase
+import com.flexaura.data.domain.usecase.comment.GetCommentsUseCase
+import com.flexaura.data.domain.usecase.comment.SyncCommentsUseCase
 import com.flexaura.data.domain.usecase.post.GetPostByIdUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
+import com.flexaura.post.PostDetailUiEffect.*
+import com.flexaura.post.PostDetailUiIntent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,9 +25,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PostScreenViewModel @Inject constructor(
+    private val getAuthUserUseCase: GetAuthUserUseCase,
     private val getPostByIdUseCase: GetPostByIdUseCase,
     private val votePostUseCase: VotePostUseCase,
-    private val toggleSavePostUseCase: ToggleSavePostUseCase
+    private val toggleSavePostUseCase: ToggleSavePostUseCase,
+    private val getCommentsUseCase: GetCommentsUseCase,
+    private val syncCommentsUseCase: SyncCommentsUseCase,
+    private val submitCommentUseCase: CreateCommentUseCase,
+    private val deleteCommentUseCase: DeleteCommentUseCase
 ): ViewModel() {
     private val _uiState = MutableStateFlow(PostDetailUiState())
     val uiState get() = _uiState.asStateFlow()
@@ -29,17 +42,34 @@ class PostScreenViewModel @Inject constructor(
 
     private var currentPostId: String? = null
 
+    init { observeAuthUser() }
+
     fun onIntent(intent: PostDetailUiIntent) = when(intent) {
-        is PostDetailUiIntent.Init -> {
+        is Init -> {
             currentPostId = intent.postId
             loadPost(intent.postId)
+            observeComments(intent.postId)
+            syncComments(intent.postId)
         }
-        is PostDetailUiIntent.OnSavedClicked -> toggleSavePost(intent.postId)
-        is PostDetailUiIntent.OnVoteClicked -> votePost(
+        is OnSavedClicked -> toggleSavePost(intent.postId)
+        is OnVoteClicked -> votePost(
             postId = intent.postId,
             vote = intent.vote,
             currentVote = intent.currentVote
         )
+        is OnCommentChanged -> _uiState.update { it.copy(commentContent = intent.content) }
+        is OnDeleteComment -> deleteComment(intent.commentId)
+        is OnSubmitComment -> submitComment(postId = intent.postId, content = intent.content)
+        is OnNavigateBack -> emitEffect(NavigateBack(intent.postId))
+        is OnNavigateToAuthorProfile -> emitEffect(NavigateToAuthorProfile(intent.authorId))
+    }
+
+    private fun observeAuthUser() = viewModelScope.launch {
+        getAuthUserUseCase().collect { authState ->
+            if(authState is AuthState.Authenticated) {
+                _uiState.update { it.copy(currentUserId = authState.userId) }
+            }
+        }
     }
 
     private fun loadPost(postId: String) = viewModelScope.launch {
@@ -51,17 +81,53 @@ class PostScreenViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = false, post = postResult) }
     }
 
+    private fun observeComments(postId: String) = viewModelScope.launch {
+        getCommentsUseCase(postId).collect { comments ->
+            _uiState.update { it.copy(comments = comments) }
+        }
+    }
+
+    private fun syncComments(postId: String) = viewModelScope.launch {
+        val result = syncCommentsUseCase(postId)
+
+        if (result.isFailure) {
+            val error = result.exceptionOrNull()
+            _uiEffect.emit(ShowSnackBar(error?.localizedMessage ?: "Unknown error"))
+        }
+    }
+
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
             .onFailure { error ->
-                _uiEffect.emit(PostDetailUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
-                _uiEffect.emit(PostDetailUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
+    }
+
+    private fun submitComment(postId: String, content: String) = viewModelScope.launch {
+        submitCommentUseCase(postId = postId, content = content)
+            .onSuccess {
+                _uiState.update { it.copy(commentContent = "") }
+            }
+            .onFailure { error ->
+                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+            }
+    }
+
+    private fun deleteComment(commentId: String) = viewModelScope.launch {
+        deleteCommentUseCase(commentId = commentId)
+            .onFailure { error ->
+                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+            }
+    }
+
+    private fun emitEffect(effect: PostDetailUiEffect) = viewModelScope.launch {
+        _uiEffect.emit(effect)
     }
 }
