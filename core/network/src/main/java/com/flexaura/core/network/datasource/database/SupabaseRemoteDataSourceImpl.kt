@@ -1,6 +1,7 @@
 package com.flexaura.core.network.datasource.database
 
 import com.flexaura.core.network.model.CommentDto
+import com.flexaura.core.network.model.CommentWithAuthorDto
 import com.flexaura.core.network.model.FollowDto
 import com.flexaura.core.network.model.FollowResponseDto
 import com.flexaura.core.network.model.PostDto
@@ -303,12 +304,17 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
     }
 
     // -------------------- Comments --------------------
-    override suspend fun getComments(postId: String): List<CommentDto> =
+    override suspend fun getComments(postId: String): List<CommentWithAuthorDto> =
         supabaseClient.postgrest["comments"]
-            .select {
+            .select(
+                columns = Columns.raw("""
+                    *,
+                    users(*)
+                """.trimIndent())
+            ) {
                 filter { eq("post_id", postId) }
                 order("created_at", Order.DESCENDING)
-            }.decodeList<CommentDto>()
+            }.decodeList<CommentWithAuthorDto>()
 
     override suspend fun createComment(postId: String, content: String): CommentDto {
         val currentId = requireCurrentUserId()
@@ -316,8 +322,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             id = UUID.randomUUID().toString(),
             postId = postId,
             authorId = currentId,
-            content = content,
-            createdAt = ""
+            content = content
         )
 
         return supabaseClient.postgrest["comments"]

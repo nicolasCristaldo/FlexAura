@@ -9,5 +9,5 @@ data class CommentDto(
     @SerialName("post_id") val postId: String,
     @SerialName("author_id") val authorId: String,
     @SerialName("content") val content: String,
-    @SerialName("created_at") val createdAt: String
+    @SerialName("created_at") val createdAt: String? = null
 )
