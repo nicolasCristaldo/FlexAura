@@ -1,6 +1,7 @@
 package com.flexaura.core.network.datasource.database
 
 import com.flexaura.core.network.model.CommentDto
+import com.flexaura.core.network.model.CommentWithAuthorDto
 import com.flexaura.core.network.model.PostDto
 import com.flexaura.core.network.model.PostWithInteractionsDto
 import com.flexaura.core.network.model.UserDto
@@ -34,7 +35,7 @@ interface SupabaseRemoteDataSource  {
     suspend fun deleteVote(postId: String)
 
     // Comments
-    suspend fun getComments(postId: String): List<CommentDto>
+    suspend fun getComments(postId: String): List<CommentWithAuthorDto>
     suspend fun createComment(postId: String, content: String): CommentDto
     suspend fun deleteComment(commentId: String)
 

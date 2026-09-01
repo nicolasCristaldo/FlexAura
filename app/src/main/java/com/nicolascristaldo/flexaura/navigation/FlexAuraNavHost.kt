@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -28,7 +27,7 @@ import com.flexaura.navigation.ProfileGraph
 import com.flexaura.navigation.ProfileRouteDestination
 import com.flexaura.navigation.RegisterRouteDestination
 import com.flexaura.navigation.SearchRouteDestination
-import com.flexaura.post.navigation.postDetailScreen
+import com.flexaura.post.navigation.postDetailGraph
 import com.flexaura.search.navigation.searchGraph
 
 @Composable
@@ -154,7 +153,25 @@ fun FlexAuraNavHost(
                 }
             )
 
-            postDetailScreen()
+            postDetailGraph(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAuthorProfile = { authorId ->
+                    navController.navigate(ProfileRouteDestination(authorId))
+                },
+                nestedGraphs = {
+                    profileScreen(
+                        onNavigateToPostDetail = { postId ->
+                            navController.navigate(PostDetailRouteDestination(postId))
+                        },
+                        onNavigateToCreatePost = {
+                            navController.navigate(CreatePostRouteDestination)
+                        },
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+            )
 
             createPostScreen(
                 onNavigateBack = { navController.popBackStack() }

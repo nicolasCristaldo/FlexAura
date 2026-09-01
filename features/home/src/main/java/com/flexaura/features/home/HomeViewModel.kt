@@ -9,6 +9,7 @@ import com.flexaura.data.domain.usecase.post.SyncPostsUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.features.home.HomeUiEffect.*
+import com.flexaura.features.home.HomeUiIntent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,20 +39,20 @@ class HomeViewModel @Inject constructor(
 
     init {
         observeLocalDataBase()
-        handleIntent(HomeUiIntent.Init)
+        handleIntent(Init)
     }
 
     fun handleIntent(intent: HomeUiIntent) = when (intent) {
-        is HomeUiIntent.Init -> syncPosts()
-        is HomeUiIntent.OnSavedClicked -> toggleSavePost(postId = intent.postId)
-        is HomeUiIntent.OnVoteClicked -> votePost(
+        is Init -> syncPosts()
+        is OnSavedClicked -> toggleSavePost(postId = intent.postId)
+        is OnVoteClicked -> votePost(
             postId = intent.postId,
             vote = intent.vote,
             currentVote = intent.currentVote
         )
-        is HomeUiIntent.Refresh -> syncPosts()
-        is HomeUiIntent.OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
-        is HomeUiIntent.OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
+        is Refresh -> syncPosts()
+        is OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
+        is OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
     }
 
     private fun observeLocalDataBase() = viewModelScope.launch {

@@ -2,6 +2,7 @@ package com.flexaura.data.mapper
 
 import com.flexaura.core.database.model.CommentEntity
 import com.flexaura.core.network.model.CommentDto
+import com.flexaura.core.network.model.CommentWithAuthorDto
 import com.flexaura.core.network.model.UserDto
 import com.flexaura.data.domain.model.Comment
 
@@ -10,7 +11,7 @@ fun CommentDto.toEntity(author: UserDto): CommentEntity = CommentEntity(
     postId = postId,
     userId = authorId,
     content = content,
-    createdAt = createdAt,
+    createdAt = createdAt ?: "",
     authorUsername = author.username,
     authorDisplayName = author.displayName,
     authorAvatarUrl = author.imageUrl,
@@ -27,4 +28,16 @@ fun CommentEntity.toDomain(): Comment = Comment(
     authorDisplayName = authorDisplayName,
     authorAvatarUrl = authorAvatarUrl,
     authorTotalAura = authorTotalAura
+)
+
+fun CommentWithAuthorDto.toEntity(): CommentEntity = CommentEntity(
+    id = id,
+    postId = postId,
+    userId = authorId,
+    content = content,
+    createdAt = createdAt ?: "",
+    authorUsername = author.username,
+    authorDisplayName = author.displayName,
+    authorAvatarUrl = author.imageUrl,
+    authorTotalAura = author.totalAura
 )
