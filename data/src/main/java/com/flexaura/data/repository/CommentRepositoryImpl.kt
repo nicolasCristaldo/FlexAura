@@ -31,18 +31,9 @@ class CommentRepositoryImpl @Inject constructor(
     override suspend fun syncComments(postId: String): Result<Unit> = withContext(dispatcher) {
         runCatching {
             val remoteComments = networkDataSource.getComments(postId)
-            val uniqueAuthorsIds = remoteComments.map { it.authorId }.distinct()
-            val authorsMap = uniqueAuthorsIds.mapNotNull { authorId ->
-                networkDataSource.getUser(authorId)?.let { userDto ->
-                    authorId to userDto
-                }
-            }.toMap()
-            val commentEntities = remoteComments.mapNotNull { dto ->
-                val authorDto = authorsMap[dto.authorId]
-                authorDto?.let { dto.toEntity(it) }
-            }
+            val commentEntities = remoteComments.map { it.toEntity() }
 
-            commentEntities.forEach { commentDao.insertComment(it) }
+            commentDao.insertComments(commentEntities)
         }
     }
 
