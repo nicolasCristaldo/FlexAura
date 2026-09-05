@@ -8,6 +8,7 @@ import com.flexaura.data.domain.usecase.comment.CreateCommentUseCase
 import com.flexaura.data.domain.usecase.comment.DeleteCommentUseCase
 import com.flexaura.data.domain.usecase.comment.GetCommentsUseCase
 import com.flexaura.data.domain.usecase.comment.SyncCommentsUseCase
+import com.flexaura.data.domain.usecase.post.DeletePostUseCase
 import com.flexaura.data.domain.usecase.post.GetPostByIdUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
@@ -32,7 +33,8 @@ class PostScreenViewModel @Inject constructor(
     private val getCommentsUseCase: GetCommentsUseCase,
     private val syncCommentsUseCase: SyncCommentsUseCase,
     private val submitCommentUseCase: CreateCommentUseCase,
-    private val deleteCommentUseCase: DeleteCommentUseCase
+    private val deleteCommentUseCase: DeleteCommentUseCase,
+    private val deletePostUseCase: DeletePostUseCase
 ): ViewModel() {
     private val _uiState = MutableStateFlow(PostDetailUiState())
     val uiState get() = _uiState.asStateFlow()
@@ -59,8 +61,9 @@ class PostScreenViewModel @Inject constructor(
         )
         is OnCommentChanged -> _uiState.update { it.copy(commentContent = intent.content) }
         is OnDeleteComment -> deleteComment(intent.commentId)
+        is OnDeletePost -> deletePost(intent.postId)
         is OnSubmitComment -> submitComment(postId = intent.postId, content = intent.content)
-        is OnNavigateBack -> emitEffect(NavigateBack(intent.postId))
+        is OnNavigateBack -> emitEffect(NavigateBack)
         is OnNavigateToAuthorProfile -> emitEffect(NavigateToAuthorProfile(intent.authorId))
     }
 
@@ -92,21 +95,21 @@ class PostScreenViewModel @Inject constructor(
 
         if (result.isFailure) {
             val error = result.exceptionOrNull()
-            _uiEffect.emit(ShowSnackBar(error?.localizedMessage ?: "Unknown error"))
+            emitEffect(ShowSnackBar(error?.localizedMessage ?: "Unknown error"))
         }
     }
 
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 
@@ -116,14 +119,24 @@ class PostScreenViewModel @Inject constructor(
                 _uiState.update { it.copy(commentContent = "") }
             }
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 
     private fun deleteComment(commentId: String) = viewModelScope.launch {
         deleteCommentUseCase(commentId = commentId)
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+            }
+    }
+
+    private fun deletePost(postId: String) = viewModelScope.launch {
+        deletePostUseCase(postId = postId)
+            .onSuccess {
+                emitEffect(NavigateBack)
+            }
+            .onFailure { error ->
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 

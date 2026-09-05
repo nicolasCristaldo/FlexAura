@@ -2,6 +2,9 @@ package com.flexaura.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.data.domain.repository.AuthState
+import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
+import com.flexaura.data.domain.usecase.post.DeletePostUseCase
 import com.flexaura.data.domain.usecase.post.GetFollowingPostsUseCase
 import com.flexaura.data.domain.usecase.post.GetPostsUseCase
 import com.flexaura.data.domain.usecase.post.SyncFollowingPostsUseCase
@@ -24,12 +27,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    private val getAuthUserUseCase: GetAuthUserUseCase,
     private val getPostsUseCase: GetPostsUseCase,
     private val getFollowingPostsUseCase: GetFollowingPostsUseCase,
     private val syncPostsUseCase: SyncPostsUseCase,
     private val syncFollowingPostsUseCase: SyncFollowingPostsUseCase,
     private val votePostUseCase: VotePostUseCase,
-    private val toggleSavePostUseCase: ToggleSavePostUseCase
+    private val toggleSavePostUseCase: ToggleSavePostUseCase,
+    private val deletePostUseCase: DeletePostUseCase
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<HomeUiState> = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> get() = _uiState.asStateFlow()
@@ -39,6 +44,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         observeLocalDataBase()
+        observeAuthUser()
         handleIntent(Init)
     }
 
@@ -53,6 +59,7 @@ class HomeViewModel @Inject constructor(
         is Refresh -> syncPosts()
         is OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
         is OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
+        is OnDeletePostClicked -> deletePost(intent.postId)
     }
 
     private fun observeLocalDataBase() = viewModelScope.launch {
@@ -67,6 +74,14 @@ class HomeViewModel @Inject constructor(
                     discoverPosts = discover,
                     followingPosts = following
                 )
+            }
+        }
+    }
+
+    private fun observeAuthUser() = viewModelScope.launch {
+        getAuthUserUseCase().collect { authState ->
+            if(authState is AuthState.Authenticated) {
+                _uiState.update { it.copy(currentUserId = authState.userId) }
             }
         }
     }
@@ -115,6 +130,13 @@ class HomeViewModel @Inject constructor(
 
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
+            .onFailure { error ->
+                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+            }
+    }
+
+    private fun deletePost(postId: String) = viewModelScope.launch {
+        deletePostUseCase(postId = postId)
             .onFailure { error ->
                 _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }

@@ -126,9 +126,10 @@ fun HomeScreen(
                         onAuthorClicked = { authorId ->
                             onIntent(HomeUiIntent.OnAuthorClicked(authorId))
                         },
-                        modifier = Modifier.clickable {
-                            onIntent(HomeUiIntent.OnPostClicked(post.id))
+                        onDeletePost = if(post.author?.id == state.currentUserId) { postId ->
+                            onIntent(HomeUiIntent.OnDeletePostClicked(postId))
                         }
+                        else null
                     )
                 }
             }

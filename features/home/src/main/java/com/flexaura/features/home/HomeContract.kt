@@ -9,9 +9,11 @@ sealed interface HomeUiIntent {
     data class OnSavedClicked(val postId: String) : HomeUiIntent
     data class OnPostClicked(val postId: String) : HomeUiIntent
     data class OnAuthorClicked(val authorId: String) : HomeUiIntent
+    data class OnDeletePostClicked(val postId: String) : HomeUiIntent
 }
 
 data class HomeUiState(
+    val currentUserId: String? = null,
     val discoverPosts: List<Post> = emptyList(),
     val followingPosts: List<Post> = emptyList(),
     val currentPage: Int = 1,

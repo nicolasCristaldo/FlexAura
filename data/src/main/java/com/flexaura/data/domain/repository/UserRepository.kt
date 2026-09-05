@@ -10,7 +10,7 @@ interface UserRepository {
     suspend fun updateProfile(
         username: String,
         displayName: String,
-        imageUrl: String?,
+        imageBytes: ByteArray? = null,
         bio: String?
     ): Result<Unit>
     suspend fun searchUsers(query: String, page: Int, pageSize: Int): Result<List<User>>
