@@ -5,6 +5,7 @@ import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.User
+import com.flexaura.data.domain.repository.MediaRepository
 import com.flexaura.data.domain.repository.UserRepository
 import com.flexaura.data.mapper.toDomain
 import com.flexaura.data.mapper.toEntity
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class UserRepositoryImpl @Inject constructor(
     private val userDao: UserDao,
     private val networkDataSource: SupabaseRemoteDataSource,
+    private val mediaRepository: MediaRepository,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ): UserRepository {
@@ -58,15 +60,22 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun updateProfile(
         username: String,
         displayName: String,
-        imageUrl: String?,
+        imageBytes: ByteArray?,
         bio: String?
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
             val currentId = networkDataSource.currentUserId ?: throw Exception("No user logged in")
+            val newImage = if (imageBytes != null) {
+                mediaRepository.uploadAvatar(userId = currentId, imageBytes = imageBytes).getOrThrow()
+            }
+            else {
+                userDao.getUserById(currentId)?.imageUrl
+            }
+
             val updatedUserDto = networkDataSource.updateProfile(
                 username = username,
                 displayName = displayName,
-                imageUrl = imageUrl,
+                imageUrl = newImage,
                 bio = bio
             )
             val currentUserEntity = userDao.getUserById(currentId)

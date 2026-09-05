@@ -10,6 +10,7 @@ sealed interface ProfileUiIntent {
     data class OnSavedClicked(val postId: String) : ProfileUiIntent
     data object OnToggleFollowClicked : ProfileUiIntent
     data class OnPostClicked(val postId: String) : ProfileUiIntent
+    data class OnDeletePostClicked(val postId: String) : ProfileUiIntent
 }
 
 data class ProfileUiState(

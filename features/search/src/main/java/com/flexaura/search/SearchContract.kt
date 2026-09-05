@@ -12,9 +12,11 @@ sealed interface SearchUiIntent {
     data class OnVoteClicked(val postId: String, val vote: Int, val currentVote: Int) : SearchUiIntent
     data class OnSavedClicked(val postId: String) : SearchUiIntent
     data class OnAuthorClicked(val authorId: String) : SearchUiIntent
+    data class OnDeletePostClicked(val postId: String) : SearchUiIntent
 }
 
 data class SearchUiState(
+    val currentUserId: String? = null,
     val query: String = "",
     val selectedTab: SearchTab = SearchTab.PROFILES,
     val isSearching: Boolean = false,

@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -33,6 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.PostCard
+import com.flexaura.features.profile.ProfileUiEffect.*
+import com.flexaura.features.profile.ProfileUiIntent.*
+
 
 @Composable
 fun ProfileRoute(
@@ -47,11 +49,11 @@ fun ProfileRoute(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is ProfileUiEffect.ShowSnackBar -> {
+                is ShowSnackBar -> {
                     snackBarHostState.showSnackbar(effect.message)
                 }
 
-                is ProfileUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
+                is NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
             }
         }
     }
@@ -111,7 +113,7 @@ fun ProfileScreen(
             Text("Following: ${state.user?.followingCount}")
             if(!state.isOwnProfile) {
                 Button(
-                    onClick = { onIntent(ProfileUiIntent.OnToggleFollowClicked) }
+                    onClick = { onIntent(OnToggleFollowClicked) }
                 ) {
                     Text(text = if (state.user?.isFollowedByCurrentUser == true) "Unfollow" else "Follow")
                 }
@@ -124,14 +126,17 @@ fun ProfileScreen(
                     PostCard(
                         post = post,
                         onPostClicked = { postId ->
-                            onIntent(ProfileUiIntent.OnPostClicked(postId))
+                            onIntent(OnPostClicked(postId))
                         },
                         onVoteClicked = { postId, vote, currentVote ->
-                            onIntent(ProfileUiIntent.OnVoteClicked(postId, vote, currentVote))
+                            onIntent(OnVoteClicked(postId, vote, currentVote))
                         },
                         onSavedClicked = { postId ->
-                            onIntent(ProfileUiIntent.OnSavedClicked(postId))
-                        }
+                            onIntent(OnSavedClicked(postId))
+                        },
+                        onDeletePost = if (state.isOwnProfile) { postId ->
+                            onIntent(OnDeletePostClicked(postId))
+                        } else null
                     )
                 }
             }
