@@ -3,6 +3,9 @@ package com.flexaura.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flexaura.data.domain.model.Post
+import com.flexaura.data.domain.repository.AuthState
+import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
+import com.flexaura.data.domain.usecase.post.DeletePostUseCase
 import com.flexaura.data.domain.usecase.post.SearchPostsUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
@@ -24,9 +27,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
+    private val getAuthUserUseCase: GetAuthUserUseCase,
     private val searchPostsUseCase: SearchPostsUseCase,
     private val searchUsersUseCase: SearchUsersUseCase,
     private val votePostUseCase: VotePostUseCase,
+    private val deletePostUseCase: DeletePostUseCase,
     private val toggleSavePostUseCase: ToggleSavePostUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -36,6 +41,8 @@ class SearchViewModel @Inject constructor(
     val uiEffect: SharedFlow<SearchUiEffect> get() = _uiEffect.asSharedFlow()
 
     private var searchJob: Job? = null
+
+    init { observeAuthUser() }
 
     fun onIntent(intent: SearchUiIntent) = when(intent) {
         is SearchUiIntent.OnSearchClicked -> {
@@ -56,6 +63,16 @@ class SearchViewModel @Inject constructor(
             vote = intent.vote,
             currentVote = intent.currentVote
         )
+
+        is SearchUiIntent.OnDeletePostClicked -> deletePost(intent.postId)
+    }
+
+    private fun observeAuthUser() = viewModelScope.launch {
+        getAuthUserUseCase().collect { authState ->
+            if(authState is AuthState.Authenticated) {
+                _uiState.update { it.copy(currentUserId = authState.userId) }
+            }
+        }
     }
 
     private fun dispatchDebounceSearch(query: String) {
@@ -152,6 +169,13 @@ class SearchViewModel @Inject constructor(
 
             currentState.copy(postsResults = updatedPosts)
         }
+    }
+
+    private fun deletePost(postId: String) = viewModelScope.launch {
+        deletePostUseCase(postId = postId)
+            .onFailure { error ->
+                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+            }
     }
 
     private fun emitEffect(effect: SearchUiEffect) = viewModelScope.launch {

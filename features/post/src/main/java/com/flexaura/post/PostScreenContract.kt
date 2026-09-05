@@ -10,7 +10,8 @@ sealed interface PostDetailUiIntent {
     data class OnCommentChanged(val content: String) : PostDetailUiIntent
     data class OnSubmitComment(val postId: String, val content: String) : PostDetailUiIntent
     data class OnDeleteComment(val commentId: String) : PostDetailUiIntent
-    data class OnNavigateBack(val postId: String) : PostDetailUiIntent
+    data class OnDeletePost(val postId: String) : PostDetailUiIntent
+    data object OnNavigateBack : PostDetailUiIntent
     data class OnNavigateToAuthorProfile(val authorId: String) : PostDetailUiIntent
 }
 
@@ -25,6 +26,6 @@ data class PostDetailUiState(
 
 sealed interface PostDetailUiEffect {
     data class ShowSnackBar(val message: String) : PostDetailUiEffect
-    data class NavigateBack(val postId: String) : PostDetailUiEffect
+    data object NavigateBack : PostDetailUiEffect
     data class NavigateToAuthorProfile(val authorId: String) : PostDetailUiEffect
 }

@@ -1,9 +1,14 @@
 package com.flexaura.createpost
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flexaura.data.domain.usecase.post.CreatePostUseCase
+import com.flexaura.createpost.CreatePostUiEffect.*
+import com.flexaura.createpost.CreatePostUiIntent.*
+import com.flexaura.data.domain.util.compressAndGetImageBytes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -14,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
-    private val createPostUseCase: CreatePostUseCase
+    private val createPostUseCase: CreatePostUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CreatePostUiState())
     val uiState get() = _uiState.asStateFlow()
@@ -23,33 +29,33 @@ class CreatePostViewModel @Inject constructor(
     val uiEffect = _uiEffect.asSharedFlow()
 
     fun onIntent(intent: CreatePostUiIntent) = when(intent) {
-        is CreatePostUiIntent.OnImageSelected -> _uiState.update {
+        is OnImageSelected -> _uiState.update {
             it.copy(imageUri = intent.imageUri)
         }
-        is CreatePostUiIntent.OnContentChange -> _uiState.update {
+        is OnContentChange -> _uiState.update {
             it.copy(content = intent.newContent)
         }
-        CreatePostUiIntent.OnSubmitClicked -> createPost(
-            content = uiState.value.content,
-            imageUrl = uiState.value.imageUri
-        )
+        OnSubmitClicked -> createPost()
+        OnRemoveImageClicked -> _uiState.update { it.copy(imageUri = null) }
     }
 
-    private fun createPost(
-        content: String = "",
-        imageUrl: String? = null
-    ) = viewModelScope.launch {
-        if (content.isBlank() && imageUrl.isNullOrBlank()) {
-            emitEffect(CreatePostUiEffect.ShowSnackBar("The post cannot be empty"))
+    private fun createPost() = viewModelScope.launch {
+        val content = uiState.value.content
+        val imageUri = uiState.value.imageUri
+
+        if (content.isBlank() && imageUri == null) {
+            emitEffect(ShowSnackBar("The post cannot be empty"))
             return@launch
         }
 
         _uiState.update { it.copy(isPostPublishing = true) }
 
-        createPostUseCase(content = content, imageUrl = imageUrl)
+        val imageBytes = imageUri?.let { uri -> context.compressAndGetImageBytes(uri = uri) }
+
+        createPostUseCase(content = content, imageBytes = imageBytes)
             .onSuccess {
                 _uiState.update { it.copy(isPostPublishing = false) }
-                emitEffect(CreatePostUiEffect.NavigateBack)
+                emitEffect(NavigateBack)
             }
             .onFailure { error ->
                 _uiState.update {
@@ -59,7 +65,7 @@ class CreatePostViewModel @Inject constructor(
                     )
                 }
                 emitEffect(
-                    CreatePostUiEffect.ShowSnackBar(
+                    ShowSnackBar(
                         error.localizedMessage ?: "Unknown error"
                     )
                 )

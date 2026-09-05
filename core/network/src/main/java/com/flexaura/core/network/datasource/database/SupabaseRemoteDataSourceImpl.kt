@@ -16,6 +16,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.storage.storage
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.util.UUID
@@ -176,10 +177,10 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             }.decodeList<PostWithInteractionsDto>()
     }
 
-    override suspend fun createPost(content: String?, imageUrl: String?): PostDto {
+    override suspend fun createPost(id: String, content: String?, imageUrl: String?): PostDto {
         val currentId = requireCurrentUserId()
         val postBody = buildJsonObject {
-            put("id", UUID.randomUUID().toString())
+            put("id", id)
             put("author_id", currentId)
             put("content", content)
             put("image_url", imageUrl)
@@ -372,5 +373,26 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
             }.decodeList<SavedPostsResponseDto>().map { it.post }
+    }
+
+    // Images
+
+    override suspend fun uploadImage(
+        bucketName: String,
+        path: String,
+        imageBytes: ByteArray,
+        upsert: Boolean
+    ): String {
+        val bucket = supabaseClient.storage.from(bucketName)
+
+        bucket.upload(path, imageBytes) {
+            this.upsert = upsert
+        }
+
+        return bucket.publicUrl(path)
+    }
+
+    override suspend fun deleteImage(bucketName: String, path: String) {
+        supabaseClient.storage.from(bucketName).delete(path)
     }
 }
