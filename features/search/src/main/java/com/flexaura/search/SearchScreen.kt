@@ -41,6 +41,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.PostCard
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
+import com.flexaura.search.SearchUiEffect.*
+import com.flexaura.search.SearchUiIntent.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -56,9 +58,9 @@ fun SearchRoute(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when(effect) {
-                is SearchUiEffect.ShowSnackBar -> snackBarHostState.showSnackbar(effect.message)
-                is SearchUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
-                is SearchUiEffect.NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
+                is ShowSnackBar -> snackBarHostState.showSnackbar(effect.message)
+                is NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
+                is NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
             }
         }
     }
@@ -95,7 +97,7 @@ fun SearchScreen(
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(pagerState.currentPage) {
-        onIntent(SearchUiIntent.OnTabChanged(SearchTab.entries[pagerState.currentPage]))
+        onIntent(OnTabChanged(SearchTab.entries[pagerState.currentPage]))
     }
 
     Column(
@@ -109,13 +111,13 @@ fun SearchScreen(
         ) {
             OutlinedTextField(
                 value = state.query,
-                onValueChange = { onIntent(SearchUiIntent.OnTextChange(it)) },
+                onValueChange = { onIntent(OnTextChange(it)) },
                 label = { Text("Search") },
                 modifier = Modifier.padding(vertical = 8.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
-                onClick = { onIntent(SearchUiIntent.OnSearchClicked(state.query)) },
+                onClick = { onIntent(OnSearchClicked(state.query)) },
                 enabled = state.query.isNotBlank()
             ) {
                 Text("Search")
@@ -205,17 +207,21 @@ fun PostsResultsList(
                 PostCard(
                     post = post,
                     onPostClicked = { postId ->
-                        onIntent(SearchUiIntent.OnPostClicked(postId))
+                        onIntent(OnPostClicked(postId))
                     },
                     onVoteClicked = { postId, vote, currentVote ->
-                        onIntent(SearchUiIntent.OnVoteClicked(postId, vote, currentVote))
+                        onIntent(OnVoteClicked(postId, vote, currentVote))
                     },
                     onSavedClicked = { postId ->
-                        onIntent(SearchUiIntent.OnSavedClicked(postId))
+                        onIntent(OnSavedClicked(postId))
                     },
                     onAuthorClicked = { authorId ->
-                        onIntent(SearchUiIntent.OnAuthorClicked(authorId))
+                        onIntent(OnAuthorClicked(authorId))
+                    },
+                    onDeletePost = if(post.author?.id == post.author?.id) { postId ->
+                        onIntent(OnDeletePostClicked(postId))
                     }
+                    else null
                 )
             }
         }

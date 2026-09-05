@@ -24,7 +24,7 @@ interface SupabaseRemoteDataSource  {
     // Posts
     suspend fun getPost(postId: String): PostDto?
     suspend fun getPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto>
-    suspend fun createPost(content: String?, imageUrl: String?): PostDto
+    suspend fun createPost(id: String, content: String?, imageUrl: String?): PostDto
     suspend fun deletePost(postId: String)
     suspend fun getPostsByAuthor(authorId: String, page: Int, pageSize: Int): List<PostWithInteractionsDto>
     suspend fun searchPosts(query: String, page: Int, pageSize: Int): List<PostWithInteractionsDto>
@@ -43,4 +43,8 @@ interface SupabaseRemoteDataSource  {
     suspend fun savePost(postId: String)
     suspend fun unsavePost(postId: String)
     suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostDto>
+
+    // Images
+    suspend fun uploadImage(bucketName: String, path: String, imageBytes: ByteArray, upsert: Boolean = false): String
+    suspend fun deleteImage(bucketName: String, path: String)
 }

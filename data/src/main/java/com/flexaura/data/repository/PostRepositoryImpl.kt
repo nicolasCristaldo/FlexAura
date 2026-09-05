@@ -6,6 +6,7 @@ import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.Post
+import com.flexaura.data.domain.repository.MediaRepository
 import com.flexaura.data.domain.repository.PostRepository
 import com.flexaura.data.mapper.toDomain
 import com.flexaura.data.mapper.toEntity
@@ -16,12 +17,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import javax.inject.Inject
 
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
     private val userDao: UserDao,
     private val networkDataSource: SupabaseRemoteDataSource,
+    private val mediaRepository: MediaRepository,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ) : PostRepository {
@@ -97,10 +100,24 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun createPost(
         content: String?,
-        imageUrl: String?
+        imageBytes: ByteArray?
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            networkDataSource.createPost(content = content, imageUrl = imageUrl)
+            val postId = UUID.randomUUID().toString()
+            var uploadedImageUrl: String? = null
+
+            if(imageBytes != null) {
+                uploadedImageUrl = mediaRepository.uploadPostImage(
+                    postId = postId,
+                    imageBytes = imageBytes
+                ).getOrThrow()
+            }
+
+            networkDataSource.createPost(
+                id = postId,
+                content = content,
+                imageUrl = uploadedImageUrl
+            )
             syncPosts(page = 1, pageSize = 10).getOrThrow()
         }
     }.await()
@@ -124,6 +141,17 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun deletePost(postId: String): Result<Unit> =
         scope.async(dispatcher) {
             runCatching {
+                val localPost = postDao.getPostById(postId)
+
+                localPost?.post?.imageUrl.takeIf { it?.isNotBlank() ?: false }?.let { imageUrl ->
+                    val fileName = imageUrl.substringAfterLast("/")
+                    if(fileName.isNotEmpty()) {
+                        runCatching {
+                            mediaRepository.deleteImage(bucketName = "posts", fileName = fileName)
+                        }
+                    }
+                }
+
                 postDao.deletePostById(postId)
                 networkDataSource.deletePost(postId)
             }

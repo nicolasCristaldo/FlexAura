@@ -9,13 +9,13 @@ class UpdateProfileUseCase @Inject constructor(
     suspend operator fun invoke(
         username: String,
         displayName: String,
-        imageUrl: String?,
+        imageBytes: ByteArray?,
         bio: String?
     ): Result<Unit> =
         repository.updateProfile(
             username = username,
             displayName = displayName,
-            imageUrl = imageUrl,
+            imageBytes = imageBytes,
             bio = bio
         )
 }
