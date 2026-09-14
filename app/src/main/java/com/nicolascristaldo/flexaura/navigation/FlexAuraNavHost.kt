@@ -68,7 +68,7 @@ fun FlexAuraNavHost(
                             restoreState = true
                         }
                     },
-                    modifier = Modifier.height(110.dp)
+                    modifier = Modifier.height(100.dp)
                 )
             }
         }
