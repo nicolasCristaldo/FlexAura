@@ -42,7 +42,7 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":core:navigation"))
     implementation(project(":core:components"))
-
+    implementation(project(":core:designsystem"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

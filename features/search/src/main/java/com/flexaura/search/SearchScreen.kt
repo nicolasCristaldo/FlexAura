@@ -13,13 +13,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -38,11 +34,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flexaura.components.FlexAuraFab
 import com.flexaura.components.PostCard
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
-import com.flexaura.search.SearchUiEffect.*
-import com.flexaura.search.SearchUiIntent.*
+import com.flexaura.search.SearchUiEffect.NavigateToAuthorProfile
+import com.flexaura.search.SearchUiEffect.NavigateToPostDetail
+import com.flexaura.search.SearchUiEffect.ShowSnackBar
+import com.flexaura.search.SearchUiIntent.OnAuthorClicked
+import com.flexaura.search.SearchUiIntent.OnDeletePostClicked
+import com.flexaura.search.SearchUiIntent.OnPostClicked
+import com.flexaura.search.SearchUiIntent.OnSavedClicked
+import com.flexaura.search.SearchUiIntent.OnSearchClicked
+import com.flexaura.search.SearchUiIntent.OnTabChanged
+import com.flexaura.search.SearchUiIntent.OnTextChange
+import com.flexaura.search.SearchUiIntent.OnVoteClicked
 import kotlinx.coroutines.launch
 
 @Composable
@@ -68,16 +74,7 @@ fun SearchRoute(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal),
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToCreatePost
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null
-                )
-            }
-        }
+        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) }
     ) { innerPadding ->
         SearchScreen(
             state = state,
