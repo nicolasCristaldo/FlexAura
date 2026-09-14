@@ -35,10 +35,12 @@ android {
 
 dependencies {
     implementation(project(":data"))
+    implementation(project(":core:designsystem"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.material.icons.extended)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
