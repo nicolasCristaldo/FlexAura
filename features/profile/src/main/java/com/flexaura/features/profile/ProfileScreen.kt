@@ -12,10 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -31,9 +29,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flexaura.components.FlexAuraFab
 import com.flexaura.components.PostCard
-import com.flexaura.features.profile.ProfileUiEffect.*
-import com.flexaura.features.profile.ProfileUiIntent.*
+import com.flexaura.features.profile.ProfileUiEffect.NavigateToPostDetail
+import com.flexaura.features.profile.ProfileUiEffect.ShowSnackBar
+import com.flexaura.features.profile.ProfileUiIntent.OnDeletePostClicked
+import com.flexaura.features.profile.ProfileUiIntent.OnPostClicked
+import com.flexaura.features.profile.ProfileUiIntent.OnSavedClicked
+import com.flexaura.features.profile.ProfileUiIntent.OnToggleFollowClicked
+import com.flexaura.features.profile.ProfileUiIntent.OnVoteClicked
 
 
 @Composable
@@ -71,16 +75,7 @@ fun ProfileRoute(
                 }
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToCreatePost
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null
-                )
-            }
-        }
+        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) }
     ) { innerPadding ->
         ProfileScreen(
             state = state.value,

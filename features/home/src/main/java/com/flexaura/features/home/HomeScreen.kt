@@ -1,6 +1,6 @@
 package com.flexaura.features.home
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
@@ -26,11 +23,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flexaura.components.FlexAuraFab
 import com.flexaura.components.PostCard
+import com.flexaura.core.designsystem.theme.appMainBackground
+import com.flexaura.features.home.components.HomeTopAppBar
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeRoute(
     onNavigateToPostDetail: (String) -> Unit,
@@ -47,7 +50,6 @@ fun HomeRoute(
                 is HomeUiEffect.ShowSnackBar -> {
                     snackBarHostState.showSnackbar(effect.message)
                 }
-
                 is HomeUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
                 is HomeUiEffect.NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
             }
@@ -57,16 +59,14 @@ fun HomeRoute(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal),
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToCreatePost
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null
-                )
-            }
-        }
+        topBar = {
+            HomeTopAppBar(
+                onClick = {}
+            )
+        },
+        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) },
+        containerColor = Color.Transparent,
+        modifier = Modifier.appMainBackground()
     ) { innerPadding ->
         HomeScreen(
             state = state.value,
@@ -97,7 +97,7 @@ fun HomeScreen(
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
                         }
-                    },
+                    }
                 )
             }
         }
@@ -109,7 +109,10 @@ fun HomeScreen(
             val posts = if (page == 0) state.discoverPosts else state.followingPosts
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxSize()
             ) {
                 items(items = posts, key = { it.id }) { post ->
                     PostCard(
