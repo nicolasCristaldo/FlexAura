@@ -1,4 +1,4 @@
-package com.flexaura.components
+package com.flexaura.components.general
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton

@@ -29,8 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.flexaura.components.FlexAuraFab
-import com.flexaura.components.PostCard
+import com.flexaura.components.general.FlexAuraFab
+import com.flexaura.components.post.PostCard
 import com.flexaura.features.profile.ProfileUiEffect.NavigateToPostDetail
 import com.flexaura.features.profile.ProfileUiEffect.ShowSnackBar
 import com.flexaura.features.profile.ProfileUiIntent.OnDeletePostClicked
