@@ -7,7 +7,6 @@ sealed interface SearchUiIntent {
     data object Refresh : SearchUiIntent
     data class OnTextChange(val newText: String) : SearchUiIntent
     data class OnSearchClicked(val searchText: String) : SearchUiIntent
-    data class OnTabChanged(val tab: SearchTab) : SearchUiIntent
     data class OnPostClicked(val postId: String) : SearchUiIntent
     data class OnVoteClicked(val postId: String, val vote: Int, val currentVote: Int) : SearchUiIntent
     data class OnSavedClicked(val postId: String) : SearchUiIntent
@@ -18,11 +17,11 @@ sealed interface SearchUiIntent {
 data class SearchUiState(
     val currentUserId: String? = null,
     val query: String = "",
-    val selectedTab: SearchTab = SearchTab.PROFILES,
     val isSearching: Boolean = false,
     val postsResults: List<Post> = emptyList(),
     val usersResults: List<User> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val hasSearched: Boolean = false
 )
 
 sealed interface SearchUiEffect {
