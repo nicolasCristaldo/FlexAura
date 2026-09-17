@@ -1,22 +1,15 @@
 package com.flexaura.search
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
@@ -29,26 +22,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.flexaura.components.FlexAuraFab
-import com.flexaura.components.PostCard
-import com.flexaura.data.domain.model.Post
-import com.flexaura.data.domain.model.User
-import com.flexaura.search.SearchUiEffect.NavigateToAuthorProfile
-import com.flexaura.search.SearchUiEffect.NavigateToPostDetail
-import com.flexaura.search.SearchUiEffect.ShowSnackBar
-import com.flexaura.search.SearchUiIntent.OnAuthorClicked
-import com.flexaura.search.SearchUiIntent.OnDeletePostClicked
-import com.flexaura.search.SearchUiIntent.OnPostClicked
-import com.flexaura.search.SearchUiIntent.OnSavedClicked
-import com.flexaura.search.SearchUiIntent.OnSearchClicked
-import com.flexaura.search.SearchUiIntent.OnTabChanged
-import com.flexaura.search.SearchUiIntent.OnTextChange
-import com.flexaura.search.SearchUiIntent.OnVoteClicked
+import com.flexaura.components.general.FlexAuraFab
+import com.flexaura.components.general.StateInfo
+import com.flexaura.components.general.StateInfoScreen
+import com.flexaura.components.post.PostList
+import com.flexaura.components.user.ProfileList
+import com.flexaura.core.designsystem.theme.appMainBackground
+import com.flexaura.search.SearchUiEffect.*
+import com.flexaura.search.SearchUiIntent.*
+import com.flexaura.search.components.SearchTopBar
 import kotlinx.coroutines.launch
 
 @Composable
@@ -63,7 +50,7 @@ fun SearchRoute(
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
-            when(effect) {
+            when (effect) {
                 is ShowSnackBar -> snackBarHostState.showSnackbar(effect.message)
                 is NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
                 is NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
@@ -74,7 +61,21 @@ fun SearchRoute(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal),
-        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) }
+        topBar = {
+            SearchTopBar(
+                query = state.query,
+                onValueChange = {
+                    viewModel.onIntent(OnTextChange(it))
+                },
+                onSearchClicked = {
+                    viewModel.onIntent(OnSearchClicked(state.query))
+                },
+                modifier = Modifier.fillMaxHeight(.065f)
+            )
+        },
+        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) },
+        containerColor = Color.Transparent,
+        modifier = Modifier.appMainBackground()
     ) { innerPadding ->
         SearchScreen(
             state = state,
@@ -93,34 +94,7 @@ fun SearchScreen(
     val pagerState = rememberPagerState(pageCount = { SearchTab.entries.size })
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(pagerState.currentPage) {
-        onIntent(OnTabChanged(SearchTab.entries[pagerState.currentPage]))
-    }
-
-    Column(
-        modifier = modifier
-            .padding(horizontal = 8.dp)
-            .fillMaxSize()
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp)
-        ) {
-            OutlinedTextField(
-                value = state.query,
-                onValueChange = { onIntent(OnTextChange(it)) },
-                label = { Text("Search") },
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                onClick = { onIntent(OnSearchClicked(state.query)) },
-                enabled = state.query.isNotBlank()
-            ) {
-                Text("Search")
-            }
-        }
-
+    Column(modifier = modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = pagerState.currentPage) {
             SearchTab.entries.forEachIndexed { index, tab ->
                 Tab(
@@ -141,86 +115,79 @@ fun SearchScreen(
                 .fillMaxWidth()
                 .weight(1f)
         ) { page ->
-            if (state.isSearching && state.usersResults.isEmpty() && state.postsResults.isEmpty()) {
-                CircularProgressIndicator()
-            }
-            else {
-                when(SearchTab.entries[page]) {
-                    SearchTab.PROFILES -> { UsersResultsList(users = state.usersResults) }
-                    SearchTab.POSTS -> {
-                        PostsResultsList(
-                            posts = state.postsResults,
-                            onIntent = onIntent
-                        )
-                    }
+            val currentTab = SearchTab.entries[page]
+            val isProfilesEmpty = currentTab == SearchTab.PROFILES && state.usersResults.isEmpty()
+            val isPostsEmpty = currentTab == SearchTab.POSTS && state.postsResults.isEmpty()
+            val showResults = !isProfilesEmpty && !isPostsEmpty && state.hasSearched && state.errorMessage == null
 
+            when {
+                state.isSearching -> CircularProgressIndicator()
+                !showResults -> {
+                    val stateInfo = getSearchStateInfo(
+                        state = state,
+                        currentTab = currentTab,
+                        onRetry = { onIntent(Refresh) }
+                    )
+
+                    StateInfoScreen(
+                        stateInfo = stateInfo,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                else -> {
+                    if (currentTab == SearchTab.PROFILES) ProfileList(
+                        users = state.usersResults,
+                        onProfileClicked = { userId ->
+                            onIntent(OnAuthorClicked(userId))
+                        },
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    else PostList(
+                        posts = state.postsResults,
+                        currentUserId = state.currentUserId,
+                        onPostClicked = { postId ->
+                            onIntent(OnPostClicked(postId))
+                        },
+                        onVoteClicked = { postId, vote, currentVote ->
+                            onIntent(OnVoteClicked(postId, vote, currentVote))
+                        },
+                        onSavedClicked = { postId ->
+                            onIntent(OnSavedClicked(postId))
+                        },
+                        onAuthorClicked = { authorId ->
+                            onIntent(OnAuthorClicked(authorId))
+                        },
+                        onDeletePost = { postId ->
+                            onIntent(OnDeletePostClicked(postId))
+                        },
+                        modifier = Modifier.padding(8.dp)
+                    )
                 }
             }
         }
     }
 }
 
-@Composable
-fun UsersResultsList(
-    users: List<User>,
-    modifier: Modifier = Modifier
-) {
-    if(users.isEmpty()) {
-        Text(
-            text = "No users found",
-            modifier = modifier.fillMaxWidth()
-        )
-    }
-    else {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(users) { user ->
-                Text(text = user.username)
-                Text(text = user.displayName)
-                Text(text = user.bio ?: "")
-                HorizontalDivider()
-            }
-        }
-    }
-}
-
-@Composable
-fun PostsResultsList(
-    posts: List<Post>,
-    onIntent: (SearchUiIntent) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if(posts.isEmpty()) {
-        Text(
-            text = "No posts found",
-            modifier = modifier.fillMaxWidth()
-        )
-    }
-    else {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(
-                items = posts,
-                key = { post -> post.id}
-            ) { post ->
-                PostCard(
-                    post = post,
-                    onPostClicked = { postId ->
-                        onIntent(OnPostClicked(postId))
-                    },
-                    onVoteClicked = { postId, vote, currentVote ->
-                        onIntent(OnVoteClicked(postId, vote, currentVote))
-                    },
-                    onSavedClicked = { postId ->
-                        onIntent(OnSavedClicked(postId))
-                    },
-                    onAuthorClicked = { authorId ->
-                        onIntent(OnAuthorClicked(authorId))
-                    },
-                    onDeletePost = if(post.author?.id == post.author?.id) { postId ->
-                        onIntent(OnDeletePostClicked(postId))
-                    }
-                    else null
-                )
-            }
-        }
-    }
+private fun getSearchStateInfo(
+    state: SearchUiState,
+    currentTab: SearchTab,
+    onRetry: (() -> Unit)? = null
+): StateInfo = when {
+    state.errorMessage != null -> StateInfo(
+        title = "Something went wrong",
+        text = state.errorMessage,
+        onActionClick = onRetry
+    )
+    !state.hasSearched -> StateInfo(
+        title = "Search for something!",
+        text = "Find amazing post and profiles to connect with."
+    )
+    currentTab == SearchTab.PROFILES -> StateInfo(
+        title = "No users found",
+        text = "Try searching for something else."
+    )
+    else -> StateInfo(
+        title = "No posts found",
+        text = "Try searching for something else."
+    )
 }

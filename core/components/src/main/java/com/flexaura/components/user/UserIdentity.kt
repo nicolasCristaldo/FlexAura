@@ -1,4 +1,4 @@
-package com.flexaura.components
+package com.flexaura.components.user
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

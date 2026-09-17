@@ -2,6 +2,7 @@ package com.flexaura.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.core.designsystem.util.toUserReadableMessage
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
@@ -10,11 +11,11 @@ import com.flexaura.data.domain.usecase.post.SearchPostsUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.data.domain.usecase.user.SearchUsersUseCase
-import com.flexaura.search.SearchUiEffect.*
+import com.flexaura.search.SearchUiEffect.NavigateToAuthorProfile
+import com.flexaura.search.SearchUiEffect.NavigateToPostDetail
+import com.flexaura.search.SearchUiEffect.ShowSnackBar
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -40,20 +41,16 @@ class SearchViewModel @Inject constructor(
     private val _uiEffect = MutableSharedFlow<SearchUiEffect>()
     val uiEffect: SharedFlow<SearchUiEffect> get() = _uiEffect.asSharedFlow()
 
-    private var searchJob: Job? = null
+    init {
+        observeAuthUser()
+    }
 
-    init { observeAuthUser() }
-
-    fun onIntent(intent: SearchUiIntent) = when(intent) {
+    fun onIntent(intent: SearchUiIntent) = when (intent) {
         is SearchUiIntent.OnSearchClicked -> {
-            searchJob?.cancel()
+            if (!_uiState.value.hasSearched) _uiState.update { it.copy(hasSearched = true) }
             search(intent.searchText)
         }
-        is SearchUiIntent.OnTabChanged -> _uiState.update { it.copy(selectedTab = intent.tab) }
-        is SearchUiIntent.OnTextChange -> {
-            _uiState.update { it.copy(query = intent.newText) }
-            dispatchDebounceSearch(intent.newText)
-        }
+        is SearchUiIntent.OnTextChange -> _uiState.update { it.copy(query = intent.newText) }
         is SearchUiIntent.Refresh -> search(uiState.value.query)
         is SearchUiIntent.OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
         is SearchUiIntent.OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
@@ -69,31 +66,15 @@ class SearchViewModel @Inject constructor(
 
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
-            if(authState is AuthState.Authenticated) {
+            if (authState is AuthState.Authenticated) {
                 _uiState.update { it.copy(currentUserId = authState.userId) }
             }
         }
     }
 
-    private fun dispatchDebounceSearch(query: String) {
-        searchJob?.cancel()
-
-        if(query.isBlank()) {
-            _uiState.update {
-                it.copy(usersResults = emptyList(), postsResults = emptyList(), isSearching = false)
-            }
-            return
-        }
-
-        searchJob = viewModelScope.launch {
-            delay(500)
-            search(query)
-        }
-    }
-
     private fun search(query: String) = viewModelScope.launch {
-        if(query.isBlank()) return@launch
-        _uiState.update { it.copy(isSearching = true) }
+        if (query.isBlank()) return@launch
+        _uiState.update { it.copy(isSearching = true, errorMessage = null) }
 
         try {
             val usersDeferred = async { searchUsersUseCase(query, 1, 10) }
@@ -101,6 +82,17 @@ class SearchViewModel @Inject constructor(
 
             val usersResult = usersDeferred.await()
             val postsResult = postsDeferred.await()
+
+            if (usersResult.isFailure || postsResult.isFailure) {
+                val error = (usersResult.exceptionOrNull() ?: postsResult.exceptionOrNull())
+                _uiState.update {
+                    it.copy(
+                        isSearching = false,
+                        errorMessage = error?.toUserReadableMessage()
+                    )
+                }
+                return@launch
+            }
 
             _uiState.update {
                 it.copy(
@@ -110,14 +102,13 @@ class SearchViewModel @Inject constructor(
                     errorMessage = null
                 )
             }
-
-            if(usersResult.isFailure || postsResult.isFailure) {
-                emitEffect(ShowSnackBar("Something went wrong"))
+        } catch (e: Exception) {
+            _uiState.update {
+                it.copy(
+                    isSearching = false,
+                    errorMessage = e.toUserReadableMessage()
+                )
             }
-        }
-        catch (e: Exception) {
-            _uiState.update { it.copy(isSearching = false, errorMessage = e.localizedMessage) }
-            emitEffect(ShowSnackBar(e.localizedMessage ?: "Unknown error"))
         }
     }
 
@@ -125,7 +116,7 @@ class SearchViewModel @Inject constructor(
         updatePostInState(postId = postId) { post ->
             val newSaveState = !post.isSavedByUser
             val newSavesCount = if (newSaveState) post.savesCount + 1
-                else (post.savesCount - 1).coerceAtLeast(0)
+            else (post.savesCount - 1).coerceAtLeast(0)
 
             post.copy(isSavedByUser = newSaveState, savesCount = newSavesCount)
         }
@@ -135,7 +126,7 @@ class SearchViewModel @Inject constructor(
                 updatePostInState(postId = postId) { post ->
                     val revertSaveState = !post.isSavedByUser
                     val revertSavesCount = if (revertSaveState) post.savesCount + 1
-                        else (post.savesCount - 1).coerceAtLeast(0)
+                    else (post.savesCount - 1).coerceAtLeast(0)
 
                     post.copy(isSavedByUser = revertSaveState, savesCount = revertSavesCount)
                 }

@@ -1,4 +1,4 @@
-package com.flexaura.components
+package com.flexaura.components.post
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,10 +38,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.flexaura.components.general.ConfirmationDialog
+import com.flexaura.components.user.ProfileImage
+import com.flexaura.components.user.UserIdentity
 import com.flexaura.core.designsystem.R
 import com.flexaura.core.designsystem.theme.negativeAuraColor
 import com.flexaura.core.designsystem.theme.positiveAuraColor
-import com.flexaura.core.designsystem.theme.savedPostColor
 import com.flexaura.core.designsystem.util.toCompactString
 import com.flexaura.core.designsystem.util.toRelativeTimeSpan
 import com.flexaura.data.domain.model.Post
@@ -73,7 +75,7 @@ fun PostCard(
             modifier = Modifier.padding(8.dp)
         ) {
             ProfileImage(
-                imageUrl = post.author?.imageUrl ?: "",
+                imageUrl = post.author?.imageUrl,
                 onClick = { post.author?.id?.let(onAuthorClicked) },
                 modifier = Modifier.size(48.dp)
             )
@@ -224,7 +226,7 @@ private fun PostInteractionButtons(
 }
 
 @Composable
-fun ExpandableIconVote(
+private fun ExpandableIconVote(
     currentVote: Int,
     totalAura: Int,
     onValueSelected: (Int) -> Unit,
@@ -290,7 +292,7 @@ private fun PostIcon(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.width(2.dp))
 
         IconButton(
             onClick = onClick,
