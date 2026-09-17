@@ -27,3 +27,8 @@ sealed interface HomeUiEffect {
     data class NavigateToPostDetail(val postId: String) : HomeUiEffect
     data class NavigateToAuthorProfile(val authorId: String) : HomeUiEffect
 }
+
+enum class HomeTab(val title: String) {
+    DISCOVER("Discover"),
+    FOLLOWING("Following")
+}

@@ -1,15 +1,14 @@
 package com.flexaura.features.home
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -27,9 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.flexaura.components.FlexAuraFab
-import com.flexaura.components.PostCard
+import com.flexaura.components.general.FlexAuraFab
+import com.flexaura.components.general.StateInfo
+import com.flexaura.components.general.StateInfoScreen
+import com.flexaura.components.post.PostList
 import com.flexaura.core.designsystem.theme.appMainBackground
+import com.flexaura.features.home.HomeUiEffect.*
+import com.flexaura.features.home.HomeUiIntent.*
 import com.flexaura.features.home.components.HomeTopAppBar
 import kotlinx.coroutines.launch
 
@@ -47,11 +50,12 @@ fun HomeRoute(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is HomeUiEffect.ShowSnackBar -> {
+                is ShowSnackBar -> {
                     snackBarHostState.showSnackbar(effect.message)
                 }
-                is HomeUiEffect.NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
-                is HomeUiEffect.NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
+
+                is NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
+                is NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
             }
         }
     }
@@ -61,7 +65,8 @@ fun HomeRoute(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal),
         topBar = {
             HomeTopAppBar(
-                onClick = {}
+                onClick = { viewModel.handleIntent(Refresh) },
+                modifier = Modifier.fillMaxHeight(.065f)
             )
         },
         floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) },
@@ -83,15 +88,14 @@ fun HomeScreen(
     onIntent: (HomeUiIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pagerState = rememberPagerState(pageCount = { 2 })
+    val pagerState = rememberPagerState(pageCount = { HomeTab.entries.size })
     val coroutineScope = rememberCoroutineScope()
-    val tabs = listOf("Discover", "Following")
 
     Column(modifier = modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = pagerState.currentPage) {
-            tabs.forEachIndexed { index, title ->
+            HomeTab.entries.forEachIndexed { index, tab ->
                 Tab(
-                    text = { Text(title) },
+                    text = { Text(tab.title) },
                     selected = pagerState.currentPage == index,
                     onClick = {
                         coroutineScope.launch {
@@ -106,36 +110,67 @@ fun HomeScreen(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            val posts = if (page == 0) state.discoverPosts else state.followingPosts
+            val currentTab = HomeTab.entries[page]
+            val posts = if (currentTab == HomeTab.DISCOVER) state.discoverPosts else state.followingPosts
+            val isDiscoverEmpty = currentTab == HomeTab.DISCOVER && posts.isEmpty()
+            val isFollowingEmpty = currentTab == HomeTab.FOLLOWING && posts.isEmpty()
+            val showPosts = !isDiscoverEmpty && !isFollowingEmpty && state.errorMessage == null
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .fillMaxSize()
-            ) {
-                items(items = posts, key = { it.id }) { post ->
-                    PostCard(
-                        post = post,
-                        onPostClicked = { postId ->
-                            onIntent(HomeUiIntent.OnPostClicked(postId))
-                        },
-                        onVoteClicked = { postId, vote, currentVote ->
-                            onIntent(HomeUiIntent.OnVoteClicked(postId, vote, currentVote))
-                        },
-                        onSavedClicked = { postId ->
-                            onIntent(HomeUiIntent.OnSavedClicked(postId))
-                        },
-                        onAuthorClicked = { authorId ->
-                            onIntent(HomeUiIntent.OnAuthorClicked(authorId))
-                        },
-                        onDeletePost = if(post.author?.id == state.currentUserId) { postId ->
-                            onIntent(HomeUiIntent.OnDeletePostClicked(postId))
-                        }
-                        else null
+            when {
+                state.isLoading || state.isRefreshing -> CircularProgressIndicator()
+                !showPosts -> {
+                    val stateInfo = getHomeStateInfo(
+                        state = state,
+                        currentTab = currentTab,
+                        onRetry = { onIntent(Refresh) }
+                    )
+                    StateInfoScreen(
+                        stateInfo = stateInfo,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
+                else -> PostList(
+                    posts = posts,
+                    currentUserId = state.currentUserId,
+                    onPostClicked = { postId ->
+                        onIntent(OnPostClicked(postId))
+                    },
+                    onVoteClicked = { postId, vote, currentVote ->
+                        onIntent(OnVoteClicked(postId, vote, currentVote))
+                    },
+                    onSavedClicked = { postId ->
+                        onIntent(OnSavedClicked(postId))
+                    },
+                    onAuthorClicked = { authorId ->
+                        onIntent(OnAuthorClicked(authorId))
+                    },
+                    onDeletePost = { postId ->
+                        onIntent(OnDeletePostClicked(postId))
+                    },
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     }
+}
+
+private fun getHomeStateInfo(
+    state: HomeUiState,
+    currentTab: HomeTab,
+    onRetry: (() -> Unit)? = null
+): StateInfo = when {
+    state.errorMessage != null -> StateInfo(
+        title = "Something went wrong",
+        text = state.errorMessage,
+        onActionClick = onRetry
+    )
+    currentTab == HomeTab.DISCOVER -> StateInfo(
+        title = "No posts found",
+        onActionClick = onRetry
+    )
+    else -> StateInfo(
+        title = "No posts found",
+        text = "Follow someone to see their posts here.",
+        onActionClick = onRetry
+    )
 }

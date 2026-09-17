@@ -2,6 +2,7 @@ package com.flexaura.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.core.designsystem.util.toUserReadableMessage
 import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
 import com.flexaura.data.domain.usecase.post.DeletePostUseCase
@@ -80,7 +81,7 @@ class HomeViewModel @Inject constructor(
 
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
-            if(authState is AuthState.Authenticated) {
+            if (authState is AuthState.Authenticated) {
                 _uiState.update { it.copy(currentUserId = authState.userId) }
             }
         }
@@ -94,30 +95,42 @@ class HomeViewModel @Inject constructor(
             else it.copy(isLoading = true)
         }
 
-        val discoverSync = async { syncPostsUseCase(page = pageToFetch) }
-        val followingSync = async { syncFollowingPostsUseCase(page = pageToFetch) }
+        try {
+            val discoverSync = async { syncPostsUseCase(page = pageToFetch) }
+            val followingSync = async { syncFollowingPostsUseCase(page = pageToFetch) }
 
-        val discoverResult = discoverSync.await()
-        val followingResult = followingSync.await()
+            val discoverResult = discoverSync.await()
+            val followingResult = followingSync.await()
 
-        if (discoverResult.isSuccess || followingResult.isSuccess) {
+            if (discoverResult.isFailure || followingResult.isFailure) {
+                val error = discoverResult.exceptionOrNull() ?: followingResult.exceptionOrNull()
+
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        isLoading = false,
+                        errorMessage = error?.toUserReadableMessage()
+                    )
+                }
+                return@launch
+            }
+
             _uiState.update {
                 it.copy(
                     currentPage = if (isRefresh) 1 else it.currentPage + 1,
                     isRefreshing = false,
-                    isLoading = false
+                    isLoading = false,
+                    errorMessage = null
                 )
             }
-        }
-
-        if (discoverResult.isFailure || followingResult.isFailure) {
-            val error = discoverResult.exceptionOrNull() ?: followingResult.exceptionOrNull()
-
+        } catch (e: Exception) {
             _uiState.update {
-                it.copy(isRefreshing = false, isLoading = false, errorMessage = error?.localizedMessage)
+                it.copy(
+                    isRefreshing = false,
+                    isLoading = false,
+                    errorMessage = e.toUserReadableMessage()
+                )
             }
-
-            emitEffect(ShowSnackBar(error?.localizedMessage ?: "Unknown error"))
         }
     }
 
