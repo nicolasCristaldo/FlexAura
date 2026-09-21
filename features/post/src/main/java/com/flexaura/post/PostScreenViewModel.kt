@@ -2,6 +2,7 @@ package com.flexaura.post
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.core.designsystem.util.toUserReadableMessage
 import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
 import com.flexaura.data.domain.usecase.comment.CreateCommentUseCase
@@ -78,10 +79,15 @@ class PostScreenViewModel @Inject constructor(
     private fun loadPost(postId: String) = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true) }
 
-        val postDeferred = async { getPostByIdUseCase(postId) }
-        val postResult = postDeferred.await()
+        try {
+            val postDeferred = async { getPostByIdUseCase(postId) }
+            val postResult = postDeferred.await()
 
-        _uiState.update { it.copy(isLoading = false, post = postResult) }
+            _uiState.update { it.copy(isLoading = false, post = postResult) }
+        }
+        catch (e: Exception) {
+            _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserReadableMessage()) }
+        }
     }
 
     private fun observeComments(postId: String) = viewModelScope.launch {
