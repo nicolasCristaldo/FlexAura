@@ -1,17 +1,15 @@
 package com.flexaura.features.home
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
@@ -31,8 +29,15 @@ import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
 import com.flexaura.core.designsystem.theme.appMainBackground
-import com.flexaura.features.home.HomeUiEffect.*
-import com.flexaura.features.home.HomeUiIntent.*
+import com.flexaura.features.home.HomeUiEffect.NavigateToAuthorProfile
+import com.flexaura.features.home.HomeUiEffect.NavigateToPostDetail
+import com.flexaura.features.home.HomeUiEffect.ShowSnackBar
+import com.flexaura.features.home.HomeUiIntent.OnAuthorClicked
+import com.flexaura.features.home.HomeUiIntent.OnDeletePostClicked
+import com.flexaura.features.home.HomeUiIntent.OnPostClicked
+import com.flexaura.features.home.HomeUiIntent.OnSavedClicked
+import com.flexaura.features.home.HomeUiIntent.OnVoteClicked
+import com.flexaura.features.home.HomeUiIntent.Refresh
 import com.flexaura.features.home.components.HomeTopAppBar
 import kotlinx.coroutines.launch
 
@@ -62,7 +67,7 @@ fun HomeRoute(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeTopAppBar(
                 onClick = { viewModel.handleIntent(Refresh) },
