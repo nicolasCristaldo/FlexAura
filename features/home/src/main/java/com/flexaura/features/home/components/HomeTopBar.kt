@@ -27,7 +27,7 @@ internal fun HomeTopAppBar(
             Text(
                 text = "FlexAura",
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

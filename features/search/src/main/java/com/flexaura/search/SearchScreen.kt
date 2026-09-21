@@ -1,6 +1,7 @@
 package com.flexaura.search
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,7 +61,7 @@ fun SearchRoute(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             SearchTopBar(
                 query = state.query,
