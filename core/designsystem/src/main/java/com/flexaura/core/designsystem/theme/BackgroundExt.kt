@@ -45,3 +45,23 @@ fun Modifier.appMainBackground(
         )
     }
 }
+
+@Composable
+fun Modifier.appCircularGradientBackground(
+    isDark: Boolean = isSystemInDarkTheme()
+): Modifier = this.drawWithCache {
+    val baseBg = if (isDark) Color(0xFF090913) else Color(0xFFF8F9FA)
+    val accent = if (isDark) Color(0xFFB22222).copy(alpha = .25f) else Color(0xFFFF4500).copy(alpha = .15f)
+
+    onDrawBehind {
+        drawRect(color = baseBg)
+
+        drawRect(
+            brush = Brush.radialGradient(
+                colors = listOf(accent, Color.Transparent),
+                center = Offset(size.width * .5f, size.height * .3f),
+                radius = size.maxDimension
+            )
+        )
+    }
+}

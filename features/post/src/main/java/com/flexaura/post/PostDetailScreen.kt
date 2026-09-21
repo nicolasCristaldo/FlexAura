@@ -1,43 +1,45 @@
 package com.flexaura.post
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import com.flexaura.components.general.StateInfo
+import com.flexaura.components.general.StateInfoScreen
+import com.flexaura.core.designsystem.theme.appCircularGradientBackground
+import com.flexaura.post.PostDetailUiEffect.NavigateBack
+import com.flexaura.post.PostDetailUiEffect.NavigateToAuthorProfile
+import com.flexaura.post.PostDetailUiEffect.ShowSnackBar
+import com.flexaura.post.PostDetailUiIntent.Init
+import com.flexaura.post.PostDetailUiIntent.OnCommentChanged
+import com.flexaura.post.PostDetailUiIntent.OnDeletePost
+import com.flexaura.post.PostDetailUiIntent.OnNavigateBack
+import com.flexaura.post.PostDetailUiIntent.OnNavigateToAuthorProfile
+import com.flexaura.post.PostDetailUiIntent.OnSavedClicked
+import com.flexaura.post.PostDetailUiIntent.OnSubmitComment
+import com.flexaura.post.PostDetailUiIntent.OnVoteClicked
+import com.flexaura.post.components.CommentInputBar
 import com.flexaura.post.components.CommentsSection
-import com.flexaura.post.PostDetailUiEffect.*
-import com.flexaura.post.PostDetailUiIntent.*
+import com.flexaura.post.components.PostDetailContent
+import com.flexaura.post.components.PostDetailTopBar
 
 @Composable
 fun PostRoute(
@@ -46,7 +48,7 @@ fun PostRoute(
     onNavigateToAuthorProfile: (String) -> Unit,
     viewModel: PostScreenViewModel = hiltViewModel()
 ) {
-    val state = viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(postId) {
@@ -59,6 +61,7 @@ fun PostRoute(
                 is ShowSnackBar -> {
                     snackBarHostState.showSnackbar(effect.message)
                 }
+
                 is NavigateBack -> onNavigateBack()
                 is NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
             }
@@ -67,10 +70,29 @@ fun PostRoute(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            PostDetailTopBar(
+                onNavigateBack = { viewModel.onIntent(OnNavigateBack) },
+                onDeletePost = { viewModel.onIntent(OnDeletePost(postId)) },
+                isCurrentUserPost = state.post?.author?.id == state.currentUserId,
+                modifier = Modifier.fillMaxHeight(.065f)
+            )
+        },
+        bottomBar = {
+            CommentInputBar(
+                content = state.commentContent,
+                onContentChanged = { viewModel.onIntent(OnCommentChanged(it)) },
+                onSubmitComment = {
+                    viewModel.onIntent(OnSubmitComment(postId, state.commentContent))
+                }
+            )
+        },
+        containerColor = Color.Transparent,
+        modifier = Modifier.appCircularGradientBackground()
     ) { innerPadding ->
         PostDetailScreen(
-            state = state.value,
+            state = state,
             onIntent = viewModel::onIntent,
             modifier = Modifier.padding(innerPadding)
         )
@@ -83,83 +105,66 @@ fun PostDetailScreen(
     onIntent: (PostDetailUiIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            IconButton(
-                onClick = { onIntent(OnNavigateBack) },
-                modifier = Modifier.align(Alignment.Start)
-            ) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-            }
+    when {
+        state.isLoading -> CircularProgressIndicator()
 
-            state.post?.let { post ->
-                if(post.author?.id == state.currentUserId) {
-                    IconButton(
-                        onClick = { onIntent(OnDeletePost(post.id)) }
-                    ) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = null)
-                    }
-                }
-                Text(
-                    text = post.author?.displayName ?: "Author not found",
-                    modifier = if(post.author != null) Modifier.clickable {
-                        onIntent(OnNavigateToAuthorProfile(post.author!!.id))
-                    }else Modifier
-                )
-                Text(text = post.content ?: "")
-                Spacer(modifier = Modifier.height(8.dp))
-                if (post.imageUrl != null) {
-                    AsyncImage(
-                        model = post.imageUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Votes: ${post.totalAura}")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Saves: ${post.savesCount}")
-                Spacer(modifier = Modifier.height(8.dp))
-                IconButton(
-                    onClick = { onIntent(OnSavedClicked(post.id)) }
-                ) {
-                    Icon(
-                        imageVector = if (post.isSavedByUser) Icons.Default.Check
-                        else Icons.Default.Close,
-                        contentDescription = null
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = state.commentContent,
-                    onValueChange = { onIntent(OnCommentChanged(it)) },
-                    placeholder = { Text(text = "Add a comment...") },
-                    maxLines = 1,
+        state.errorMessage != null || state.post == null -> {
+            val action = if(state.post?.id != null) ({ onIntent(Init(state.post.id)) }) else null
 
-                )
-                Button(
-                    onClick = { onIntent(OnSubmitComment(post.id, state.commentContent)) }
-                ) {
-                    Text(text = "Submit")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                CommentsSection(
-                    state = state,
-                    onIntent = onIntent,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            val stateInfo = getPostDetailStateInfo(
+                state = state,
+                onAction = action
+            )
+            StateInfoScreen(
+                stateInfo = stateInfo,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        else -> Column(modifier = modifier) {
+            PostDetailContent(
+                post = state.post,
+                onVoteClicked = { postId, vote, currentVote ->
+                    onIntent(OnVoteClicked(postId, vote, currentVote))
+                },
+                onSavedClicked = { postId ->
+                    onIntent(OnSavedClicked(postId))
+                },
+                onAuthorClicked = { authorId ->
+                    onIntent(OnNavigateToAuthorProfile(authorId))
+                },
+                modifier = Modifier.padding(12.dp)
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(bottom = 8.dp),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Text(
+                text = "Comments",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+
+            CommentsSection(
+                state = state,
+                onIntent = onIntent
+            )
         }
     }
+}
+
+private fun getPostDetailStateInfo(
+    state: PostDetailUiState,
+    onAction: (() -> Unit)? = null
+): StateInfo = when {
+    state.errorMessage != null -> StateInfo(
+        title = "Something went wrong",
+        text = state.errorMessage,
+        onActionClick = onAction
+    )
+    else -> StateInfo(title = "Post not found")
 }
