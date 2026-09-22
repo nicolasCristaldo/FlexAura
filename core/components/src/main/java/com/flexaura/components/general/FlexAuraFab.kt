@@ -12,15 +12,17 @@ import com.flexaura.core.designsystem.R
 @Composable
 fun FlexAuraFab(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    icon: Int = R.drawable.ic_pen,
+    contentDescription: String = "Create post"
 ) {
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_pen),
-            contentDescription = "Create post",
+            painter = painterResource(id = icon),
+            contentDescription = contentDescription,
             modifier = Modifier.size(34.dp)
         )
     }
