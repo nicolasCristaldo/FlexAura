@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.flexaura.data.domain.usecase.post.CreatePostUseCase
 import com.flexaura.createpost.CreatePostUiEffect.*
 import com.flexaura.createpost.CreatePostUiIntent.*
+import com.flexaura.data.domain.repository.AuthState
+import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
+import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.util.compressAndGetImageBytes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -20,6 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
     private val createPostUseCase: CreatePostUseCase,
+    private val getAuthUserUseCase: GetAuthUserUseCase,
+    private val getUserByIdUseCase: GetUserByIdUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CreatePostUiState())
@@ -28,7 +33,10 @@ class CreatePostViewModel @Inject constructor(
     private val _uiEffect = MutableSharedFlow<CreatePostUiEffect>()
     val uiEffect = _uiEffect.asSharedFlow()
 
+    init { onIntent(Init) }
+
     fun onIntent(intent: CreatePostUiIntent) = when(intent) {
+        Init -> observeAuthUser()
         is OnImageSelected -> _uiState.update {
             it.copy(imageUri = intent.imageUri)
         }
@@ -37,6 +45,20 @@ class CreatePostViewModel @Inject constructor(
         }
         OnSubmitClicked -> createPost()
         OnRemoveImageClicked -> _uiState.update { it.copy(imageUri = null) }
+    }
+
+    private fun observeAuthUser() = viewModelScope.launch {
+        getAuthUserUseCase().collect { authState ->
+            if (authState is AuthState.Authenticated) {
+                observeUser(authState.userId)
+            }
+        }
+    }
+
+    private fun observeUser(userId: String) = viewModelScope.launch {
+        getUserByIdUseCase(userId).collect { user ->
+            _uiState.update { it.copy(currentUser = user) }
+        }
     }
 
     private fun createPost() = viewModelScope.launch {
