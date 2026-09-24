@@ -2,36 +2,35 @@ package com.flexaura.features.profile
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraFab
-import com.flexaura.components.post.PostCard
+import com.flexaura.components.post.PostList
+import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.appMainBackground
 import com.flexaura.features.profile.ProfileUiEffect.NavigateToPostDetail
 import com.flexaura.features.profile.ProfileUiEffect.ShowSnackBar
 import com.flexaura.features.profile.ProfileUiIntent.OnDeletePostClicked
@@ -39,7 +38,7 @@ import com.flexaura.features.profile.ProfileUiIntent.OnPostClicked
 import com.flexaura.features.profile.ProfileUiIntent.OnSavedClicked
 import com.flexaura.features.profile.ProfileUiIntent.OnToggleFollowClicked
 import com.flexaura.features.profile.ProfileUiIntent.OnVoteClicked
-
+import com.flexaura.features.profile.components.ProfileScreenHeader
 
 @Composable
 fun ProfileRoute(
@@ -48,7 +47,7 @@ fun ProfileRoute(
     onNavigateBack: (() -> Unit)? = null,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val state = viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -67,19 +66,28 @@ fun ProfileRoute(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            if (onNavigateBack != null) {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null
-                    )
+            if(onNavigateBack != null) {
+                Row {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_arrow_back),
+                            contentDescription = "Navigate back",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         },
-        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) }
+        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) },
+        containerColor = Color.Transparent,
+        modifier = Modifier.appMainBackground()
     ) { innerPadding ->
         ProfileScreen(
-            state = state.value,
+            state = state,
             onIntent = viewModel::handleIntent,
             modifier = Modifier.padding(innerPadding)
         )
@@ -102,39 +110,28 @@ fun ProfileScreen(
         Column(
             modifier = modifier.fillMaxSize()
         ) {
-            Text("Display Name: ${state.user?.displayName ?: "Unknown"}")
-            Text("Username: ${state.user?.username ?: "Unknown"}")
-            Text("Bio: ${state.user?.bio ?: "No bio"}")
-            Text("Followers: ${state.user?.followersCount}")
-            Text("Following: ${state.user?.followingCount}")
-            if(!state.isOwnProfile) {
-                Button(
-                    onClick = { onIntent(OnToggleFollowClicked) }
-                ) {
-                    Text(text = if (state.user?.isFollowedByCurrentUser == true) "Unfollow" else "Follow")
-                }
-            }
-            Spacer(modifier = Modifier.padding(16.dp))
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(state.posts) { post ->
-                    PostCard(
-                        post = post,
-                        onPostClicked = { postId ->
-                            onIntent(OnPostClicked(postId))
-                        },
-                        onVoteClicked = { postId, vote, currentVote ->
-                            onIntent(OnVoteClicked(postId, vote, currentVote))
-                        },
-                        onSavedClicked = { postId ->
-                            onIntent(OnSavedClicked(postId))
-                        },
-                        onDeletePost = if (state.isOwnProfile) { postId ->
-                            onIntent(OnDeletePostClicked(postId))
-                        } else null
-                    )
-                }
+            state.user?.let {
+                ProfileScreenHeader(
+                    user = it,
+                    isOwnProfile = state.isOwnProfile,
+                    onToggleFollowClicked = { onIntent(OnToggleFollowClicked) },
+                    modifier = Modifier.padding(12.dp)
+                )
+
+                PostList(
+                    posts = state.posts,
+                    currentUserId = it.id,
+                    onPostClicked = { postId -> onIntent(OnPostClicked(postId)) },
+                    onVoteClicked = { postId, vote, currentVote ->
+                        onIntent(OnVoteClicked(postId, vote, currentVote))
+                    },
+                    onSavedClicked = { postId -> onIntent(OnSavedClicked(postId)) },
+                    onDeletePost = { postId ->
+                        onIntent(OnDeletePostClicked(postId))
+                    },
+                    onAuthorClicked = { },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
             }
         }
     }
