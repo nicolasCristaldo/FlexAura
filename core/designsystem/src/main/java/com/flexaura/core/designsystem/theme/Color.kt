@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 
 val positiveAuraColor = Color(0xFFEC5218)
 val negativeAuraColor = Color(0xFFB70F8C)
-val savedPostColor = Color(0xFFE19A72)
 
 val primaryLight = Color(0xFFB41E0B)
 val onPrimaryLight = Color(0xFFFFFFFF)
