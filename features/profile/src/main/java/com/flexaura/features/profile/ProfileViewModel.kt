@@ -8,7 +8,9 @@ import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
 import com.flexaura.data.domain.usecase.post.DeletePostUseCase
 import com.flexaura.data.domain.usecase.post.GetPostsByAuthorUseCase
+import com.flexaura.data.domain.usecase.post.GetSavedPostsUseCase
 import com.flexaura.data.domain.usecase.post.SyncPostsByAuthorUseCase
+import com.flexaura.data.domain.usecase.post.SyncSavedPostsUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
@@ -29,7 +31,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,8 +40,10 @@ class ProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getUserByIdUseCase: GetUserByIdUseCase,
     private val getPostsByAuthorUseCase: GetPostsByAuthorUseCase,
+    private val getSavedPostsUseCase: GetSavedPostsUseCase,
     private val syncUserUseCase: SyncUserUseCase,
     private val syncPostsByAuthorUseCase: SyncPostsByAuthorUseCase,
+    private val syncSavedPostsUseCase: SyncSavedPostsUseCase,
     private val toggleFollowUserUseCase: ToggleFollowUserUseCase,
     private val toggleSavePostUseCase: ToggleSavePostUseCase,
     private val votePostUseCase: VotePostUseCase,
@@ -73,8 +76,9 @@ class ProfileViewModel @Inject constructor(
             handleVote(intent.postId, intent.vote, intent.currentVote)
         }
         is OnSavedClicked -> { toggleSave(intent.postId) }
-        is OnPostClicked -> emmitEffect(NavigateToPostDetail(intent.postId))
+        is OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
         is OnDeletePostClicked -> deletePost(intent.postId)
+        is OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
     }
 
     private fun observeProfileData() = viewModelScope.launch {
@@ -85,14 +89,19 @@ class ProfileViewModel @Inject constructor(
             if (targetUserId == null) {
                 flowOf(ProfileUiState(isLoading = true))
             } else {
+                val isOwnProfile = targetUserId == currentLoggedUserId
+
                 combine(
                     getUserByIdUseCase(targetUserId),
-                    getPostsByAuthorUseCase(targetUserId)
-                ) { user, posts ->
+                    getPostsByAuthorUseCase(targetUserId),
+                    if(isOwnProfile) getSavedPostsUseCase() else flowOf(emptyList()),
+                ) { user, posts, savedPosts ->
                     ProfileUiState(
+                        currentUserId = currentLoggedUserId,
                         user = user,
                         posts = posts,
-                        isOwnProfile = targetUserId == currentLoggedUserId,
+                        savedPosts = savedPosts,
+                        isOwnProfile = isOwnProfile,
                         isLoading = false
                     )
                 }
@@ -106,21 +115,32 @@ class ProfileViewModel @Inject constructor(
         val authState = getAuthUserUseCase().first()
         val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
         val targetUserId = argumentUserId ?: currentLoggedUserId ?: return@launch
+        val isOwnProfile = targetUserId == currentLoggedUserId
 
         _uiState.update { it.copy(isRefreshing = true) }
 
         val userSync = launch {
             syncUserUseCase(targetUserId).onFailure { error ->
-                emmitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
             }
         }
         val syncPosts = launch {
             syncPostsByAuthorUseCase(targetUserId).onFailure { error ->
-                emmitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
             }
         }
+        val syncSavedPosts = if(isOwnProfile) {
+            launch {
+                syncSavedPostsUseCase().onFailure { error ->
+                    emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                }
+            }
+        } else null
 
-        joinAll(userSync, syncPosts)
+        userSync.join()
+        syncPosts.join()
+        syncSavedPosts?.join()
+
         _uiState.update { it.copy(isRefreshing = false) }
     }
 
@@ -131,7 +151,7 @@ class ProfileViewModel @Inject constructor(
 
         if (targetUserId != currentLoggedUserId) {
             toggleFollowUserUseCase(targetUserId).onFailure { error ->
-                emmitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
             }
         }
     }
@@ -139,13 +159,13 @@ class ProfileViewModel @Inject constructor(
     private fun handleVote(postId: String, value: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = value, currentVote = currentVote)
             .onFailure { error ->
-                emmitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
             }
     }
 
     private fun toggleSave(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId).onFailure { error ->
-            emmitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+            emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
         }
     }
 
@@ -156,7 +176,7 @@ class ProfileViewModel @Inject constructor(
             }
     }
 
-    fun emmitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
+    fun emitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }
 }
