@@ -16,12 +16,14 @@ fun NavController.navigateToProfileGraph(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.profileScreen(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
+    onNavigateToAuthorProfile: (String) -> Unit,
     onNavigateBack: (() -> Unit)? = null
 ) {
     composable<ProfileRouteDestination> {
         ProfileRoute(
             onNavigateToPostDetail = onNavigateToPostDetail,
             onNavigateToCreatePost = onNavigateToCreatePost,
+            onNavigateToAuthorProfile = onNavigateToAuthorProfile,
             onNavigateBack = onNavigateBack
         )
     }
@@ -29,13 +31,15 @@ fun NavGraphBuilder.profileScreen(
 
 fun NavGraphBuilder.profileGraph(
     onNavigateToPostDetail: (String) -> Unit,
-    onNavigateToCreatePost: () -> Unit
+    onNavigateToCreatePost: () -> Unit,
+    onNavigateToAuthorProfile: (String) -> Unit
 ) {
     navigation<ProfileGraph>(startDestination = ProfileRouteDestination()) {
         composable<ProfileRouteDestination> {
             ProfileRoute(
                 onNavigateToPostDetail = onNavigateToPostDetail,
-                onNavigateToCreatePost = onNavigateToCreatePost
+                onNavigateToCreatePost = onNavigateToCreatePost,
+                onNavigateToAuthorProfile = onNavigateToAuthorProfile
             )
         }
     }

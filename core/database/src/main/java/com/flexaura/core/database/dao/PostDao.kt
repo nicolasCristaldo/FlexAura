@@ -24,6 +24,14 @@ interface PostDao {
     fun getFollowingPostsFlow(): Flow<List<PostWithAuthorRelation>>
 
     @Transaction
+    @Query("""
+        SELECT * FROM posts 
+        WHERE is_saved_by_user = 1
+        ORDER BY created_at DESC
+    """)
+    fun getSavedPostsFlow(): Flow<List<PostWithAuthorRelation>>
+
+    @Transaction
     @Query("SELECT * FROM posts WHERE id = :postId")
     suspend fun getPostById(postId: String): PostWithAuthorRelation?
 

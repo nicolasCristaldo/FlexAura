@@ -7,9 +7,11 @@ interface PostRepository {
     fun getPostsFlow(): Flow<List<Post>>
     suspend fun getPostById(postId: String): Post?
     fun getPostsByAuthorFlow(userId: String): Flow<List<Post>>
+    fun getSavedPostsFlow(): Flow<List<Post>>
     fun getFollowingPosts(): Flow<List<Post>>
     suspend fun syncPosts(page: Int, pageSize: Int): Result<Unit>
     suspend fun syncPostsByAuthor(userId: String, page: Int, pageSize: Int): Result<Unit>
+    suspend fun syncSavedPosts(page: Int, pageSize: Int): Result<Unit>
     suspend fun syncFollowingPosts(page: Int, pageSize: Int): Result<Unit>
     suspend fun createPost(content: String?, imageBytes: ByteArray?): Result<Unit>
     suspend fun toggleSavePost(postId: String): Result<Unit>

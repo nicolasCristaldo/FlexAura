@@ -42,7 +42,7 @@ interface SupabaseRemoteDataSource  {
     // Saves
     suspend fun savePost(postId: String)
     suspend fun unsavePost(postId: String)
-    suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostDto>
+    suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto>
 
     // Images
     suspend fun uploadImage(bucketName: String, path: String, imageBytes: ByteArray, upsert: Boolean = false): String
