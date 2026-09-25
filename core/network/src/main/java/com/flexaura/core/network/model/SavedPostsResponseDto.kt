@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SavedPostsResponseDto(
-    @SerialName("posts") val post: PostDto
+    @SerialName("posts") val post: PostWithInteractionsDto
 )

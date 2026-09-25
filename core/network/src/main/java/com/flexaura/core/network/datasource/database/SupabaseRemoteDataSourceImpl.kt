@@ -362,14 +362,22 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
             }
     }
 
-    override suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostDto> {
+    override suspend fun getSavedPosts(page: Int, pageSize: Int): List<PostWithInteractionsDto> {
         val currentId = requireCurrentUserId()
         val from = (page - 1) * pageSize
         val to = page * pageSize - 1
 
         return supabaseClient.postgrest["saves"]
-            .select(columns = Columns.Companion.raw("posts(*)")) {
-                filter { eq("user_id", currentId) }
+            .select(
+                columns = Columns.Companion.raw(""""
+                   posts(*, users(*), votes!left(*), saves!left(*))
+                """.trimIndent())
+            ) {
+                filter {
+                    eq("user_id", currentId)
+                    eq("posts.votes.user_id", currentId)
+                    eq("posts.saves.user_id", currentId)
+                }
                 order("created_at", Order.DESCENDING)
                 range(from.toLong(), to.toLong())
             }.decodeList<SavedPostsResponseDto>().map { it.post }

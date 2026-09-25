@@ -50,8 +50,8 @@ fun ProfileScreenHeader(
             UserIdentity(
                 displayName = user.displayName,
                 username = user.username,
-                displayNameStyle = MaterialTheme.typography.headlineSmall,
-                usernameStyle = MaterialTheme.typography.bodyLarge
+                displayNameStyle = MaterialTheme.typography.headlineMedium,
+                usernameStyle = MaterialTheme.typography.labelLarge
             )
 
             if (!isOwnProfile) {
@@ -71,7 +71,7 @@ fun ProfileScreenHeader(
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(.9f)
             )
