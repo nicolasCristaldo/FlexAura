@@ -11,11 +11,14 @@ sealed interface ProfileUiIntent {
     data object OnToggleFollowClicked : ProfileUiIntent
     data class OnPostClicked(val postId: String) : ProfileUiIntent
     data class OnDeletePostClicked(val postId: String) : ProfileUiIntent
+    data class OnAuthorClicked(val authorId: String) : ProfileUiIntent
 }
 
 data class ProfileUiState(
+    val currentUserId: String? = null,
     val user: User? = null,
     val posts: List<Post> = emptyList(),
+    val savedPosts: List<Post> = emptyList(),
     val currentPage: Int = 1,
     val isOwnProfile: Boolean = false,
     val isLoading: Boolean = false,
@@ -26,4 +29,5 @@ data class ProfileUiState(
 sealed interface ProfileUiEffect {
     data class ShowSnackBar(val message: String) : ProfileUiEffect
     data class NavigateToPostDetail(val postId: String) : ProfileUiEffect
+    data class NavigateToAuthorProfile(val authorId: String) : ProfileUiEffect
 }
