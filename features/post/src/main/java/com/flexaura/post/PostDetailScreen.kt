@@ -22,8 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flexaura.components.general.NavigateBackTopBar
 import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
+import com.flexaura.components.post.PostOptionsMenu
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.post.PostDetailUiEffect.NavigateBack
 import com.flexaura.post.PostDetailUiEffect.NavigateToAuthorProfile
@@ -39,7 +41,6 @@ import com.flexaura.post.PostDetailUiIntent.OnVoteClicked
 import com.flexaura.post.components.CommentInputBar
 import com.flexaura.post.components.CommentsSection
 import com.flexaura.post.components.PostDetailContent
-import com.flexaura.post.components.PostDetailTopBar
 
 @Composable
 fun PostRoute(
@@ -72,10 +73,18 @@ fun PostRoute(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            PostDetailTopBar(
-                onNavigateBack = { viewModel.onIntent(OnNavigateBack) },
-                onDeletePost = { viewModel.onIntent(OnDeletePost(postId)) },
-                isCurrentUserPost = state.post?.author?.id == state.currentUserId,
+            val isCurrentUserPost = state.post?.author?.id == state.currentUserId
+
+            NavigateBackTopBar(
+                onNavigateBack = { viewModel.onIntent(OnNavigateBack)},
+                title = "Post",
+                trailingContent = {
+                    if(isCurrentUserPost) {
+                        PostOptionsMenu(
+                            onDeletePost = { viewModel.onIntent(OnDeletePost(postId)) }
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxHeight(.065f)
             )
         },

@@ -13,9 +13,9 @@ fun Modifier.appMainBackground(
     isDark: Boolean = isSystemInDarkTheme()
 ): Modifier = this.drawWithCache {
     val baseBg = if (isDark) Color(0xFF090913) else Color(0xFFF8F9FA)
-    val centerGlow = if (isDark) Color(0xFF800000).copy(alpha = 0.18f) else Color(0xFFFF6B6B).copy(alpha = 0.12f)
-    val flameCore = if (isDark) Color(0xFFB22222).copy(alpha = 0.40f) else Color(0xFFFF4500).copy(alpha = 0.25f)
-    val flameMid = if (isDark) Color(0xFF660000).copy(alpha = 0.20f) else Color(0xFFFF7F50).copy(alpha = 0.12f)
+    val centerGlow = if (isDark) Color(0xFF800000).copy(alpha = 0.18f) else Color(0xFFEA8585).copy(alpha = 0.12f)
+    val flameCore = if (isDark) Color(0xFFB22222).copy(alpha = 0.40f) else Color(0xFFF3714B).copy(alpha = 0.25f)
+    val flameMid = if (isDark) Color(0xFF660000).copy(alpha = 0.20f) else Color(0xFFE5906F).copy(alpha = 0.12f)
 
     onDrawBehind {
         drawRect(color = baseBg)
@@ -51,7 +51,7 @@ fun Modifier.appCircularGradientBackground(
     isDark: Boolean = isSystemInDarkTheme()
 ): Modifier = this.drawWithCache {
     val baseBg = if (isDark) Color(0xFF090913) else Color(0xFFF8F9FA)
-    val accent = if (isDark) Color(0xFFB22222).copy(alpha = .25f) else Color(0xFFFF4500).copy(alpha = .15f)
+    val accent = if (isDark) Color(0xFFB22222).copy(alpha = .25f) else Color(0xFFF3714B).copy(alpha = .15f)
 
     onDrawBehind {
         drawRect(color = baseBg)

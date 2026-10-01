@@ -16,8 +16,7 @@ fun NavController.navigateToHomeGraph(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.homeGraph(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,
-    onNavigateToCreatePost: () -> Unit,
-    nestedGraphs: (NavGraphBuilder.() -> Unit)? = null
+    onNavigateToCreatePost: () -> Unit
 ) {
     navigation<HomeGraph>(startDestination = HomeRouteDestination) {
         composable<HomeRouteDestination> {
@@ -27,7 +26,5 @@ fun NavGraphBuilder.homeGraph(
                 onNavigateToAuthorProfile = onNavigateToAuthorProfile
             )
         }
-
-        nestedGraphs?.invoke(this)
     }
 }

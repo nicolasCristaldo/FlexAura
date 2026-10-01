@@ -1,4 +1,4 @@
-package com.flexaura.features.profile
+package com.flexaura.features.profile.profilescreen
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -16,9 +16,7 @@ import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.usecase.user.SyncUserUseCase
 import com.flexaura.data.domain.usecase.user.ToggleFollowUserUseCase
-import com.flexaura.features.profile.ProfileUiEffect.*
-import com.flexaura.features.profile.ProfileUiIntent.*
-import com.flexaura.navigation.ProfileRouteDestination
+import com.flexaura.navigation.ProfileDestinations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -50,35 +48,43 @@ class ProfileViewModel @Inject constructor(
     private val deletePostUseCase: DeletePostUseCase,
     private val getAuthUserUseCase: GetAuthUserUseCase
 ) : ViewModel() {
-    private val argumentUserId: String? = savedStateHandle.toRoute<ProfileRouteDestination>().userId
+    private val argumentUserId: String? = savedStateHandle.toRoute<ProfileDestinations.ProfileScreen>().userId
 
-    private val _uiState: MutableStateFlow<ProfileUiState> = MutableStateFlow(ProfileUiState(isLoading = true))
+    private val _uiState: MutableStateFlow<ProfileUiState> = MutableStateFlow(
+        ProfileUiState(
+            isLoading = true
+        )
+    )
     val uiState: StateFlow<ProfileUiState> get() = _uiState.asStateFlow()
 
     private val _uiEffect: MutableSharedFlow<ProfileUiEffect> = MutableSharedFlow()
     val uiEffect: SharedFlow<ProfileUiEffect> get() = _uiEffect
 
     init {
-        handleIntent(Init)
+        handleIntent(ProfileUiIntent.Init)
     }
 
     fun handleIntent(intent: ProfileUiIntent) = when (intent) {
-        is Init -> {
+        is ProfileUiIntent.Init -> {
             observeProfileData()
             refreshData()
         }
-        is Refresh -> {
+        is ProfileUiIntent.Refresh -> {
             observeProfileData()
             refreshData()
         }
-        is OnToggleFollowClicked -> { toggleFollowUser() }
-        is OnVoteClicked -> {
+        is ProfileUiIntent.OnToggleFollowClicked -> { toggleFollowUser() }
+        is ProfileUiIntent.OnVoteClicked -> {
             handleVote(intent.postId, intent.vote, intent.currentVote)
         }
-        is OnSavedClicked -> { toggleSave(intent.postId) }
-        is OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
-        is OnDeletePostClicked -> deletePost(intent.postId)
-        is OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
+        is ProfileUiIntent.OnSavedClicked -> { toggleSave(intent.postId) }
+        is ProfileUiIntent.OnPostClicked -> emitEffect(ProfileUiEffect.NavigateToPostDetail(intent.postId))
+        is ProfileUiIntent.OnDeletePostClicked -> deletePost(intent.postId)
+        is ProfileUiIntent.OnAuthorClicked -> emitEffect(
+            ProfileUiEffect.NavigateToAuthorProfile(
+                intent.authorId
+            )
+        )
     }
 
     private fun observeProfileData() = viewModelScope.launch {
@@ -94,7 +100,7 @@ class ProfileViewModel @Inject constructor(
                 combine(
                     getUserByIdUseCase(targetUserId),
                     getPostsByAuthorUseCase(targetUserId),
-                    if(isOwnProfile) getSavedPostsUseCase() else flowOf(emptyList()),
+                    if (isOwnProfile) getSavedPostsUseCase() else flowOf(emptyList()),
                 ) { user, posts, savedPosts ->
                     ProfileUiState(
                         currentUserId = currentLoggedUserId,
@@ -121,18 +127,18 @@ class ProfileViewModel @Inject constructor(
 
         val userSync = launch {
             syncUserUseCase(targetUserId).onFailure { error ->
-                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
             }
         }
         val syncPosts = launch {
             syncPostsByAuthorUseCase(targetUserId).onFailure { error ->
-                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
             }
         }
         val syncSavedPosts = if(isOwnProfile) {
             launch {
                 syncSavedPostsUseCase().onFailure { error ->
-                    emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                    emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
                 }
             }
         } else null
@@ -151,7 +157,7 @@ class ProfileViewModel @Inject constructor(
 
         if (targetUserId != currentLoggedUserId) {
             toggleFollowUserUseCase(targetUserId).onFailure { error ->
-                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
             }
         }
     }
@@ -159,20 +165,24 @@ class ProfileViewModel @Inject constructor(
     private fun handleVote(postId: String, value: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = value, currentVote = currentVote)
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
             }
     }
 
     private fun toggleSave(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId).onFailure { error ->
-            emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+            emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
         }
     }
 
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(
+                    ProfileUiEffect.ShowSnackBar(
+                        error.localizedMessage ?: "Unknown error"
+                    )
+                )
             }
     }
 

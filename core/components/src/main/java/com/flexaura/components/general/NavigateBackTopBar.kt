@@ -1,8 +1,9 @@
-package com.flexaura.post.components
+package com.flexaura.components.general
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -15,49 +16,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.flexaura.components.post.PostOptionsMenu
 import com.flexaura.core.designsystem.R
 
 @Composable
-fun PostDetailTopBar(
+fun NavigateBackTopBar(
     onNavigateBack: () -> Unit,
-    onDeletePost: () -> Unit,
     modifier: Modifier = Modifier,
-    isCurrentUserPost: Boolean = false
+    title: String? = null,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.background(MaterialTheme.colorScheme.background)
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+            .fillMaxWidth()
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
+        Spacer(modifier = Modifier.width(8.dp))
+
+        IconButton(
+            onClick = onNavigateBack,
+            modifier = Modifier.size(32.dp)
         ) {
-            Spacer(modifier = Modifier.width(8.dp))
-
-            IconButton(
-                onClick = onNavigateBack,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_arrow_back),
-                    contentDescription = "Navigate back",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = "Post",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_back),
+                contentDescription = "Navigate back",
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
 
-        if (isCurrentUserPost) {
-            PostOptionsMenu(onDeletePost = onDeletePost)
+        title?.let { title ->
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        trailingContent?.let { icon ->
+            icon()
             Spacer(modifier = Modifier.width(8.dp))
         }
     }
