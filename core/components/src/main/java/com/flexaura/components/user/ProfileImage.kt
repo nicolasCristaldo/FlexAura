@@ -16,13 +16,13 @@ import com.flexaura.core.designsystem.R
 
 @Composable
 fun ProfileImage(
-    imageUrl: String?,
+    imageModel: Any?,
     modifier: Modifier = Modifier,
     size: Int = 48,
     onClick: (() -> Unit)? = {}
 ) {
     AsyncImage(
-        model = imageUrl,
+        model = imageModel,
         contentDescription = "Profile photo",
         contentScale = ContentScale.Crop,
         error = painterResource(R.drawable.ic_profile),

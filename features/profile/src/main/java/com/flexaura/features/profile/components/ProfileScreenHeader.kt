@@ -42,7 +42,7 @@ fun ProfileScreenHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ProfileImage(
-                imageUrl = user.imageUrl,
+                imageModel = user.imageUrl,
                 size = 78,
                 modifier = Modifier.padding(end = 12.dp)
             )

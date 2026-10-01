@@ -48,7 +48,7 @@ fun PostCard(
             modifier = Modifier.padding(8.dp)
         ) {
             ProfileImage(
-                imageUrl = post.author?.imageUrl,
+                imageModel = post.author?.imageUrl,
                 onClick = { post.author?.id?.let(onAuthorClicked) }
             )
 

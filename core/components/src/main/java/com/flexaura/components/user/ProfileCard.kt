@@ -37,7 +37,7 @@ fun ProfileCard(
             modifier = Modifier.padding(8.dp)
         ) {
             ProfileImage(
-                imageUrl = user.imageUrl,
+                imageModel = user.imageUrl,
                 onClick = { onUserClicked(user.id) },
                 modifier = Modifier.size(48.dp)
             )

@@ -32,7 +32,7 @@ fun PostDetailContent(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             ProfileImage(
-                imageUrl = post.author?.imageUrl,
+                imageModel = post.author?.imageUrl,
                 onClick = { post.author?.id?.let(onAuthorClicked) },
                 size = 56
             )
