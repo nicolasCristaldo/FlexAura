@@ -10,27 +10,31 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.flexaura.createpost.navigation.createPostScreen
+import com.flexaura.createpost.navigation.navigateToCreatePost
+import com.flexaura.features.auth.navigation.AuthGraph
+import com.flexaura.features.auth.navigation.RegisterRouteDestination
 import com.flexaura.features.auth.navigation.authGraph
+import com.flexaura.features.auth.navigation.navigateToLogin
+import com.flexaura.features.auth.navigation.navigateToRegister
+import com.flexaura.features.home.navigation.HomeGraph
+import com.flexaura.features.home.navigation.HomeRouteDestination
 import com.flexaura.features.home.navigation.homeGraph
+import com.flexaura.features.home.navigation.navigateToHomeGraph
+import com.flexaura.features.profile.navigation.ProfileDestinations
+import com.flexaura.features.profile.navigation.navigateToEditProfile
+import com.flexaura.features.profile.navigation.navigateToOwnProfile
+import com.flexaura.features.profile.navigation.navigateToOtherUserProfile
+import com.flexaura.features.profile.navigation.otherUserProfileScreen
 import com.flexaura.features.profile.navigation.profileGraph
-import com.flexaura.features.profile.profilescreen.ProfileRoute
-import com.flexaura.navigation.AuthGraph
-import com.flexaura.navigation.CreatePostRouteDestination
-import com.flexaura.navigation.HomeGraph
-import com.flexaura.navigation.HomeRouteDestination
-import com.flexaura.navigation.LoginRouteDestination
-import com.flexaura.navigation.PostDetailRouteDestination
-import com.flexaura.navigation.ProfileDestinations
-import com.flexaura.navigation.ProfileGraph
-import com.flexaura.navigation.RegisterRouteDestination
-import com.flexaura.navigation.SearchGraph
-import com.flexaura.navigation.SearchRouteDestination
-import com.flexaura.navigation.UserProfileRouteDestination
+import com.flexaura.post.navigation.navigateToPostDetail
 import com.flexaura.post.navigation.postDetailGraph
+import com.flexaura.search.navigation.SearchGraph
+import com.flexaura.search.navigation.SearchRouteDestination
+import com.flexaura.search.navigation.navigateToSearchGraph
 import com.flexaura.search.navigation.searchGraph
 
 @Composable
@@ -58,15 +62,13 @@ fun FlexAuraNavHost(
 
     val onNavigateToAuthorProfile: (String) -> Unit = { authorId ->
         if(currentUserId == authorId) {
-            navController.navigate(ProfileGraph) {
+            navController.navigateToOwnProfile {
                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                 launchSingleTop = true
                 restoreState = true
             }
         }
-        else {
-            navController.navigate(UserProfileRouteDestination(authorId))
-        }
+        else { navController.navigateToOtherUserProfile(authorId) }
     }
 
     Scaffold(
@@ -76,19 +78,18 @@ fun FlexAuraNavHost(
                     destinations = destinations,
                     currentDestination = currentDestination,
                     onNavigateToDestination = { destination ->
-                        val route = when(destination) {
-                            TopLevelDestination.Home -> HomeGraph
-                            TopLevelDestination.Profile -> ProfileGraph
-                            TopLevelDestination.Search -> SearchRouteDestination
-                            else -> HomeGraph
-                        }
-
-                        navController.navigate(route) {
+                        val navOptions: NavOptionsBuilder.() -> Unit = {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
                             launchSingleTop = true
                             restoreState = true
+                        }
+
+                        when(destination) {
+                            TopLevelDestination.Profile -> navController.navigateToOwnProfile(navOptions)
+                            TopLevelDestination.Search -> navController.navigateToSearchGraph(navOptions)
+                            else -> navController.navigateToHomeGraph(navOptions)
                         }
                     },
                     modifier = Modifier.height(100.dp)
@@ -103,68 +104,42 @@ fun FlexAuraNavHost(
         ) {
             authGraph(
                 onNavigateToLogin = {
-                    navController.navigate(LoginRouteDestination) {
+                    navController.navigateToLogin {
                         popUpTo(RegisterRouteDestination) { inclusive = true }
                     }
                 },
-                onNavigateToRegister = {
-                    navController.navigate(RegisterRouteDestination)
-                },
+                onNavigateToRegister = { navController.navigateToRegister() },
                 onNavigateToHome = {
-                    navController.navigate(HomeGraph) {
+                    navController.navigateToHomeGraph {
                         popUpTo(AuthGraph) { inclusive = true }
                     }
                 }
             )
 
             homeGraph(
-                onNavigateToPostDetail = { postId ->
-                    navController.navigate(PostDetailRouteDestination(postId))
-                },
-                onNavigateToCreatePost = {
-                    navController.navigate(CreatePostRouteDestination)
-                },
+                onNavigateToPostDetail = { postId -> navController.navigateToPostDetail(postId) },
+                onNavigateToCreatePost = { navController.navigateToCreatePost() },
                 onNavigateToAuthorProfile = onNavigateToAuthorProfile
             )
 
             profileGraph(
-                onNavigateToPostDetail = { postId ->
-                    navController.navigate(PostDetailRouteDestination(postId))
-                },
-                onNavigateToCreatePost = {
-                    navController.navigate(CreatePostRouteDestination)
-                },
+                onNavigateToPostDetail = { postId -> navController.navigateToPostDetail(postId) },
+                onNavigateToCreatePost = { navController.navigateToCreatePost() },
                 onNavigateToAuthorProfile = onNavigateToAuthorProfile,
-                onNavigateToEditProfile = {
-                    navController.navigate(ProfileDestinations.EditProfile)
-                },
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
+                onNavigateToEditProfile = { navController.navigateToEditProfile() },
+                onNavigateBack = { navController.popBackStack() }
             )
 
-            composable<UserProfileRouteDestination> {
-                ProfileRoute(
-                    onNavigateToPostDetail = { postId ->
-                        navController.navigate(PostDetailRouteDestination(postId))
-                    },
-                    onNavigateToCreatePost = {
-                        navController.navigate(CreatePostRouteDestination)
-                    },
-                    onNavigateToAuthorProfile = onNavigateToAuthorProfile,
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
-            }
+            otherUserProfileScreen(
+                onNavigateToPostDetail = { postId -> navController.navigateToPostDetail(postId) },
+                onNavigateToCreatePost = { navController.navigateToCreatePost() },
+                onNavigateToAuthorProfile = onNavigateToAuthorProfile,
+                onNavigateBack = { navController.popBackStack() }
+            )
 
             searchGraph(
-                onNavigateToPostDetail = { postId ->
-                    navController.navigate(PostDetailRouteDestination(postId))
-                },
-                onNavigateToCreatePost = {
-                    navController.navigate(CreatePostRouteDestination)
-                },
+                onNavigateToPostDetail = { postId -> navController.navigateToPostDetail(postId) },
+                onNavigateToCreatePost = { navController.navigateToCreatePost() },
                 onNavigateToAuthorProfile = onNavigateToAuthorProfile
             )
 

@@ -1,4 +1,4 @@
-package com.flexaura.navigation
+package com.flexaura.features.home.navigation
 
 import kotlinx.serialization.Serializable
 

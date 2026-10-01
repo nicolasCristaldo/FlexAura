@@ -91,7 +91,7 @@ fun ProfileRoute(
 }
 
 @Composable
-fun ProfileScreen(
+private fun ProfileScreen(
     state: ProfileUiState,
     onIntent: (ProfileUiIntent) -> Unit,
     modifier: Modifier = Modifier

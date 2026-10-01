@@ -3,16 +3,22 @@ package com.flexaura.features.auth.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.flexaura.features.auth.login.LoginRoute
 import com.flexaura.features.auth.register.RegisterRoute
-import com.flexaura.navigation.AuthGraph
-import com.flexaura.navigation.LoginRouteDestination
-import com.flexaura.navigation.RegisterRouteDestination
 
-fun NavController.navigateToAuthGraph(navOptions: NavOptions? = null) {
-    this.navigate(route = AuthGraph, navOptions = navOptions)
+fun NavController.navigateToAuthGraph(navOptionsBuilder: NavOptionsBuilder.() -> Unit) {
+    navigate(route = AuthGraph, builder = navOptionsBuilder)
+}
+
+fun NavController.navigateToLogin(builder: NavOptionsBuilder.() -> Unit) {
+    navigate(route = LoginRouteDestination, builder = builder)
+}
+
+fun NavController.navigateToRegister(navOptions: NavOptions? = null) {
+    navigate(route = RegisterRouteDestination, navOptions = navOptions)
 }
 
 fun NavGraphBuilder.authGraph(
