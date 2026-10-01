@@ -2,17 +2,14 @@ package com.flexaura.search
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
@@ -34,8 +31,17 @@ import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
 import com.flexaura.components.user.ProfileList
 import com.flexaura.core.designsystem.theme.appMainBackground
-import com.flexaura.search.SearchUiEffect.*
-import com.flexaura.search.SearchUiIntent.*
+import com.flexaura.search.SearchUiEffect.NavigateToAuthorProfile
+import com.flexaura.search.SearchUiEffect.NavigateToPostDetail
+import com.flexaura.search.SearchUiEffect.ShowSnackBar
+import com.flexaura.search.SearchUiIntent.OnAuthorClicked
+import com.flexaura.search.SearchUiIntent.OnDeletePostClicked
+import com.flexaura.search.SearchUiIntent.OnPostClicked
+import com.flexaura.search.SearchUiIntent.OnSavedClicked
+import com.flexaura.search.SearchUiIntent.OnSearchClicked
+import com.flexaura.search.SearchUiIntent.OnTextChange
+import com.flexaura.search.SearchUiIntent.OnVoteClicked
+import com.flexaura.search.SearchUiIntent.Refresh
 import com.flexaura.search.components.SearchTopBar
 import kotlinx.coroutines.launch
 
