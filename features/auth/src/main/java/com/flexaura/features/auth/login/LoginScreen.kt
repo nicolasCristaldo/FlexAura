@@ -28,7 +28,7 @@ import com.flexaura.features.auth.components.AuthTextField
 import com.flexaura.features.auth.components.LoginButton
 
 @Composable
-fun LoginRoute(
+internal fun LoginRoute(
     onNavigateToRegister: () -> Unit,
     onNavigateToHome: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
@@ -70,7 +70,7 @@ fun LoginRoute(
 }
 
 @Composable
-fun LoginScreen(
+private fun LoginScreen(
     state: LoginUiState,
     onIntent: (LoginUiIntent) -> Unit,
     modifier: Modifier = Modifier
@@ -134,7 +134,7 @@ fun LoginScreen(
 
 @Preview
 @Composable
-fun LoginScreenPreview() {
+private fun LoginScreenPreview() {
     LoginScreen(
         state = LoginUiState(),
         onIntent = {}

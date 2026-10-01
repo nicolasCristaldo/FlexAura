@@ -27,7 +27,7 @@ import com.flexaura.core.designsystem.util.toCompactString
 import com.flexaura.data.domain.model.User
 
 @Composable
-fun ProfileScreenHeader(
+internal fun ProfileScreenHeader(
     user: User,
     isOwnProfile: Boolean,
     onToggleFollowClicked: () -> Unit,

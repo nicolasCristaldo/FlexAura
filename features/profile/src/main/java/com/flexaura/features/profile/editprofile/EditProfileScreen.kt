@@ -45,7 +45,7 @@ import com.flexaura.data.domain.util.isValidUsername
 import com.flexaura.features.profile.components.EditTextField
 
 @Composable
-fun EditProfileRoute(
+internal fun EditProfileRoute(
     onNavigateBack: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {

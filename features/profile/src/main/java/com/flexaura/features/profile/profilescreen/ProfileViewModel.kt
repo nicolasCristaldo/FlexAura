@@ -34,7 +34,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class ProfileViewModel @Inject constructor(
+internal class ProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getUserByIdUseCase: GetUserByIdUseCase,
     private val getPostsByAuthorUseCase: GetPostsByAuthorUseCase,
@@ -186,7 +186,7 @@ class ProfileViewModel @Inject constructor(
             }
     }
 
-    fun emitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
+    private fun emitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }
 }

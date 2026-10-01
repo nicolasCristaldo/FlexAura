@@ -3,7 +3,7 @@ package com.flexaura.search
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
 
-sealed interface SearchUiIntent {
+internal sealed interface SearchUiIntent {
     data object Refresh : SearchUiIntent
     data class OnTextChange(val newText: String) : SearchUiIntent
     data class OnSearchClicked(val searchText: String) : SearchUiIntent
@@ -14,7 +14,7 @@ sealed interface SearchUiIntent {
     data class OnDeletePostClicked(val postId: String) : SearchUiIntent
 }
 
-data class SearchUiState(
+internal data class SearchUiState(
     val currentUserId: String? = null,
     val query: String = "",
     val isSearching: Boolean = false,
@@ -30,7 +30,7 @@ sealed interface SearchUiEffect {
     data class NavigateToAuthorProfile(val authorId: String) : SearchUiEffect
 }
 
-enum class SearchTab(val title: String) {
+internal enum class SearchTab(val title: String) {
     PROFILES("Profiles"),
     POSTS("Posts")
 }

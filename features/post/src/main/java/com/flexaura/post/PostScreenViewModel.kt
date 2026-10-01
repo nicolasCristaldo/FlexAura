@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class PostScreenViewModel @Inject constructor(
+internal class PostScreenViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
     private val getPostByIdUseCase: GetPostByIdUseCase,
     private val votePostUseCase: VotePostUseCase,

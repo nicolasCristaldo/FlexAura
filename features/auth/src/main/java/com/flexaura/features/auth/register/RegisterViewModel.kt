@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor(
+internal class RegisterViewModel @Inject constructor(
     private val registerWithEmailUseCase: RegisterWithEmailUseCase
 ): ViewModel() {
     private val _uiState: MutableStateFlow<RegisterUiState> = MutableStateFlow(RegisterUiState())
