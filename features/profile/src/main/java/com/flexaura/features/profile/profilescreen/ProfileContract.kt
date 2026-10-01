@@ -3,7 +3,7 @@ package com.flexaura.features.profile.profilescreen
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
 
-sealed interface ProfileUiIntent {
+internal sealed interface ProfileUiIntent {
     data object Init : ProfileUiIntent
     data object Refresh : ProfileUiIntent
     data class OnVoteClicked(val postId: String, val vote: Int, val currentVote: Int) : ProfileUiIntent
@@ -14,7 +14,7 @@ sealed interface ProfileUiIntent {
     data class OnAuthorClicked(val authorId: String) : ProfileUiIntent
 }
 
-data class ProfileUiState(
+internal data class ProfileUiState(
     val currentUserId: String? = null,
     val user: User? = null,
     val posts: List<Post> = emptyList(),
@@ -26,7 +26,7 @@ data class ProfileUiState(
     val errorMessage: String? = null
 )
 
-sealed interface ProfileUiEffect {
+internal sealed interface ProfileUiEffect {
     data class ShowSnackBar(val message: String) : ProfileUiEffect
     data class NavigateToPostDetail(val postId: String) : ProfileUiEffect
     data class NavigateToAuthorProfile(val authorId: String) : ProfileUiEffect

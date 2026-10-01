@@ -43,7 +43,7 @@ import com.flexaura.post.components.CommentsSection
 import com.flexaura.post.components.PostDetailContent
 
 @Composable
-fun PostRoute(
+internal fun PostRoute(
     postId: String,
     onNavigateBack: () -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,
@@ -109,7 +109,7 @@ fun PostRoute(
 }
 
 @Composable
-fun PostDetailScreen(
+private fun PostDetailScreen(
     state: PostDetailUiState,
     onIntent: (PostDetailUiIntent) -> Unit,
     modifier: Modifier = Modifier

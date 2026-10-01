@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CreatePostViewModel @Inject constructor(
+internal class CreatePostViewModel @Inject constructor(
     private val createPostUseCase: CreatePostUseCase,
     private val getAuthUserUseCase: GetAuthUserUseCase,
     private val getUserByIdUseCase: GetUserByIdUseCase,

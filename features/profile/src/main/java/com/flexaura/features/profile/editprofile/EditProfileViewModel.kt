@@ -26,7 +26,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class EditProfileViewModel @Inject constructor(
+internal class EditProfileViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
     private val getUserByIdUseCase: GetUserByIdUseCase,
     private val updateProfileUseCase: UpdateProfileUseCase,

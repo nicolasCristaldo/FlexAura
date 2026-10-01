@@ -38,7 +38,7 @@ import com.flexaura.search.navigation.navigateToSearchGraph
 import com.flexaura.search.navigation.searchGraph
 
 @Composable
-fun FlexAuraNavHost(
+internal fun FlexAuraNavHost(
     navController: NavHostController,
     startDestination: Any,
     currentUserId: String?

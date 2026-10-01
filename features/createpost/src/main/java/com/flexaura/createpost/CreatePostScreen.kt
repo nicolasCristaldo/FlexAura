@@ -63,7 +63,7 @@ import com.flexaura.createpost.CreatePostUiIntent.OnRemoveImageClicked
 import com.flexaura.createpost.CreatePostUiIntent.OnSubmitClicked
 
 @Composable
-fun CreatePostRoute(
+internal fun CreatePostRoute(
     onNavigateBack: () -> Unit,
     viewModel: CreatePostViewModel = hiltViewModel()
 ) {

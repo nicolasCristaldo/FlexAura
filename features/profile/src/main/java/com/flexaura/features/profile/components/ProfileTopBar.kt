@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.flexaura.components.general.NavigateBackTopBar
 
 @Composable
-fun ProfileTopBar(
+internal fun ProfileTopBar(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
     onNavigateToEditProfile: (() -> Unit)?

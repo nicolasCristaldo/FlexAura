@@ -13,7 +13,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 
 @Composable
-fun FlexAuraBottomBar(
+internal fun FlexAuraBottomBar(
     destinations: List<TopLevelDestination<out Any>>,
     currentDestination: NavDestination?,
     onNavigateToDestination: (Any) -> Unit,

@@ -46,7 +46,7 @@ import com.flexaura.search.components.SearchTopBar
 import kotlinx.coroutines.launch
 
 @Composable
-fun SearchRoute(
+internal fun SearchRoute(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,
@@ -93,7 +93,7 @@ fun SearchRoute(
 }
 
 @Composable
-fun SearchScreen(
+private fun SearchScreen(
     state: SearchUiState,
     onIntent: (SearchUiIntent) -> Unit,
     modifier: Modifier = Modifier

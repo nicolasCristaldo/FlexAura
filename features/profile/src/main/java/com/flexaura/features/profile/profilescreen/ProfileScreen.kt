@@ -43,7 +43,7 @@ import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnVoteClicked
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProfileRoute(
+internal fun ProfileRoute(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,

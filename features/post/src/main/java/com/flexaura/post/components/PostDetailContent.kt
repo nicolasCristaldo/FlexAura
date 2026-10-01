@@ -16,7 +16,7 @@ import com.flexaura.components.user.UserIdentity
 import com.flexaura.data.domain.model.Post
 
 @Composable
-fun PostDetailContent(
+internal fun PostDetailContent(
     post: Post,
     onVoteClicked: (postId: String, vote: Int, currentVote: Int) -> Unit,
     onSavedClicked: (postId: String) -> Unit,
