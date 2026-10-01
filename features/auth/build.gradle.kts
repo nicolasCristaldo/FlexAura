@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.google.secrets)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 android {
@@ -57,7 +58,6 @@ android {
 
 dependencies {
     implementation(project(":data"))
-    implementation(project(":core:navigation"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -78,6 +78,9 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Credentials
     implementation(libs.androidx.credentials)

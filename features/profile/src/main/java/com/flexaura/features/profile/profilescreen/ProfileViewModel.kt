@@ -16,7 +16,7 @@ import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.usecase.user.SyncUserUseCase
 import com.flexaura.data.domain.usecase.user.ToggleFollowUserUseCase
-import com.flexaura.navigation.ProfileDestinations
+import com.flexaura.features.profile.navigation.ProfileDestinations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow

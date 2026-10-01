@@ -1,9 +1,9 @@
 package com.nicolascristaldo.flexaura.navigation
 
 import com.flexaura.core.designsystem.R
-import com.flexaura.navigation.HomeGraph
-import com.flexaura.navigation.ProfileGraph
-import com.flexaura.navigation.SearchGraph
+import com.flexaura.features.home.navigation.HomeGraph
+import com.flexaura.features.profile.navigation.ProfileGraph
+import com.flexaura.search.navigation.SearchGraph
 
 sealed class TopLevelDestination<T: Any>(val route: T, val iconRes: Int, val label: String) {
     object Home: TopLevelDestination<HomeGraph>(HomeGraph, R.drawable.ic_home, "Home")

@@ -1,10 +1,10 @@
-package com.flexaura.navigation
+package com.flexaura.features.profile.navigation
 
 import kotlinx.serialization.Serializable
 
 @Serializable object ProfileGraph
 
-@Serializable data class UserProfileRouteDestination(val userId: String)
+@Serializable data class OtherUserProfileRouteDestination(val userId: String)
 
 sealed interface ProfileDestinations {
     @Serializable
