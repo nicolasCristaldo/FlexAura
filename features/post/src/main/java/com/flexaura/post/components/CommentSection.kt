@@ -59,7 +59,7 @@ private fun CommentCard(
         modifier = modifier
     ) {
         ProfileImage(
-            imageUrl = comment.authorAvatarUrl,
+            imageModel = comment.authorAvatarUrl,
             onClick = { onIntent(OnNavigateToAuthorProfile(comment.authorId)) },
             size = 44
         )

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -24,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -50,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.flexaura.components.general.FlexAuraFab
+import com.flexaura.components.general.NavigateBackTopBar
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
 import com.flexaura.core.designsystem.R
@@ -60,7 +61,6 @@ import com.flexaura.createpost.CreatePostUiIntent.OnContentChange
 import com.flexaura.createpost.CreatePostUiIntent.OnImageSelected
 import com.flexaura.createpost.CreatePostUiIntent.OnRemoveImageClicked
 import com.flexaura.createpost.CreatePostUiIntent.OnSubmitClicked
-import com.flexaura.createpost.components.CreatePostTopBar
 
 @Composable
 fun CreatePostRoute(
@@ -87,12 +87,18 @@ fun CreatePostRoute(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            CreatePostTopBar(
-                onCreatePost = { viewModel.onIntent(OnSubmitClicked) },
-                enableCreate = state.content.isNotBlank() || state.imageUri != null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(.065f)
+            val createPostButtonEnabled = state.content.isNotBlank() || state.imageUri != null
+
+            NavigateBackTopBar(
+                onNavigateBack = onNavigateBack,
+                title = "Create post",
+                trailingContent = {
+                    Button(
+                        onClick = { viewModel.onIntent(OnSubmitClicked) },
+                        enabled = createPostButtonEnabled
+                    ) { Text("Create") }
+                },
+                modifier = Modifier.fillMaxHeight(.065f)
             )
         },
         floatingActionButton = {
@@ -124,7 +130,7 @@ fun CreatePostRoute(
 }
 
 @Composable
-fun CreatePostScreen(
+private fun CreatePostScreen(
     state: CreatePostUiState,
     onIntent: (CreatePostUiIntent) -> Unit,
     modifier: Modifier = Modifier
@@ -145,7 +151,7 @@ fun CreatePostScreen(
             }
 
             ProfileImage(
-                imageUrl = state.currentUser?.imageUrl,
+                imageModel = state.currentUser?.imageUrl,
                 size = 56
             )
 

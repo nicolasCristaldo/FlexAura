@@ -16,8 +16,7 @@ fun NavController.navigateToSearchGraph(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.searchGraph(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,
-    onNavigateToCreatePost: () -> Unit,
-    nestedGraphs: (NavGraphBuilder.() -> Unit)? = null
+    onNavigateToCreatePost: () -> Unit
 ) {
     navigation<SearchGraph>(startDestination = SearchRouteDestination) {
         composable<SearchRouteDestination> {
@@ -27,7 +26,5 @@ fun NavGraphBuilder.searchGraph(
                 onNavigateToAuthorProfile = onNavigateToAuthorProfile
             )
         }
-
-        nestedGraphs?.invoke(this)
     }
 }

@@ -1,4 +1,4 @@
-package com.flexaura.features.profile
+package com.flexaura.features.profile.profilescreen
 
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User

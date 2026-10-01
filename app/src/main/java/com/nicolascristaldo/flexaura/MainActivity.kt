@@ -46,13 +46,15 @@ class MainActivity : ComponentActivity() {
                         is AuthState.Authenticated -> {
                             FlexAuraNavHost(
                                 navController = navController,
-                                startDestination = HomeGraph
+                                startDestination = HomeGraph,
+                                currentUserId = (authState.value as AuthState.Authenticated).userId
                             )
                         }
                         is AuthState.UnAuthenticated -> {
                             FlexAuraNavHost(
                                 navController = navController,
-                                startDestination = AuthGraph
+                                startDestination = AuthGraph,
+                                currentUserId = null
                             )
                         }
                     }
