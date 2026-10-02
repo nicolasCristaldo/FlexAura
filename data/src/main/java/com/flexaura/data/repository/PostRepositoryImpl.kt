@@ -207,14 +207,21 @@ class PostRepositoryImpl @Inject constructor(
         runCatching {
             val remotePosts = networkDataSource.searchPosts(query, page, pageSize)
 
-            val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity(isCurrentUserFollowing = false) }.distinct()
+            val usersToUpsert = remotePosts.mapNotNull {
+                it.author?.toEntity(isCurrentUserFollowing = false)
+            }.distinct()
             if(usersToUpsert.isNotEmpty()) {
                 userDao.upsertUsers(usersToUpsert)
             }
 
             val postEntities = remotePosts.map { it.toEntity() }
             postDao.upsertPosts(postEntities)
-            postEntities.map { it.toDomain() }
+
+            val postIds = remotePosts.map { it.id }
+            val localPostsMap = postDao.getPostsWithAuthorByIds(postIds)
+                .associateBy { it.post.id }
+
+            postIds.mapNotNull { id -> localPostsMap[id]?.toDomain() }
         }
     }
 }
