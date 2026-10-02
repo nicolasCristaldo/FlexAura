@@ -1,8 +1,5 @@
 package com.flexaura.createpost
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.flexaura.components.general.FlexAuraFab
 import com.flexaura.components.general.NavigateBackTopBar
+import com.flexaura.components.general.rememberPhotoPickerLauncher
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
 import com.flexaura.core.designsystem.R
@@ -69,9 +67,8 @@ internal fun CreatePostRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> viewModel.onIntent(OnImageSelected(uri)) }
+    val launchPhotoPicker = rememberPhotoPickerLauncher(
+        onImageSelected = { uri -> viewModel.onIntent(OnImageSelected(uri)) }
     )
 
     LaunchedEffect(Unit) {
@@ -103,15 +100,7 @@ internal fun CreatePostRoute(
         },
         floatingActionButton = {
             FlexAuraFab(
-                onClick = {
-                    if(!state.isPostPublishing) {
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageOnly
-                            )
-                        )
-                    }
-                },
+                onClick = { if(!state.isPostPublishing) launchPhotoPicker() },
                 icon = R.drawable.ic_camera,
                 contentDescription = "Pick image",
                 modifier = Modifier

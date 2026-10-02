@@ -50,6 +50,8 @@ internal class EditProfileViewModel @Inject constructor(
     }
 
     private fun loadInitialUserData() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true) }
+
         getAuthUserUseCase().flatMapLatest { authState ->
             if (authState is AuthState.Authenticated) {
                 getUserByIdUseCase(authState.userId)
@@ -63,6 +65,7 @@ internal class EditProfileViewModel @Inject constructor(
                         displayName = currentUser.displayName,
                         currentImageUrl = currentUser.imageUrl,
                         bio = currentUser.bio ?: "",
+                        isLoading = false
                     )
                 }
             }
