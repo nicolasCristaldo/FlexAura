@@ -39,6 +39,10 @@ interface PostDao {
     @Query("SELECT * FROM posts WHERE author_id = :userId ORDER BY created_at DESC")
     fun getPostsByAuthorFlow(userId: String): Flow<List<PostWithAuthorRelation>>
 
+    @Transaction
+    @Query("SELECT * FROM posts WHERE id IN (:postIds)")
+    fun getPostsWithAuthorByIds(postIds: List<String>): List<PostWithAuthorRelation>
+
     @Upsert
     suspend fun upsertPosts(posts: List<PostEntity>)
 
