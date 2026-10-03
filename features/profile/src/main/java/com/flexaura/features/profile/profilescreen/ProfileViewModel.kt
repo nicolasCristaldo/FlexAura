@@ -80,11 +80,7 @@ internal class ProfileViewModel @Inject constructor(
         is ProfileUiIntent.OnSavedClicked -> { toggleSave(intent.postId) }
         is ProfileUiIntent.OnPostClicked -> emitEffect(ProfileUiEffect.NavigateToPostDetail(intent.postId))
         is ProfileUiIntent.OnDeletePostClicked -> deletePost(intent.postId)
-        is ProfileUiIntent.OnAuthorClicked -> emitEffect(
-            ProfileUiEffect.NavigateToAuthorProfile(
-                intent.authorId
-            )
-        )
+        is ProfileUiIntent.OnAuthorClicked -> emitEffect(ProfileUiEffect.NavigateToAuthorProfile(intent.authorId))
     }
 
     private fun observeProfileData() = viewModelScope.launch {

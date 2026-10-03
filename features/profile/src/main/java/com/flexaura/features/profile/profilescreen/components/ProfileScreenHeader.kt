@@ -1,4 +1,4 @@
-package com.flexaura.features.profile.components
+package com.flexaura.features.profile.profilescreen.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

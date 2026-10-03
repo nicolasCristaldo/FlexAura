@@ -31,3 +31,8 @@ internal sealed interface ProfileUiEffect {
     data class NavigateToPostDetail(val postId: String) : ProfileUiEffect
     data class NavigateToAuthorProfile(val authorId: String) : ProfileUiEffect
 }
+
+internal enum class ProfileTab(val title: String) {
+    POSTS("Posts"),
+    SAVED("Saved")
+}
