@@ -16,9 +16,10 @@ import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.usecase.user.SyncUserUseCase
 import com.flexaura.data.domain.usecase.user.ToggleFollowUserUseCase
-import com.flexaura.navigation.ProfileDestinations
+import com.flexaura.features.profile.navigation.ProfileDestinations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -34,7 +35,8 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class ProfileViewModel @Inject constructor(
+internal class
+ProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getUserByIdUseCase: GetUserByIdUseCase,
     private val getPostsByAuthorUseCase: GetPostsByAuthorUseCase,
@@ -80,20 +82,18 @@ class ProfileViewModel @Inject constructor(
         is ProfileUiIntent.OnSavedClicked -> { toggleSave(intent.postId) }
         is ProfileUiIntent.OnPostClicked -> emitEffect(ProfileUiEffect.NavigateToPostDetail(intent.postId))
         is ProfileUiIntent.OnDeletePostClicked -> deletePost(intent.postId)
-        is ProfileUiIntent.OnAuthorClicked -> emitEffect(
-            ProfileUiEffect.NavigateToAuthorProfile(
-                intent.authorId
-            )
-        )
+        is ProfileUiIntent.OnAuthorClicked -> emitEffect(ProfileUiEffect.NavigateToAuthorProfile(intent.authorId))
     }
 
     private fun observeProfileData() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
         getAuthUserUseCase().flatMapLatest { authState ->
             val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
             val targetUserId = argumentUserId ?: currentLoggedUserId
 
             if (targetUserId == null) {
-                flowOf(ProfileUiState(isLoading = true))
+                flowOf(null)
             } else {
                 val isOwnProfile = targetUserId == currentLoggedUserId
 
@@ -102,18 +102,27 @@ class ProfileViewModel @Inject constructor(
                     getPostsByAuthorUseCase(targetUserId),
                     if (isOwnProfile) getSavedPostsUseCase() else flowOf(emptyList()),
                 ) { user, posts, savedPosts ->
-                    ProfileUiState(
-                        currentUserId = currentLoggedUserId,
-                        user = user,
-                        posts = posts,
-                        savedPosts = savedPosts,
-                        isOwnProfile = isOwnProfile,
-                        isLoading = false
-                    )
+                    Triple(user, posts, savedPosts) to isOwnProfile
                 }
             }
-        }.collect { updatedState ->
-            _uiState.value = updatedState
+        }.collect { data ->
+            if(data == null) {
+                _uiState.update { it.copy(isLoading = false) }
+                return@collect
+            }
+            val (combinedData, isOwnProfile) = data
+            val (user, posts, savedPosts) = combinedData
+
+            _uiState.update {
+                it.copy(
+                    user = user,
+                    posts = posts,
+                    savedPosts = savedPosts,
+                    isOwnProfile = isOwnProfile,
+                    isLoading = false,
+                    errorMessage = if (user == null) "User not found" else null
+                )
+            }
         }
     }
 
@@ -122,32 +131,27 @@ class ProfileViewModel @Inject constructor(
         val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
         val targetUserId = argumentUserId ?: currentLoggedUserId ?: return@launch
         val isOwnProfile = targetUserId == currentLoggedUserId
+        _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
 
-        _uiState.update { it.copy(isRefreshing = true) }
+        try {
+            val userSync = async { syncUserUseCase(targetUserId) }
+            val postsSync = async { syncPostsByAuthorUseCase(targetUserId) }
+            val savedSync = if (isOwnProfile) async { syncSavedPostsUseCase() } else null
 
-        val userSync = launch {
-            syncUserUseCase(targetUserId).onFailure { error ->
-                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
+            val userRes = userSync.await()
+            val postsRes = postsSync.await()
+            val savedPostsRes = savedSync?.await()
+
+            val error = userRes.exceptionOrNull() ?: postsRes.exceptionOrNull()
+            ?: savedPostsRes?.exceptionOrNull()
+            if (error != null) {
+                handleSyncError(error)
             }
+        } catch(e: Exception) {
+            handleSyncError(e)
+        } finally {
+            _uiState.update { it.copy(isRefreshing = false) }
         }
-        val syncPosts = launch {
-            syncPostsByAuthorUseCase(targetUserId).onFailure { error ->
-                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
-            }
-        }
-        val syncSavedPosts = if(isOwnProfile) {
-            launch {
-                syncSavedPostsUseCase().onFailure { error ->
-                    emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
-                }
-            }
-        } else null
-
-        userSync.join()
-        syncPosts.join()
-        syncSavedPosts?.join()
-
-        _uiState.update { it.copy(isRefreshing = false) }
     }
 
     private fun toggleFollowUser() = viewModelScope.launch {
@@ -186,7 +190,19 @@ class ProfileViewModel @Inject constructor(
             }
     }
 
-    fun emitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
+    private fun emitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
+    }
+
+    private fun handleSyncError(e: Throwable) {
+        val errorMessage = e.localizedMessage ?: "Unknown error"
+        val hasData = _uiState.value.user != null
+
+        if(hasData) {
+            emitEffect(ProfileUiEffect.ShowSnackBar(errorMessage))
+        }
+        else {
+            _uiState.update { it.copy(errorMessage = errorMessage) }
+        }
     }
 }

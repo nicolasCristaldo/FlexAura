@@ -1,16 +1,11 @@
 package com.flexaura.createpost
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
@@ -18,15 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,18 +26,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.flexaura.components.general.FlexAuraFab
 import com.flexaura.components.general.NavigateBackTopBar
+import com.flexaura.components.general.StateInfoScreen
+import com.flexaura.components.general.rememberPhotoPickerLauncher
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
 import com.flexaura.core.designsystem.R
@@ -61,17 +45,18 @@ import com.flexaura.createpost.CreatePostUiIntent.OnContentChange
 import com.flexaura.createpost.CreatePostUiIntent.OnImageSelected
 import com.flexaura.createpost.CreatePostUiIntent.OnRemoveImageClicked
 import com.flexaura.createpost.CreatePostUiIntent.OnSubmitClicked
+import com.flexaura.createpost.components.PostContentInput
+import com.flexaura.createpost.components.SelectedImagePreview
 
 @Composable
-fun CreatePostRoute(
+internal fun CreatePostRoute(
     onNavigateBack: () -> Unit,
     viewModel: CreatePostViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> viewModel.onIntent(OnImageSelected(uri)) }
+    val launchPhotoPicker = rememberPhotoPickerLauncher(
+        onImageSelected = { uri -> viewModel.onIntent(OnImageSelected(uri)) }
     )
 
     LaunchedEffect(Unit) {
@@ -103,15 +88,7 @@ fun CreatePostRoute(
         },
         floatingActionButton = {
             FlexAuraFab(
-                onClick = {
-                    if(!state.isPostPublishing) {
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageOnly
-                            )
-                        )
-                    }
-                },
+                onClick = { if(!state.isPostPublishing) launchPhotoPicker() },
                 icon = R.drawable.ic_camera,
                 contentDescription = "Pick image",
                 modifier = Modifier
@@ -121,11 +98,20 @@ fun CreatePostRoute(
         containerColor = Color.Transparent,
         modifier = Modifier.appCircularGradientBackground()
     ) { innerPadding ->
-        CreatePostScreen(
-            state = state,
-            onIntent = viewModel::onIntent,
-            modifier = Modifier.padding(innerPadding)
-        )
+        when {
+            state.isLoading -> LinearProgressIndicator()
+            state.errorMessage != null -> StateInfoScreen(
+                title = "Something went wrong",
+                text = state.errorMessage,
+                onActionClick = { viewModel.onIntent(CreatePostUiIntent.Init) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            else -> CreatePostScreen(
+                state = state,
+                onIntent = viewModel::onIntent,
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
     }
 }
 
@@ -142,14 +128,14 @@ private fun CreatePostScreen(
     }
 
     Column(modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        if (state.isPostPublishing) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            if (state.isPostPublishing) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
-
             ProfileImage(
                 imageModel = state.currentUser?.imageUrl,
                 size = 56
@@ -165,59 +151,19 @@ private fun CreatePostScreen(
             )
         }
 
-        Box(
+        PostContentInput(
+            content = state.content,
+            onContentChange = { onIntent(OnContentChange(it)) },
+            focusRequester = focusRequester,
             modifier = Modifier.padding(bottom = 12.dp)
-        ) {
-            if (state.content.isEmpty()) {
-                Text(
-                    text = "What's on your mind?",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .7f)
-                )
-            }
-
-            BasicTextField(
-                value = state.content,
-                onValueChange = { onIntent(OnContentChange(it)) },
-                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurfaceVariant),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-            )
-        }
+        )
 
         if (state.imageUri != null) {
-            Box(
+            SelectedImagePreview(
+                imageUri = state.imageUri,
+                onRemoveImage = { onIntent(OnRemoveImageClicked) },
                 modifier = Modifier.size(410.dp)
-            ) {
-                AsyncImage(
-                    model = state.imageUri,
-                    contentDescription = "Selected image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(8.dp))
-                )
-                IconButton(
-                    onClick = { onIntent(OnRemoveImageClicked) },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Color.Gray.copy(alpha = .4f)
-                    ),
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        tint = Color.Black.copy(alpha = .8f),
-                        contentDescription = "Remove image"
-                    )
-                }
-            }
+            )
         }
     }
 }

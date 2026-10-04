@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+internal class HomeViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
     private val getPostsUseCase: GetPostsUseCase,
     private val getFollowingPostsUseCase: GetFollowingPostsUseCase,
@@ -70,19 +70,20 @@ class HomeViewModel @Inject constructor(
         ) { discover, following ->
             discover to following
         }.collect { (discover, following) ->
-            _uiState.update {
-                it.copy(
-                    discoverPosts = discover,
-                    followingPosts = following
-                )
-            }
+            _uiState.update { it.copy(discoverPosts = discover, followingPosts = following) }
         }
     }
 
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
-            if (authState is AuthState.Authenticated) {
-                _uiState.update { it.copy(currentUserId = authState.userId) }
+            when (authState) {
+                is AuthState.Authenticated -> {
+                    _uiState.update { it.copy(currentUserId = authState.userId) }
+                }
+                is AuthState.Unauthenticated -> {
+                    _uiState.update { it.copy(currentUserId = null) }
+                }
+                is AuthState.Loading -> Unit
             }
         }
     }
@@ -91,8 +92,7 @@ class HomeViewModel @Inject constructor(
         val pageToFetch = if (isRefresh) 1 else uiState.value.currentPage
 
         _uiState.update {
-            if (isRefresh) it.copy(isRefreshing = true)
-            else it.copy(isLoading = true)
+            it.copy(isRefreshing = isRefresh, isLoading = !isRefresh, errorMessage = null)
         }
 
         try {
@@ -102,16 +102,10 @@ class HomeViewModel @Inject constructor(
             val discoverResult = discoverSync.await()
             val followingResult = followingSync.await()
 
-            if (discoverResult.isFailure || followingResult.isFailure) {
-                val error = discoverResult.exceptionOrNull() ?: followingResult.exceptionOrNull()
+            val error = discoverResult.exceptionOrNull() ?: followingResult.exceptionOrNull()
 
-                _uiState.update {
-                    it.copy(
-                        isRefreshing = false,
-                        isLoading = false,
-                        errorMessage = error?.toUserReadableMessage()
-                    )
-                }
+            if (error != null) {
+                handleSyncError(error)
                 return@launch
             }
 
@@ -124,13 +118,7 @@ class HomeViewModel @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            _uiState.update {
-                it.copy(
-                    isRefreshing = false,
-                    isLoading = false,
-                    errorMessage = e.toUserReadableMessage()
-                )
-            }
+            handleSyncError(e)
         }
     }
 
@@ -157,5 +145,18 @@ class HomeViewModel @Inject constructor(
 
     private fun emitEffect(effect: HomeUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
+    }
+
+    private fun handleSyncError(e: Throwable) {
+        val message = e.toUserReadableMessage()
+        val hasPosts = uiState.value.discoverPosts.isNotEmpty() || uiState.value.followingPosts.isNotEmpty()
+
+        if (hasPosts) {
+            _uiState.update { it.copy(isLoading = false, isRefreshing = false) }
+            emitEffect(ShowSnackBar(message))
+        }
+        else {
+            _uiState.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = message) }
+        }
     }
 }

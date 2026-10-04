@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun LoginButton(
+internal fun LoginButton(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier

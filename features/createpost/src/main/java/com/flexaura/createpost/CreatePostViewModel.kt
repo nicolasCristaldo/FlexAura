@@ -16,12 +16,13 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CreatePostViewModel @Inject constructor(
+internal class CreatePostViewModel @Inject constructor(
     private val createPostUseCase: CreatePostUseCase,
     private val getAuthUserUseCase: GetAuthUserUseCase,
     private val getUserByIdUseCase: GetUserByIdUseCase,
@@ -33,32 +34,45 @@ class CreatePostViewModel @Inject constructor(
     private val _uiEffect = MutableSharedFlow<CreatePostUiEffect>()
     val uiEffect = _uiEffect.asSharedFlow()
 
-    init { onIntent(Init) }
+    init {
+        onIntent(Init)
+    }
 
-    fun onIntent(intent: CreatePostUiIntent) = when(intent) {
+    fun onIntent(intent: CreatePostUiIntent) = when (intent) {
         Init -> observeAuthUser()
-        is OnImageSelected -> _uiState.update {
-            it.copy(imageUri = intent.imageUri)
-        }
-        is OnContentChange -> _uiState.update {
-            it.copy(content = intent.newContent)
-        }
+        is OnImageSelected -> _uiState.update { it.copy(imageUri = intent.imageUri) }
+        is OnContentChange -> _uiState.update { it.copy(content = intent.newContent) }
         OnSubmitClicked -> createPost()
         OnRemoveImageClicked -> _uiState.update { it.copy(imageUri = null) }
     }
 
     private fun observeAuthUser() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
         getAuthUserUseCase().collect { authState ->
-            if (authState is AuthState.Authenticated) {
-                observeUser(authState.userId)
+            when (authState) {
+                is AuthState.Authenticated -> observeUser(authState.userId)
+                is AuthState.Unauthenticated -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    emitEffect(NavigateBack)
+                }
+
+                is AuthState.Loading -> Unit
             }
         }
     }
 
     private fun observeUser(userId: String) = viewModelScope.launch {
-        getUserByIdUseCase(userId).collect { user ->
-            _uiState.update { it.copy(currentUser = user) }
-        }
+        getUserByIdUseCase(userId)
+            .catch { error ->
+                _uiState.update {
+                    it.copy(errorMessage = error.localizedMessage ?: "Unknown error", isLoading = false)
+                }
+            }
+            .collect { user ->
+                if (user != null) _uiState.update { it.copy(currentUser = user, isLoading = false) }
+                else _uiState.update { it.copy(errorMessage = "User not found", isLoading = false) }
+            }
     }
 
     private fun createPost() = viewModelScope.launch {
@@ -80,17 +94,8 @@ class CreatePostViewModel @Inject constructor(
                 emitEffect(NavigateBack)
             }
             .onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isPostPublishing = false,
-                        errorMessage = error.localizedMessage
-                    )
-                }
-                emitEffect(
-                    ShowSnackBar(
-                        error.localizedMessage ?: "Unknown error"
-                    )
-                )
+                _uiState.update { it.copy(isPostPublishing = false) }
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 

@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.flexaura.components.general.FlexAuraTextField
 
 @Composable
-fun CommentInputBar(
+internal fun CommentInputBar(
     content: String,
     onContentChanged: (String) -> Unit,
     onSubmitComment: () -> Unit,

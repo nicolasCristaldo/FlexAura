@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.features.auth.components.AuthTextField
 
 @Composable
-fun RegisterRoute(
+internal fun RegisterRoute(
     onNavigateToLogin: () -> Unit,
     onNavigateToHome: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
@@ -57,7 +57,7 @@ fun RegisterRoute(
 }
 
 @Composable
-fun RegisterScreen(
+private fun RegisterScreen(
     state: RegisterUiState,
     onIntent: (RegisterUiIntent) -> Unit,
     modifier: Modifier = Modifier
@@ -131,7 +131,7 @@ fun RegisterScreen(
 
 @Preview
 @Composable
-fun RegisterScreenPreview() {
+private fun RegisterScreenPreview() {
     RegisterScreen(
         state = RegisterUiState(),
         onIntent = {}
