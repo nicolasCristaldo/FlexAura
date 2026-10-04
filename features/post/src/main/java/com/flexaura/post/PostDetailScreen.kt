@@ -76,10 +76,10 @@ internal fun PostRoute(
             val isCurrentUserPost = state.post?.author?.id == state.currentUserId
 
             NavigateBackTopBar(
-                onNavigateBack = { viewModel.onIntent(OnNavigateBack)},
+                onNavigateBack = { viewModel.onIntent(OnNavigateBack) },
                 title = "Post",
                 trailingContent = {
-                    if(isCurrentUserPost) {
+                    if (isCurrentUserPost) {
                         PostOptionsMenu(
                             onDeletePost = { viewModel.onIntent(OnDeletePost(postId)) }
                         )
@@ -118,7 +118,7 @@ private fun PostDetailScreen(
         state.isLoading -> CircularProgressIndicator()
 
         state.errorMessage != null || state.post == null -> {
-            val action = if(state.post?.id != null) ({ onIntent(Init(state.post.id)) }) else null
+            val action = if (state.post?.id != null) ({ onIntent(Init(state.post.id)) }) else null
 
             val stateInfo = getPostDetailStateInfo(
                 state = state,
@@ -175,5 +175,6 @@ private fun getPostDetailStateInfo(
         text = state.errorMessage,
         onActionClick = onAction
     )
+
     else -> StateInfo(title = "Post not found")
 }

@@ -14,5 +14,5 @@ interface AuthRepository {
 sealed interface AuthState {
     object Loading: AuthState
     data class Authenticated(val userId: String): AuthState
-    object UnAuthenticated: AuthState
+    object Unauthenticated: AuthState
 }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -48,17 +49,32 @@ internal class CreatePostViewModel @Inject constructor(
     }
 
     private fun observeAuthUser() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true) }
+
         getAuthUserUseCase().collect { authState ->
-            if (authState is AuthState.Authenticated) {
-                observeUser(authState.userId)
+            when (authState) {
+                is AuthState.Authenticated -> observeUser(authState.userId)
+                is AuthState.Unauthenticated -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    emitEffect(NavigateBack)
+                }
+                is AuthState.Loading -> Unit
             }
         }
     }
 
     private fun observeUser(userId: String) = viewModelScope.launch {
-        getUserByIdUseCase(userId).collect { user ->
-            _uiState.update { it.copy(currentUser = user) }
-        }
+        getUserByIdUseCase(userId)
+            .catch { error ->
+                handleError(error.localizedMessage ?: "Unknown error")
+            }
+            .collect { user ->
+                if (user != null) {
+                    _uiState.update { it.copy(currentUser = user, isLoading = false) }
+                } else {
+                    handleError("User not found")
+                }
+            }
     }
 
     private fun createPost() = viewModelScope.launch {
@@ -86,15 +102,16 @@ internal class CreatePostViewModel @Inject constructor(
                         errorMessage = error.localizedMessage
                     )
                 }
-                emitEffect(
-                    ShowSnackBar(
-                        error.localizedMessage ?: "Unknown error"
-                    )
-                )
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 
     private fun emitEffect(effect: CreatePostUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
+    }
+
+    private fun handleError(message: String) {
+        _uiState.update { it.copy(errorMessage = message) }
+        emitEffect(ShowSnackBar(message))
     }
 }

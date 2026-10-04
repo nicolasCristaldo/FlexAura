@@ -103,9 +103,7 @@ private fun HomeScreen(
                     text = { Text(tab.title) },
                     selected = pagerState.currentPage == index,
                     onClick = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
+                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
                     }
                 )
             }
