@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.NavigateBackTopBar
+import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.data.domain.util.isValidLength
 import com.flexaura.data.domain.util.isValidUsername
@@ -72,6 +74,14 @@ internal fun EditProfileRoute(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.padding(innerPadding)
             ) { CircularProgressIndicator() }
+
+            state.error != null -> {
+                StateInfoScreen(
+                    title = "Could not load profile",
+                    text = state.error,
+                    modifier = Modifier.fillMaxSize()
+                ) { viewModel.onIntent(EditProfileUiIntent.Init) }
+            }
 
             else -> EditProfileScreen(
                 state = state,

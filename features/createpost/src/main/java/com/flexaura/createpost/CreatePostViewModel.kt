@@ -34,22 +34,20 @@ internal class CreatePostViewModel @Inject constructor(
     private val _uiEffect = MutableSharedFlow<CreatePostUiEffect>()
     val uiEffect = _uiEffect.asSharedFlow()
 
-    init { onIntent(Init) }
+    init {
+        onIntent(Init)
+    }
 
-    fun onIntent(intent: CreatePostUiIntent) = when(intent) {
+    fun onIntent(intent: CreatePostUiIntent) = when (intent) {
         Init -> observeAuthUser()
-        is OnImageSelected -> _uiState.update {
-            it.copy(imageUri = intent.imageUri)
-        }
-        is OnContentChange -> _uiState.update {
-            it.copy(content = intent.newContent)
-        }
+        is OnImageSelected -> _uiState.update { it.copy(imageUri = intent.imageUri) }
+        is OnContentChange -> _uiState.update { it.copy(content = intent.newContent) }
         OnSubmitClicked -> createPost()
         OnRemoveImageClicked -> _uiState.update { it.copy(imageUri = null) }
     }
 
     private fun observeAuthUser() = viewModelScope.launch {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
         getAuthUserUseCase().collect { authState ->
             when (authState) {
@@ -58,6 +56,7 @@ internal class CreatePostViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false) }
                     emitEffect(NavigateBack)
                 }
+
                 is AuthState.Loading -> Unit
             }
         }
@@ -66,14 +65,13 @@ internal class CreatePostViewModel @Inject constructor(
     private fun observeUser(userId: String) = viewModelScope.launch {
         getUserByIdUseCase(userId)
             .catch { error ->
-                handleError(error.localizedMessage ?: "Unknown error")
+                _uiState.update {
+                    it.copy(errorMessage = error.localizedMessage ?: "Unknown error", isLoading = false)
+                }
             }
             .collect { user ->
-                if (user != null) {
-                    _uiState.update { it.copy(currentUser = user, isLoading = false) }
-                } else {
-                    handleError("User not found")
-                }
+                if (user != null) _uiState.update { it.copy(currentUser = user, isLoading = false) }
+                else _uiState.update { it.copy(errorMessage = "User not found", isLoading = false) }
             }
     }
 
@@ -96,22 +94,12 @@ internal class CreatePostViewModel @Inject constructor(
                 emitEffect(NavigateBack)
             }
             .onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isPostPublishing = false,
-                        errorMessage = error.localizedMessage
-                    )
-                }
+                _uiState.update { it.copy(isPostPublishing = false) }
                 emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
             }
     }
 
     private fun emitEffect(effect: CreatePostUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
-    }
-
-    private fun handleError(message: String) {
-        _uiState.update { it.copy(errorMessage = message) }
-        emitEffect(ShowSnackBar(message))
     }
 }
