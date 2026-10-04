@@ -15,6 +15,7 @@ internal data class CreatePostUiState(
     val currentUser: User? = null,
     val content: String = "",
     val imageUri: Uri? = null,
+    val isLoading: Boolean = false,
     val isPostPublishing: Boolean = false,
     val errorMessage: String? = null
 )

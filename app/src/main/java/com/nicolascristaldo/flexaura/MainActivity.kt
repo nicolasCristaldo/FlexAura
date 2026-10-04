@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
                         }
-                        is AuthState.Authenticated, is AuthState.UnAuthenticated -> {
+                        is AuthState.Authenticated, is AuthState.Unauthenticated -> {
                             val (startDestination, currentUserId) = if (authState is AuthState.Authenticated) {
                                 HomeGraph to (authState as AuthState.Authenticated).userId
                             }

@@ -33,7 +33,7 @@ class AuthRepositoryImpl @Inject constructor(
                     val userId = status.session.user?.id ?: ""
                     AuthState.Authenticated(userId)
                 }
-                is SessionStatus.NotAuthenticated -> AuthState.UnAuthenticated
+                is SessionStatus.NotAuthenticated -> AuthState.Unauthenticated
                 else -> AuthState.Loading
             }
         }.flowOn(dispatcher)
