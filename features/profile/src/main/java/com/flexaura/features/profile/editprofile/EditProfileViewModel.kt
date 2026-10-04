@@ -50,31 +50,48 @@ internal class EditProfileViewModel @Inject constructor(
     }
 
     private fun loadInitialUserData() = viewModelScope.launch {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, error = null) }
 
-        getAuthUserUseCase().flatMapLatest { authState ->
-            if (authState is AuthState.Authenticated) {
-                getUserByIdUseCase(authState.userId)
+        getAuthUserUseCase().collect { authState ->
+            when (authState) {
+                is AuthState.Authenticated -> {
+                    fetchUserData(authState.userId)
+                }
+                is AuthState.Unauthenticated -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    emitEffect(NavigateBack)
+                }
+                is AuthState.Loading -> Unit
             }
-            else { flowOf(null) }
-        }.collect { user ->
-            user?.let { currentUser ->
-                _uiState.update { state ->
-                    state.copy(
-                        username = currentUser.username,
-                        displayName = currentUser.displayName,
-                        currentImageUrl = currentUser.imageUrl,
-                        bio = currentUser.bio ?: "",
-                        isLoading = false
-                    )
+        }
+    }
+
+    private fun fetchUserData(userId: String) = viewModelScope.launch {
+        try {
+            getUserByIdUseCase(userId).collect { user ->
+                if(user != null) {
+                    _uiState.update {
+                        it.copy(
+                            username = user.username,
+                            displayName = user.displayName,
+                            bio = user.bio ?: "",
+                            currentImageUrl = user.imageUrl,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                }
+                else {
+                    _uiState.update { it.copy(isLoading = false, error = "User not found") }
                 }
             }
+        } catch(e: Exception) {
+            _uiState.update { it.copy(isLoading = false, error = e.localizedMessage ?: "Unknown error") }
         }
     }
 
     private fun saveProfile() = viewModelScope.launch {
         val state = _uiState.value
-
         _uiState.update { it.copy(isLoading = true) }
 
         val imageBytes = state.selectedImageUri?.let { uri ->

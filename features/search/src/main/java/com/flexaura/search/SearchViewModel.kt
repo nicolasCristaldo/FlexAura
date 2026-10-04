@@ -66,15 +66,21 @@ internal class SearchViewModel @Inject constructor(
 
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
-            if (authState is AuthState.Authenticated) {
-                _uiState.update { it.copy(currentUserId = authState.userId) }
+            when (authState) {
+                is AuthState.Authenticated -> {
+                    _uiState.update { it.copy(currentUserId = authState.userId) }
+                }
+                is AuthState.Unauthenticated -> {
+                    _uiState.update { it.copy(currentUserId = null) }
+                }
+                is AuthState.Loading -> Unit
             }
         }
     }
 
     private fun search(query: String) = viewModelScope.launch {
         if (query.isBlank()) return@launch
-        _uiState.update { it.copy(isSearching = true, errorMessage = null) }
+        _uiState.update { it.copy(isSearching = true, errorMessage = null, hasSearched = true) }
 
         try {
             val usersDeferred = async { searchUsersUseCase(query, 1, 10) }
@@ -84,13 +90,8 @@ internal class SearchViewModel @Inject constructor(
             val postsResult = postsDeferred.await()
 
             if (usersResult.isFailure || postsResult.isFailure) {
-                val error = (usersResult.exceptionOrNull() ?: postsResult.exceptionOrNull())
-                _uiState.update {
-                    it.copy(
-                        isSearching = false,
-                        errorMessage = error?.toUserReadableMessage()
-                    )
-                }
+                val error = usersResult.exceptionOrNull() ?: postsResult.exceptionOrNull()
+                handleSearchError(error)
                 return@launch
             }
 
@@ -103,12 +104,7 @@ internal class SearchViewModel @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            _uiState.update {
-                it.copy(
-                    isSearching = false,
-                    errorMessage = e.toUserReadableMessage()
-                )
-            }
+            handleSearchError(e)
         }
     }
 
@@ -171,5 +167,14 @@ internal class SearchViewModel @Inject constructor(
 
     private fun emitEffect(effect: SearchUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
+    }
+
+    private fun handleSearchError(e: Throwable?) {
+        _uiState.update {
+            it.copy(
+                isSearching = false,
+                errorMessage = e?.toUserReadableMessage()
+            )
+        }
     }
 }

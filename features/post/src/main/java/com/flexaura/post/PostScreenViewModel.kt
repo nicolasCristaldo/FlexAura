@@ -13,10 +13,19 @@ import com.flexaura.data.domain.usecase.post.DeletePostUseCase
 import com.flexaura.data.domain.usecase.post.GetPostByIdUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
-import com.flexaura.post.PostDetailUiEffect.*
-import com.flexaura.post.PostDetailUiIntent.*
+import com.flexaura.post.PostDetailUiEffect.NavigateBack
+import com.flexaura.post.PostDetailUiEffect.NavigateToAuthorProfile
+import com.flexaura.post.PostDetailUiEffect.ShowSnackBar
+import com.flexaura.post.PostDetailUiIntent.Init
+import com.flexaura.post.PostDetailUiIntent.OnCommentChanged
+import com.flexaura.post.PostDetailUiIntent.OnDeleteComment
+import com.flexaura.post.PostDetailUiIntent.OnDeletePost
+import com.flexaura.post.PostDetailUiIntent.OnNavigateBack
+import com.flexaura.post.PostDetailUiIntent.OnNavigateToAuthorProfile
+import com.flexaura.post.PostDetailUiIntent.OnSavedClicked
+import com.flexaura.post.PostDetailUiIntent.OnSubmitComment
+import com.flexaura.post.PostDetailUiIntent.OnVoteClicked
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -70,18 +79,24 @@ internal class PostScreenViewModel @Inject constructor(
 
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
-            if(authState is AuthState.Authenticated) {
-                _uiState.update { it.copy(currentUserId = authState.userId) }
+            when(authState) {
+                is AuthState.Authenticated -> {
+                    _uiState.update { it.copy(currentUserId = authState.userId) }
+                }
+                is AuthState.Unauthenticated -> {
+                    _uiState.update { it.copy(currentUserId = null) }
+                    emitEffect(NavigateBack)
+                }
+                is AuthState.Loading -> Unit
             }
         }
     }
 
     private fun loadPost(postId: String) = viewModelScope.launch {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
         try {
-            val postDeferred = async { getPostByIdUseCase(postId) }
-            val postResult = postDeferred.await()
+            val postResult = getPostByIdUseCase(postId)
 
             _uiState.update { it.copy(isLoading = false, post = postResult) }
         }

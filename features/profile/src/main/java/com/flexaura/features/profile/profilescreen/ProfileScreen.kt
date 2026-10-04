@@ -81,10 +81,15 @@ internal fun ProfileRoute(
         modifier = Modifier.appMainBackground()
     ) { innerPadding ->
         when {
-            state.isLoading -> Box(
+            state.isLoading && state.user == null -> Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxSize()
             ) { CircularProgressIndicator() }
+
+            (state.errorMessage != null && state.user == null) || state.user == null-> StateInfoScreen(
+                title = "Error loading profile",
+                modifier = Modifier.fillMaxSize()
+            ) { viewModel.handleIntent(ProfileUiIntent.Refresh) }
 
             else -> ProfileScreen(
                 state = state,
@@ -135,8 +140,9 @@ private fun ProfileScreen(
             HorizontalPager(state = pagerState) { pageIndex ->
                 val currentTab = tabs[pageIndex]
                 val posts = if (currentTab == ProfileTab.POSTS) state.posts else state.savedPosts
+                val isEmptyList = posts.isEmpty()
 
-                if(posts.isEmpty() || state.errorMessage != null) {
+                if((state.errorMessage != null && isEmptyList) || isEmptyList) {
                     val stateInfo = getTabStateInfo(
                         currentTab = currentTab,
                         isOwnProfile = state.isOwnProfile,
