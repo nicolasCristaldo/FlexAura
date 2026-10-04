@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeRoute(
+internal fun HomeRoute(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,
@@ -88,7 +88,7 @@ fun HomeRoute(
 }
 
 @Composable
-fun HomeScreen(
+private fun HomeScreen(
     state: HomeUiState,
     onIntent: (HomeUiIntent) -> Unit,
     modifier: Modifier = Modifier
@@ -103,9 +103,7 @@ fun HomeScreen(
                     text = { Text(tab.title) },
                     selected = pagerState.currentPage == index,
                     onClick = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
+                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
                     }
                 )
             }
@@ -117,18 +115,14 @@ fun HomeScreen(
         ) { page ->
             val currentTab = HomeTab.entries[page]
             val posts = if (currentTab == HomeTab.DISCOVER) state.discoverPosts else state.followingPosts
-            val isDiscoverEmpty = currentTab == HomeTab.DISCOVER && posts.isEmpty()
-            val isFollowingEmpty = currentTab == HomeTab.FOLLOWING && posts.isEmpty()
-            val showPosts = !isDiscoverEmpty && !isFollowingEmpty && state.errorMessage == null
+            val isEmptyList = posts.isEmpty()
 
             when {
-                state.isLoading || state.isRefreshing -> CircularProgressIndicator()
-                !showPosts -> {
-                    val stateInfo = getHomeStateInfo(
-                        state = state,
-                        currentTab = currentTab,
-                        onRetry = { onIntent(Refresh) }
-                    )
+                state.isLoading && isEmptyList -> CircularProgressIndicator()
+                (state.errorMessage != null && isEmptyList) || isEmptyList -> {
+                    val stateInfo = getHomeStateInfo(state = state, currentTab = currentTab) {
+                        onIntent(Refresh)
+                    }
                     StateInfoScreen(
                         stateInfo = stateInfo,
                         modifier = Modifier.fillMaxSize()
@@ -170,12 +164,10 @@ private fun getHomeStateInfo(
         onActionClick = onRetry
     )
     currentTab == HomeTab.DISCOVER -> StateInfo(
-        title = "No posts found",
-        onActionClick = onRetry
+        title = "No posts found"
     )
     else -> StateInfo(
-        title = "No posts found",
-        text = "Follow someone to see their posts here.",
-        onActionClick = onRetry
+        title = "Your feed is empty",
+        text = "Follow someone to see their posts here."
     )
 }

@@ -4,7 +4,7 @@ import android.net.Uri
 import com.flexaura.data.domain.util.isValidLength
 import com.flexaura.data.domain.util.isValidUsername
 
-sealed interface EditProfileUiIntent {
+internal sealed interface EditProfileUiIntent {
     data object Init : EditProfileUiIntent
     data class OnUsernameChanged(val username: String) : EditProfileUiIntent
     data class OnDisplayNameChanged(val displayName: String) : EditProfileUiIntent
@@ -13,7 +13,7 @@ sealed interface EditProfileUiIntent {
     data object OnSaveProfile : EditProfileUiIntent
 }
 
-data class EditProfileUiState(
+internal data class EditProfileUiState(
     val username: String = "",
     val displayName: String = "",
     val bio: String = "",
@@ -26,7 +26,7 @@ data class EditProfileUiState(
         !isLoading && username.isValidUsername() && displayName.isValidLength(1, 25) && bio.isValidLength(0, 150)
 }
 
-sealed interface EditProfileUiEffect {
+internal sealed interface EditProfileUiEffect {
     data class ShowSnackBar(val message: String) : EditProfileUiEffect
     data object NavigateBack : EditProfileUiEffect
 }

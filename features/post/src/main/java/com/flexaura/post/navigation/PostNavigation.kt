@@ -1,10 +1,15 @@
 package com.flexaura.post.navigation
 
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.flexaura.navigation.PostDetailRouteDestination
 import com.flexaura.post.PostRoute
+
+fun NavController.navigateToPostDetail(postId: String, navOptions: NavOptions? = null) {
+    navigate(route = PostDetailRouteDestination(postId), navOptions = navOptions)
+}
 
 fun NavGraphBuilder.postDetailGraph(
     onNavigateBack: () -> Unit,

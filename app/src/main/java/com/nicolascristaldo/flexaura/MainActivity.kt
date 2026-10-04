@@ -9,14 +9,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.data.domain.repository.AuthState
-import com.flexaura.navigation.AuthGraph
-import com.flexaura.navigation.HomeGraph
+import com.flexaura.features.auth.navigation.AuthGraph
+import com.flexaura.features.home.navigation.HomeGraph
 import com.nicolascristaldo.flexaura.navigation.FlexAuraNavHost
 import com.nicolascristaldo.flexaura.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,10 +32,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             FlexAuraTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    val authState = viewModel.authState.collectAsStateWithLifecycle()
+                    val authState by viewModel.authState.collectAsStateWithLifecycle()
                     val navController = rememberNavController()
 
-                    when (authState.value) {
+                    when(authState) {
                         is AuthState.Loading -> {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -43,18 +44,16 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
                         }
-                        is AuthState.Authenticated -> {
+                        is AuthState.Authenticated, is AuthState.Unauthenticated -> {
+                            val (startDestination, currentUserId) = if (authState is AuthState.Authenticated) {
+                                HomeGraph to (authState as AuthState.Authenticated).userId
+                            }
+                            else { AuthGraph to null }
+
                             FlexAuraNavHost(
                                 navController = navController,
-                                startDestination = HomeGraph,
-                                currentUserId = (authState.value as AuthState.Authenticated).userId
-                            )
-                        }
-                        is AuthState.UnAuthenticated -> {
-                            FlexAuraNavHost(
-                                navController = navController,
-                                startDestination = AuthGraph,
-                                currentUserId = null
+                                startDestination = startDestination,
+                                currentUserId = currentUserId
                             )
                         }
                     }

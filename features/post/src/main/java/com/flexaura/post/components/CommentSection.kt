@@ -25,7 +25,7 @@ import com.flexaura.post.PostDetailUiIntent.OnNavigateToAuthorProfile
 import com.flexaura.post.PostDetailUiState
 
 @Composable
-fun CommentsSection(
+internal fun CommentsSection(
     state: PostDetailUiState,
     onIntent: (PostDetailUiIntent) -> Unit,
     modifier: Modifier = Modifier

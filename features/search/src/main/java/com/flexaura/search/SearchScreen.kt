@@ -46,7 +46,7 @@ import com.flexaura.search.components.SearchTopBar
 import kotlinx.coroutines.launch
 
 @Composable
-fun SearchRoute(
+internal fun SearchRoute(
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,
@@ -93,7 +93,7 @@ fun SearchRoute(
 }
 
 @Composable
-fun SearchScreen(
+private fun SearchScreen(
     state: SearchUiState,
     onIntent: (SearchUiIntent) -> Unit,
     modifier: Modifier = Modifier
@@ -123,19 +123,16 @@ fun SearchScreen(
                 .weight(1f)
         ) { page ->
             val currentTab = SearchTab.entries[page]
-            val isProfilesEmpty = currentTab == SearchTab.PROFILES && state.usersResults.isEmpty()
-            val isPostsEmpty = currentTab == SearchTab.POSTS && state.postsResults.isEmpty()
-            val showResults = !isProfilesEmpty && !isPostsEmpty && state.hasSearched && state.errorMessage == null
+            val results = if (currentTab == SearchTab.PROFILES) state.usersResults else state.postsResults
+            val isEmptyList = results.isEmpty()
+            val showStateInfoScreen = (state.errorMessage != null && isEmptyList) || isEmptyList || !state.hasSearched
 
             when {
                 state.isSearching -> CircularProgressIndicator()
-                !showResults -> {
-                    val stateInfo = getSearchStateInfo(
-                        state = state,
-                        currentTab = currentTab,
-                        onRetry = { onIntent(Refresh) }
-                    )
-
+                showStateInfoScreen -> {
+                    val stateInfo = getSearchStateInfo(state = state, currentTab = currentTab) {
+                        onIntent(Refresh)
+                    }
                     StateInfoScreen(
                         stateInfo = stateInfo,
                         modifier = Modifier.fillMaxSize()
@@ -181,7 +178,7 @@ private fun getSearchStateInfo(
     onRetry: (() -> Unit)? = null
 ): StateInfo = when {
     state.errorMessage != null -> StateInfo(
-        title = "Something went wrong",
+        title = "Search failed",
         text = state.errorMessage,
         onActionClick = onRetry
     )
@@ -191,10 +188,10 @@ private fun getSearchStateInfo(
     )
     currentTab == SearchTab.PROFILES -> StateInfo(
         title = "No users found",
-        text = "Try searching for something else."
+        text = "Try a different name or keyword."
     )
     else -> StateInfo(
         title = "No posts found",
-        text = "Try searching for something else."
+        text = "We couldn't find any posts matching your search."
     )
 }
