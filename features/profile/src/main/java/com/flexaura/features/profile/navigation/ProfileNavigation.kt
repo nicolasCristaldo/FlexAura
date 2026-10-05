@@ -26,6 +26,7 @@ fun NavGraphBuilder.profileGraph(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToAuthorProfile: (String) -> Unit,
     onNavigateBack: () -> Unit,
+    onLogout: () -> Unit,
     onNavigateToEditProfile: () -> Unit
 ) {
     navigation<ProfileGraph>(startDestination = ProfileDestinations.ProfileScreen()) {
@@ -35,7 +36,8 @@ fun NavGraphBuilder.profileGraph(
                 onNavigateToCreatePost = onNavigateToCreatePost,
                 onNavigateToAuthorProfile = onNavigateToAuthorProfile,
                 onNavigateToEditProfile = onNavigateToEditProfile,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onLogout = onLogout
             )
         }
 
