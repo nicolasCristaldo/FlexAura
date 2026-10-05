@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flexaura.components.general.ConfirmationDialog
 import com.flexaura.components.general.FlexAuraFab
 import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
@@ -51,6 +52,7 @@ internal fun ProfileRoute(
     onNavigateToAuthorProfile: (String) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToEditProfile: (() -> Unit)? = null,
+    onLogout: (() -> Unit)? = null,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -62,6 +64,7 @@ internal fun ProfileRoute(
                 is ShowSnackBar -> snackBarHostState.showSnackbar(effect.message)
                 is NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
                 is NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
+                is ProfileUiEffect.NavigateToAuth -> onLogout?.invoke()
             }
         }
     }
@@ -73,6 +76,7 @@ internal fun ProfileRoute(
             ProfileTopBar(
                 onNavigateBack = onNavigateBack,
                 onNavigateToEditProfile = onNavigateToEditProfile,
+                onLogOutClicked = { viewModel.handleIntent(ProfileUiIntent.ShowLogoutDialog())},
                 modifier = Modifier.fillMaxHeight(.05f)
             )
         },
@@ -112,6 +116,16 @@ private fun ProfileScreen(
     }
     val pagerState = rememberPagerState { tabs.size }
     val coroutineScope = rememberCoroutineScope()
+
+    if (state.showDialog) {
+        ConfirmationDialog(
+            title = "Log out",
+            text = "Are you sure you want to log out?",
+            onConfirm = { onIntent(ProfileUiIntent.LogoutConfirmed) },
+            onDismiss = { onIntent(ProfileUiIntent.ShowLogoutDialog(false)) },
+            confirmText = "Log out"
+        )
+    }
 
     Column(
         modifier = modifier.fillMaxSize()

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
+import com.flexaura.data.domain.usecase.auth.LogoutUseCase
 import com.flexaura.data.domain.usecase.post.DeletePostUseCase
 import com.flexaura.data.domain.usecase.post.GetPostsByAuthorUseCase
 import com.flexaura.data.domain.usecase.post.GetSavedPostsUseCase
@@ -17,6 +18,7 @@ import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.usecase.user.SyncUserUseCase
 import com.flexaura.data.domain.usecase.user.ToggleFollowUserUseCase
 import com.flexaura.features.profile.navigation.ProfileDestinations
+import com.flexaura.features.profile.profilescreen.ProfileUiEffect.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -48,7 +50,8 @@ ProfileViewModel @Inject constructor(
     private val toggleSavePostUseCase: ToggleSavePostUseCase,
     private val votePostUseCase: VotePostUseCase,
     private val deletePostUseCase: DeletePostUseCase,
-    private val getAuthUserUseCase: GetAuthUserUseCase
+    private val getAuthUserUseCase: GetAuthUserUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
     private val argumentUserId: String? = savedStateHandle.toRoute<ProfileDestinations.ProfileScreen>().userId
 
@@ -80,9 +83,14 @@ ProfileViewModel @Inject constructor(
             handleVote(intent.postId, intent.vote, intent.currentVote)
         }
         is ProfileUiIntent.OnSavedClicked -> { toggleSave(intent.postId) }
-        is ProfileUiIntent.OnPostClicked -> emitEffect(ProfileUiEffect.NavigateToPostDetail(intent.postId))
+        is ProfileUiIntent.OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
         is ProfileUiIntent.OnDeletePostClicked -> deletePost(intent.postId)
-        is ProfileUiIntent.OnAuthorClicked -> emitEffect(ProfileUiEffect.NavigateToAuthorProfile(intent.authorId))
+        is ProfileUiIntent.OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
+        is ProfileUiIntent.ShowLogoutDialog -> _uiState.update { it.copy(showDialog = intent.show) }
+        is ProfileUiIntent.LogoutConfirmed -> {
+            _uiState.update { it.copy(isLoading = true, showDialog = false) }
+            logout()
+        }
     }
 
     private fun observeProfileData() = viewModelScope.launch {
@@ -161,7 +169,7 @@ ProfileViewModel @Inject constructor(
 
         if (targetUserId != currentLoggedUserId) {
             toggleFollowUserUseCase(targetUserId).onFailure { error ->
-                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
             }
         }
     }
@@ -169,13 +177,13 @@ ProfileViewModel @Inject constructor(
     private fun handleVote(postId: String, value: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = value, currentVote = currentVote)
             .onFailure { error ->
-                emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
             }
     }
 
     private fun toggleSave(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId).onFailure { error ->
-            emitEffect(ProfileUiEffect.ShowSnackBar(error.message ?: "Unknown error"))
+            emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
         }
     }
 
@@ -183,11 +191,21 @@ ProfileViewModel @Inject constructor(
         deletePostUseCase(postId = postId)
             .onFailure { error ->
                 _uiEffect.emit(
-                    ProfileUiEffect.ShowSnackBar(
+                    ShowSnackBar(
                         error.localizedMessage ?: "Unknown error"
                     )
                 )
             }
+    }
+
+    private fun logout() = viewModelScope.launch {
+        logoutUseCase().fold(
+            onSuccess = { emitEffect(NavigateToAuth) },
+            onFailure = {
+                _uiState.update { state -> state.copy(isLoading = false) }
+                emitEffect(ShowSnackBar(it.message ?: "Unknown error"))
+            }
+        )
     }
 
     private fun emitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
@@ -199,7 +217,7 @@ ProfileViewModel @Inject constructor(
         val hasData = _uiState.value.user != null
 
         if(hasData) {
-            emitEffect(ProfileUiEffect.ShowSnackBar(errorMessage))
+            emitEffect(ShowSnackBar(errorMessage))
         }
         else {
             _uiState.update { it.copy(errorMessage = errorMessage) }

@@ -6,17 +6,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.flexaura.components.general.NavigateBackTopBar
 
@@ -24,27 +22,37 @@ import com.flexaura.components.general.NavigateBackTopBar
 internal fun ProfileTopBar(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
-    onNavigateToEditProfile: (() -> Unit)?
+    onNavigateToEditProfile: (() -> Unit)?,
+    onLogOutClicked: (() -> Unit)? = null
 ) {
-    if(onNavigateToEditProfile != null) {
+    if(onNavigateToEditProfile != null && onLogOutClicked != null) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End,
             modifier = modifier.fillMaxWidth()
         ) {
+            Spacer(modifier = Modifier.width(8.dp))
             IconButton(
                 onClick = onNavigateToEditProfile,
-                colors = IconButtonDefaults.iconButtonColors().copy(
-                    contentColor = MaterialTheme.colorScheme.onSecondary,
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .8f)
-                ),
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
+                modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Edit,
-                    contentDescription = "Edit profile"
+                    contentDescription = "Edit profile",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = onLogOutClicked,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = "Log out",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
