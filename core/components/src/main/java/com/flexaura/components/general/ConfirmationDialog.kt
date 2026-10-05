@@ -27,8 +27,8 @@ fun ConfirmationDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    onConfirmText: String = "Delete",
-    onDismissText: String = "Cancel",
+    confirmText: String = "Delete",
+    dismissText: String = "Cancel",
     isDestructive: Boolean = true
 ) {
     BasicAlertDialog(
@@ -62,14 +62,14 @@ fun ConfirmationDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text(text = onDismissText)
+                        Text(text = dismissText)
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
 
                     TextButton(onClick = onConfirm) {
                         Text(
-                            text = onConfirmText,
+                            text = confirmText,
                             fontWeight = FontWeight.Bold,
                             color = if (isDestructive) MaterialTheme.colorScheme.error
                             else MaterialTheme.colorScheme.primary

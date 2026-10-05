@@ -18,6 +18,7 @@ import com.flexaura.createpost.navigation.navigateToCreatePost
 import com.flexaura.features.auth.navigation.AuthGraph
 import com.flexaura.features.auth.navigation.RegisterRouteDestination
 import com.flexaura.features.auth.navigation.authGraph
+import com.flexaura.features.auth.navigation.navigateToAuthGraph
 import com.flexaura.features.auth.navigation.navigateToLogin
 import com.flexaura.features.auth.navigation.navigateToRegister
 import com.flexaura.features.home.navigation.HomeGraph
@@ -127,7 +128,12 @@ internal fun FlexAuraNavHost(
                 onNavigateToCreatePost = { navController.navigateToCreatePost() },
                 onNavigateToAuthorProfile = onNavigateToAuthorProfile,
                 onNavigateToEditProfile = { navController.navigateToEditProfile() },
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigateToAuthGraph {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
             )
 
             otherUserProfileScreen(
