@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.flexaura.components.general.FlexAuraTextField
+import com.flexaura.components.general.FlexAuraInputField
 
 @Composable
 internal fun CommentInputBar(
@@ -38,7 +38,7 @@ internal fun CommentInputBar(
             .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars))
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        FlexAuraTextField(
+        FlexAuraInputField(
             query = content,
             onValueChange = { onContentChanged(it) },
             onAction = onSubmitComment,
