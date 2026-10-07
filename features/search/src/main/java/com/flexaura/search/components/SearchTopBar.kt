@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.flexaura.components.general.FlexAuraTextField
+import com.flexaura.components.general.FlexAuraInputField
 import com.flexaura.core.designsystem.R
 
 @Composable
@@ -33,7 +33,7 @@ internal fun SearchTopBar(
             .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth()
     ) {
-        FlexAuraTextField(
+        FlexAuraInputField(
             query = query,
             onValueChange = { onValueChange(it) },
             onAction = { onSearchClicked() },

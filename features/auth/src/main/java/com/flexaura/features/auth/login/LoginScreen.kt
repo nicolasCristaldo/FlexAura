@@ -2,30 +2,39 @@ package com.flexaura.features.auth.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.flexaura.features.auth.components.AuthTextField
-import com.flexaura.features.auth.components.LoginButton
+import com.flexaura.components.general.FlexAuraTextField
+import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.appCircularGradientBackground
+import com.flexaura.data.domain.util.isValidEmail
+import com.flexaura.data.domain.util.isValidPassword
+import com.flexaura.features.auth.components.AuthenticationFooter
+import com.flexaura.features.auth.components.LoginButtonsSection
 
 @Composable
 internal fun LoginRoute(
@@ -33,7 +42,7 @@ internal fun LoginRoute(
     onNavigateToHome: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val state = viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -59,10 +68,13 @@ internal fun LoginRoute(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = Color.Transparent,
+        modifier = Modifier.appCircularGradientBackground()
     ) { paddingValues ->
         LoginScreen(
-            state = state.value,
+            state = state,
             onIntent = viewModel::handleIntent,
             modifier = Modifier.padding(paddingValues)
         )
@@ -82,53 +94,66 @@ private fun LoginScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("Log in")
+        Spacer(modifier = Modifier.weight(.5f))
 
-        Spacer(modifier = Modifier.padding(16.dp))
-
-        AuthTextField(
-            value = state.email,
-            onValueChange = { onIntent(LoginUiIntent.OnEmailChanged(it)) },
-            label = "Email"
+        Text(
+            text = "FlexAura",
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.displayLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        AuthTextField(
+        Text(
+            text = "Log in to your account",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Spacer(modifier = Modifier.weight(.5f))
+
+        FlexAuraTextField(
+            value = state.email,
+            onValueChange = { onIntent(LoginUiIntent.OnEmailChanged(it)) },
+            label = "Email",
+            isError = !state.email.isValidEmail(),
+            errorMessage = "Invalid email.",
+            forceErrorVisibility = state.showErrors,
+            modifier = Modifier.fillMaxWidth(.9f)
+        )
+
+        Spacer(modifier = Modifier.padding(8.dp))
+
+        FlexAuraTextField(
             value = state.password,
             onValueChange = { onIntent(LoginUiIntent.OnPasswordChanged(it)) },
             label = "Password",
-            visualTransformation = PasswordVisualTransformation()
+            isError = !state.password.isValidPassword(),
+            trailingIconDescription = if (state.showPassword) "Hide password" else "Show password",
+            trailingIconRes = if (state.showPassword) R.drawable.ic_visibility_off else R.drawable.ic_visibility,
+            onTrailingIconClick = { onIntent(LoginUiIntent.OnShowPasswordChanged) },
+            visualTransformation = if (state.showPassword) VisualTransformation.None
+                else PasswordVisualTransformation(),
+            errorMessage = "Password must be at least 6 characters.",
+            forceErrorVisibility = state.showErrors,
+            modifier = Modifier.fillMaxWidth(.9f)
         )
 
-        Spacer(modifier = Modifier.padding(16.dp))
+        Spacer(modifier = Modifier.weight(.5f))
 
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            LoginButton(
-                title = "Log in with Email",
-                onClick = { onIntent(LoginUiIntent.OnLoginClicked) }
-            )
+        LoginButtonsSection(
+            isLoading = state.isLoading,
+            onLoginWithEmailClicked = { onIntent(LoginUiIntent.OnLoginClicked) },
+            onLoginWithGoogleClicked = { onIntent(LoginUiIntent.OnGoogleLoginClicked) },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-            LoginButton(
-                title = "Log in with Google",
-                onClick = { onIntent(LoginUiIntent.OnGoogleLoginClicked) }
-            )
-        }
+        Spacer(modifier = Modifier.weight(1f))
 
-        Spacer(modifier = Modifier.padding(16.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Don't have an account?")
-
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            TextButton(onClick = { onIntent(LoginUiIntent.OnRegisterNavigated) }) {
-                Text("Register here")
-            }
-        }
+        AuthenticationFooter(
+            text = "Don't have an account?",
+            actionText = "Register here",
+            onActionClick = { onIntent(LoginUiIntent.OnRegisterNavigated) }
+        )
     }
 }
 
