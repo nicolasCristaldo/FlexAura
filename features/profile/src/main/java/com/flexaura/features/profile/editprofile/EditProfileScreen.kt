@@ -28,12 +28,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flexaura.components.general.FlexAuraTextField
 import com.flexaura.components.general.NavigateBackTopBar
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
+import com.flexaura.data.domain.util.isValidDisplayName
 import com.flexaura.data.domain.util.isValidLength
 import com.flexaura.data.domain.util.isValidUsername
-import com.flexaura.features.profile.editprofile.components.EditTextField
 import com.flexaura.features.profile.editprofile.components.ProfileImagePicker
 
 @Composable
@@ -113,16 +114,16 @@ private fun EditProfileScreen(
             modifier = Modifier.size(120.dp)
         )
 
-        EditTextField(
+        FlexAuraTextField(
             value = state.displayName,
             onValueChange = { onIntent(EditProfileUiIntent.OnDisplayNameChanged(it)) },
             label = "Display name",
-            isError = !state.displayName.isValidLength(1, 25),
-            errorMessage = "Display name must be between 1 and 25 characters",
+            isError = !state.displayName.isValidDisplayName(),
+            errorMessage = "Display name must be between 1 and 25 characters and cannot contain newlines",
             modifier = Modifier.fillMaxWidth()
         )
 
-        EditTextField(
+        FlexAuraTextField(
             value = state.username,
             onValueChange = { onIntent(EditProfileUiIntent.OnUsernameChanged(it)) },
             label = "Username",
@@ -131,7 +132,7 @@ private fun EditProfileScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        EditTextField(
+        FlexAuraTextField(
             value = state.bio,
             onValueChange = { onIntent(EditProfileUiIntent.OnBioChanged(it)) },
             label = "Bio",
