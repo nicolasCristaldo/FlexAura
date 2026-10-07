@@ -26,11 +26,20 @@ internal class RegisterViewModel @Inject constructor(
 
     fun handleIntent(intent: RegisterUiIntent) = when(intent) {
         is RegisterUiIntent.OnEmailChanged -> _uiState.update { it.copy(email = intent.email) }
-        is RegisterUiIntent.OnPasswordChanged -> _uiState.update { it.copy(password = intent.password) }
+        is RegisterUiIntent.OnPasswordChanged -> _uiState.update {
+            it.copy(password = intent.password, showPasswordsMismatch = false)
+        }
+        is RegisterUiIntent.OnConfirmPasswordChanged -> _uiState.update {
+            it.copy(confirmPassword = intent.confirmPassword, showPasswordsMismatch = false)
+        }
         is RegisterUiIntent.OnUsernameChanged -> _uiState.update { it.copy(username = intent.username) }
         is RegisterUiIntent.OnDisplayNameChanged -> _uiState.update { it.copy(displayName = intent.displayName) }
         is RegisterUiIntent.OnLoginNavigated -> emmitEffect(RegisterUiEffect.NavigateToLogin)
-        is RegisterUiIntent.OnRegisterClicked -> registerWithEmail()
+        is RegisterUiIntent.OnRegisterClicked -> {
+            _uiState.update { it.copy(showErrors = true, showPasswordsMismatch = !it.passwordsMatch) }
+            if (!_uiState.value.passwordsMatch) emmitEffect(RegisterUiEffect.ShowSnackBar("Passwords do not match"))
+            else registerWithEmail()
+        }
     }
 
     private fun registerWithEmail() {

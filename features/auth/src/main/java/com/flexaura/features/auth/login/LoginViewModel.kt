@@ -29,9 +29,13 @@ internal class LoginViewModel @Inject constructor(
     fun handleIntent(intent: LoginUiIntent) = when (intent) {
         is LoginUiIntent.OnEmailChanged -> _uiState.update { it.copy(email = intent.email) }
         is LoginUiIntent.OnPasswordChanged -> _uiState.update { it.copy(password = intent.password) }
-        is LoginUiIntent.OnLoginClicked -> loginWithEmail()
+        LoginUiIntent.OnShowPasswordChanged -> _uiState.update { it.copy(showPassword = !it.showPassword) }
+        is LoginUiIntent.OnLoginClicked -> {
+            _uiState.update { it.copy(showErrors = true) }
+            loginWithEmail()
+        }
         is LoginUiIntent.OnGoogleLoginClicked -> loginWithGoogle()
-        is LoginUiIntent.OnRegisterNavigated -> emmitEffect(LoginUiEffect.NavigateToRegister)
+        is LoginUiIntent.OnRegisterNavigated -> emitEffect(LoginUiEffect.NavigateToRegister)
     }
 
     private fun loginWithEmail() {
@@ -41,7 +45,7 @@ internal class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             loginWithEmailUseCase(email = currentState.email, password = currentState.password)
                 .onSuccess {
-                    emmitEffect(LoginUiEffect.NavigateToHome)
+                    emitEffect(LoginUiEffect.NavigateToHome)
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = error.localizedMessage) }
@@ -52,7 +56,7 @@ internal class LoginViewModel @Inject constructor(
 
     private fun loginWithGoogle() {
         _uiState.update { it.copy(isLoading = true) }
-        emmitEffect(LoginUiEffect.LaunchGoogleSignIn)
+        emitEffect(LoginUiEffect.LaunchGoogleSignIn)
     }
 
     fun onGoogleTokenReceived(token: String) = viewModelScope.launch {
@@ -70,7 +74,7 @@ internal class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = false) }
     }
 
-    private fun emmitEffect(effect: LoginUiEffect) = viewModelScope.launch {
+    private fun emitEffect(effect: LoginUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }
 }

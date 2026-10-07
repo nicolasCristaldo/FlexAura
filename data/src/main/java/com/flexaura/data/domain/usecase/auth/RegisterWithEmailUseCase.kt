@@ -1,7 +1,10 @@
 package com.flexaura.data.domain.usecase.auth
 
 import com.flexaura.data.domain.repository.AuthRepository
+import com.flexaura.data.domain.util.isValidDisplayName
 import com.flexaura.data.domain.util.isValidEmail
+import com.flexaura.data.domain.util.isValidPassword
+import com.flexaura.data.domain.util.isValidUsername
 import javax.inject.Inject
 
 class RegisterWithEmailUseCase @Inject constructor(
@@ -14,17 +17,27 @@ class RegisterWithEmailUseCase @Inject constructor(
         displayName: String
     ): Result<Unit> {
         val trimmedEmail = email.trim()
+        val trimmedUsername = username.trim()
+        val trimmedDisplayName = displayName.trim()
 
-        if (trimmedEmail.isBlank() || password.isBlank() || username.isBlank() || displayName.isBlank()) {
+        if (trimmedEmail.isBlank() || password.isBlank() || trimmedUsername.isBlank() || trimmedDisplayName.isBlank()) {
             return Result.failure(Exception("All fields must be filled"))
         }
 
-        if (!trimmedEmail.isValidEmail()) {
-            return Result.failure(Exception("Invalid email format"))
+        if (!username.isValidUsername()) {
+            return Result.failure(Exception("Username must be between 3 and 15 characters."))
         }
 
-        if (password.length < 6) {
-            return Result.failure(Exception("Password must be at least 6 characters long"))
+        if (!trimmedDisplayName.isValidDisplayName()) {
+            return Result.failure(Exception("Display name must be between 1 and 25 characters and cannot contain newlines."))
+        }
+
+        if (!trimmedEmail.isValidEmail()) {
+            return Result.failure(Exception("Invalid email format."))
+        }
+
+        if (!password.isValidPassword()) {
+            return Result.failure(Exception("Password must be at least 6 characters long."))
         }
 
         return repository.registerWithEmail(
