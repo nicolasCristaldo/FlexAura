@@ -126,7 +126,7 @@ internal class SearchViewModel @Inject constructor(
 
                     post.copy(isSavedByUser = revertSaveState, savesCount = revertSavesCount)
                 }
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(ShowSnackBar("Error saving post."))
             }
     }
 
@@ -144,7 +144,7 @@ internal class SearchViewModel @Inject constructor(
 
                     post.copy(currentUserVote = currentVote, totalAura = revertTotalAura)
                 }
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error voting post."))
             }
     }
 
@@ -161,7 +161,7 @@ internal class SearchViewModel @Inject constructor(
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(ShowSnackBar("Error deleting post."))
             }
     }
 

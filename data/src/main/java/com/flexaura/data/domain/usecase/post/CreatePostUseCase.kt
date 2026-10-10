@@ -1,6 +1,7 @@
 package com.flexaura.data.domain.usecase.post
 
 import com.flexaura.data.domain.repository.PostRepository
+import com.flexaura.data.domain.util.isValidLength
 import javax.inject.Inject
 
 class CreatePostUseCase @Inject constructor(
@@ -11,6 +12,12 @@ class CreatePostUseCase @Inject constructor(
 
         if (finalContent == null && imageBytes == null) {
             return Result.failure(IllegalArgumentException("The post cannot be empty"))
+        }
+
+        finalContent?.let {
+            if (!it.isValidLength(1, 280)) {
+                return Result.failure(IllegalArgumentException("The post cannot be longer than 280 characters"))
+            }
         }
 
         return repository.createPost(

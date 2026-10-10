@@ -43,8 +43,8 @@ class RegisterWithEmailUseCase @Inject constructor(
         return repository.registerWithEmail(
             email = trimmedEmail,
             password = password,
-            username = username.trim(),
-            displayName = displayName.trim()
+            username = trimmedUsername,
+            displayName = trimmedDisplayName
         )
     }
 }
