@@ -169,7 +169,7 @@ ProfileViewModel @Inject constructor(
 
         if (targetUserId != currentLoggedUserId) {
             toggleFollowUserUseCase(targetUserId).onFailure { error ->
-                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error following user."))
             }
         }
     }
@@ -177,24 +177,20 @@ ProfileViewModel @Inject constructor(
     private fun handleVote(postId: String, value: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = value, currentVote = currentVote)
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error voting post."))
             }
     }
 
     private fun toggleSave(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId).onFailure { error ->
-            emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+            emitEffect(ShowSnackBar("Error saving post."))
         }
     }
 
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onFailure { error ->
-                _uiEffect.emit(
-                    ShowSnackBar(
-                        error.localizedMessage ?: "Unknown error"
-                    )
-                )
+                _uiEffect.emit(ShowSnackBar("Error deleting post."))
             }
     }
 
@@ -203,7 +199,7 @@ ProfileViewModel @Inject constructor(
             onSuccess = { emitEffect(NavigateToAuth) },
             onFailure = {
                 _uiState.update { state -> state.copy(isLoading = false) }
-                emitEffect(ShowSnackBar(it.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error logging out."))
             }
         )
     }

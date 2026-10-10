@@ -115,22 +115,21 @@ internal class PostScreenViewModel @Inject constructor(
         val result = syncCommentsUseCase(postId)
 
         if (result.isFailure) {
-            val error = result.exceptionOrNull()
-            emitEffect(ShowSnackBar(error?.localizedMessage ?: "Unknown error"))
+            emitEffect(ShowSnackBar("Error syncing comments."))
         }
     }
 
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error voting post."))
             }
     }
 
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error saving post."))
             }
     }
 
@@ -140,14 +139,14 @@ internal class PostScreenViewModel @Inject constructor(
                 _uiState.update { it.copy(commentContent = "") }
             }
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error submitting comment."))
             }
     }
 
     private fun deleteComment(commentId: String) = viewModelScope.launch {
         deleteCommentUseCase(commentId = commentId)
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error deleting comment."))
             }
     }
 
@@ -157,7 +156,7 @@ internal class PostScreenViewModel @Inject constructor(
                 emitEffect(NavigateBack)
             }
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error deleting post."))
             }
     }
 
