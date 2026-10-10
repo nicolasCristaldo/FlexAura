@@ -125,21 +125,21 @@ internal class HomeViewModel @Inject constructor(
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
             .onFailure { error ->
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error voting post."))
             }
     }
 
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(ShowSnackBar("Error saving post."))
             }
     }
 
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onFailure { error ->
-                _uiEffect.emit(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(ShowSnackBar("Error deleting post."))
             }
     }
 

@@ -3,6 +3,7 @@ package com.flexaura.createpost
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flexaura.core.designsystem.util.toUserReadableMessage
 import com.flexaura.data.domain.usecase.post.CreatePostUseCase
 import com.flexaura.createpost.CreatePostUiEffect.*
 import com.flexaura.createpost.CreatePostUiIntent.*
@@ -66,12 +67,12 @@ internal class CreatePostViewModel @Inject constructor(
         getUserByIdUseCase(userId)
             .catch { error ->
                 _uiState.update {
-                    it.copy(errorMessage = error.localizedMessage ?: "Unknown error", isLoading = false)
+                    it.copy(errorMessage = error.toUserReadableMessage(), isLoading = false)
                 }
             }
             .collect { user ->
                 if (user != null) _uiState.update { it.copy(currentUser = user, isLoading = false) }
-                else _uiState.update { it.copy(errorMessage = "User not found", isLoading = false) }
+                else _uiState.update { it.copy(errorMessage = "User not found.", isLoading = false) }
             }
     }
 
@@ -80,7 +81,7 @@ internal class CreatePostViewModel @Inject constructor(
         val imageUri = uiState.value.imageUri
 
         if (content.isBlank() && imageUri == null) {
-            emitEffect(ShowSnackBar("The post cannot be empty"))
+            emitEffect(ShowSnackBar("The post cannot be empty."))
             return@launch
         }
 
@@ -95,7 +96,7 @@ internal class CreatePostViewModel @Inject constructor(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isPostPublishing = false) }
-                emitEffect(ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                emitEffect(ShowSnackBar(error.localizedMessage ?: "Error creating post."))
             }
     }
 

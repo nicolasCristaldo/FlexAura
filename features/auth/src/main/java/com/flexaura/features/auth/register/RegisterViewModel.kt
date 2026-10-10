@@ -37,7 +37,7 @@ internal class RegisterViewModel @Inject constructor(
         is RegisterUiIntent.OnLoginNavigated -> emmitEffect(RegisterUiEffect.NavigateToLogin)
         is RegisterUiIntent.OnRegisterClicked -> {
             _uiState.update { it.copy(showErrors = true, showPasswordsMismatch = !it.passwordsMatch) }
-            if (!_uiState.value.passwordsMatch) emmitEffect(RegisterUiEffect.ShowSnackBar("Passwords do not match"))
+            if (!_uiState.value.passwordsMatch) emmitEffect(RegisterUiEffect.ShowSnackBar("Passwords do not match."))
             else registerWithEmail()
         }
     }
@@ -58,7 +58,7 @@ internal class RegisterViewModel @Inject constructor(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                _uiEffect.emit(RegisterUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(RegisterUiEffect.ShowSnackBar(error.localizedMessage ?: "Error registering user."))
             }
         }
     }

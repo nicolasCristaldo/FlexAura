@@ -369,7 +369,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
 
         return supabaseClient.postgrest["saves"]
             .select(
-                columns = Columns.Companion.raw(""""
+                columns = Columns.Companion.raw("""
                    posts(*, users(*), votes!left(*), saves!left(*))
                 """.trimIndent())
             ) {
