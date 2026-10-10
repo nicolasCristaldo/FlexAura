@@ -7,8 +7,14 @@ import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
 import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.usecase.user.UpdateProfileUseCase
-import com.flexaura.features.profile.editprofile.EditProfileUiEffect.*
-import com.flexaura.features.profile.editprofile.EditProfileUiIntent.*
+import com.flexaura.features.profile.editprofile.EditProfileUiEffect.NavigateBack
+import com.flexaura.features.profile.editprofile.EditProfileUiEffect.ShowSnackBar
+import com.flexaura.features.profile.editprofile.EditProfileUiIntent.Init
+import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnBioChanged
+import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnDisplayNameChanged
+import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnImageChanged
+import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnSaveProfile
+import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnUsernameChanged
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,8 +24,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -82,11 +86,11 @@ internal class EditProfileViewModel @Inject constructor(
                     }
                 }
                 else {
-                    _uiState.update { it.copy(isLoading = false, error = "User not found") }
+                    _uiState.update { it.copy(isLoading = false, error = "User not found.") }
                 }
             }
         } catch(e: Exception) {
-            _uiState.update { it.copy(isLoading = false, error = e.localizedMessage ?: "Unknown error") }
+            _uiState.update { it.copy(isLoading = false, error = "Error fetching user data.") }
         }
     }
 
@@ -110,7 +114,7 @@ internal class EditProfileViewModel @Inject constructor(
             },
             onFailure = { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                emitEffect(ShowSnackBar(error.message ?: "Unknown error"))
+                emitEffect(ShowSnackBar("Error saving profile."))
             }
         )
     }

@@ -48,8 +48,8 @@ internal class LoginViewModel @Inject constructor(
                     emitEffect(LoginUiEffect.NavigateToHome)
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = error.localizedMessage) }
-                    _uiEffect.emit(LoginUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Unable to sign in.") }
+                    _uiEffect.emit(LoginUiEffect.ShowSnackBar(error.localizedMessage ?: "Unable to sign in."))
                 }
         }
     }
@@ -66,7 +66,7 @@ internal class LoginViewModel @Inject constructor(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                _uiEffect.emit(LoginUiEffect.ShowSnackBar(error.localizedMessage ?: "Unknown error"))
+                _uiEffect.emit(LoginUiEffect.ShowSnackBar(error.localizedMessage ?: "Google sign in failed."))
             }
     }
 
