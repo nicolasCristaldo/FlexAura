@@ -1,6 +1,7 @@
 package com.flexaura.core.network.datasource.auth
 
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email

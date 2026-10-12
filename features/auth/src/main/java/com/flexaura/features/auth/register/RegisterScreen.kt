@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,8 +39,7 @@ import com.flexaura.features.auth.components.AuthenticationFooter
 
 @Composable
 internal fun RegisterRoute(
-    onNavigateToLogin: () -> Unit,
-    onNavigateToHome: () -> Unit,
+    onNavigateToLogin: (String?) -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -50,8 +48,7 @@ internal fun RegisterRoute(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is RegisterUiEffect.NavigateToLogin -> onNavigateToLogin()
-                is RegisterUiEffect.NavigateToHome -> onNavigateToHome()
+                is RegisterUiEffect.NavigateToLogin -> onNavigateToLogin(effect.email)
                 is RegisterUiEffect.ShowSnackBar -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
@@ -174,13 +171,4 @@ private fun RegisterScreen(
             onActionClick = { onIntent(RegisterUiIntent.OnLoginNavigated) }
         )
     }
-}
-
-@Preview
-@Composable
-private fun RegisterScreenPreview() {
-    RegisterScreen(
-        state = RegisterUiState(),
-        onIntent = {}
-    )
 }

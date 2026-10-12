@@ -16,7 +16,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.flexaura.createpost.navigation.createPostScreen
 import com.flexaura.createpost.navigation.navigateToCreatePost
 import com.flexaura.features.auth.navigation.AuthGraph
-import com.flexaura.features.auth.navigation.RegisterRouteDestination
 import com.flexaura.features.auth.navigation.authGraph
 import com.flexaura.features.auth.navigation.navigateToAuthGraph
 import com.flexaura.features.auth.navigation.navigateToLogin
@@ -27,8 +26,8 @@ import com.flexaura.features.home.navigation.homeGraph
 import com.flexaura.features.home.navigation.navigateToHomeGraph
 import com.flexaura.features.profile.navigation.ProfileDestinations
 import com.flexaura.features.profile.navigation.navigateToEditProfile
-import com.flexaura.features.profile.navigation.navigateToOwnProfile
 import com.flexaura.features.profile.navigation.navigateToOtherUserProfile
+import com.flexaura.features.profile.navigation.navigateToOwnProfile
 import com.flexaura.features.profile.navigation.otherUserProfileScreen
 import com.flexaura.features.profile.navigation.profileGraph
 import com.flexaura.post.navigation.navigateToPostDetail
@@ -104,9 +103,9 @@ internal fun FlexAuraNavHost(
             modifier = Modifier.padding(paddingValues)
         ) {
             authGraph(
-                onNavigateToLogin = {
-                    navController.navigateToLogin {
-                        popUpTo(RegisterRouteDestination) { inclusive = true }
+                onNavigateToLogin = { email ->
+                    navController.navigateToLogin(email = email) {
+                        popUpTo(AuthGraph) { inclusive = true }
                     }
                 },
                 onNavigateToRegister = { navController.navigateToRegister() },
