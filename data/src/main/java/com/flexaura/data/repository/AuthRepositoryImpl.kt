@@ -16,6 +16,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
@@ -43,19 +44,17 @@ class AuthRepositoryImpl @Inject constructor(
         password: String,
         username: String,
         displayName: String
-    ): Result<Unit> = scope.async(dispatcher) {
+    ): Result<Unit> = withContext(dispatcher) {
         runCatching {
-            val newUserId = authRemoteDataSource.signUpWithEmail(
+            authRemoteDataSource.signUpWithEmail(
                 email = email,
                 password =  password,
                 username = username,
                 displayName = displayName
             )
-            val remoteUser = supabaseRemoteDataSource.getUser(userId = newUserId) ?: throw Exception("Register failed")
-
-            userDao.upsertUser(remoteUser.toEntity())
+            Unit
         }
-    }.await()
+    }
 
     override suspend fun loginWithEmail(
         email: String,

@@ -25,7 +25,6 @@ internal data class RegisterUiState(
 }
 
 internal sealed interface RegisterUiEffect {
-    data object NavigateToLogin: RegisterUiEffect
-    data object NavigateToHome: RegisterUiEffect
+    data class NavigateToLogin(val email: String?): RegisterUiEffect
     data class ShowSnackBar(val message: String): RegisterUiEffect
 }

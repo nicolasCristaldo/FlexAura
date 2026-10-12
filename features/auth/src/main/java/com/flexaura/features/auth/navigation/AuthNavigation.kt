@@ -13,8 +13,8 @@ fun NavController.navigateToAuthGraph(navOptionsBuilder: NavOptionsBuilder.() ->
     navigate(route = AuthGraph, builder = navOptionsBuilder)
 }
 
-fun NavController.navigateToLogin(builder: NavOptionsBuilder.() -> Unit) {
-    navigate(route = LoginRouteDestination, builder = builder)
+fun NavController.navigateToLogin(email: String? = null, builder: NavOptionsBuilder.() -> Unit) {
+    navigate(route = LoginRouteDestination(email = email), builder = builder)
 }
 
 fun NavController.navigateToRegister(navOptions: NavOptions? = null) {
@@ -22,11 +22,11 @@ fun NavController.navigateToRegister(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.authGraph(
-    onNavigateToLogin: () -> Unit,
+    onNavigateToLogin: (String?) -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
-    navigation<AuthGraph>(startDestination = LoginRouteDestination) {
+    navigation<AuthGraph>(startDestination = LoginRouteDestination()) {
         composable<LoginRouteDestination> {
             LoginRoute(
                 onNavigateToRegister = onNavigateToRegister,
@@ -36,8 +36,7 @@ fun NavGraphBuilder.authGraph(
 
         composable<RegisterRouteDestination> {
             RegisterRoute(
-                onNavigateToLogin = onNavigateToLogin,
-                onNavigateToHome = onNavigateToHome
+                onNavigateToLogin = onNavigateToLogin
             )
         }
     }

@@ -7,6 +7,7 @@ internal sealed interface LoginUiIntent {
     data object OnLoginClicked: LoginUiIntent
     data object OnGoogleLoginClicked: LoginUiIntent
     data object OnRegisterNavigated: LoginUiIntent
+    data object OnDissmissVerificationDialog: LoginUiIntent
 }
 
 internal data class LoginUiState(
@@ -14,6 +15,7 @@ internal data class LoginUiState(
     val password: String = "",
     val isLoading: Boolean = false,
     val showPassword: Boolean = false,
+    val showVerificationDialog: Boolean = false,
     val showErrors: Boolean = false,
     val errorMessage: String? = null
 )
