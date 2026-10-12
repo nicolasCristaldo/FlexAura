@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,6 +88,19 @@ private fun LoginScreen(
     onIntent: (LoginUiIntent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    if (state.showVerificationDialog) {
+        AlertDialog(
+            onDismissRequest = { onIntent(LoginUiIntent.OnDissmissVerificationDialog) },
+            title = { Text(text = "Verify your email") },
+            text = { Text(text = "We've sent a verification link to ${state.email}. Please check your inbox and follow the instructions to sign in.") },
+            confirmButton = {
+                TextButton(
+                    onClick = { onIntent(LoginUiIntent.OnDissmissVerificationDialog) }
+                ) { Text(text = "Got it") }
+            }
+        )
+    }
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -155,13 +169,4 @@ private fun LoginScreen(
             onActionClick = { onIntent(LoginUiIntent.OnRegisterNavigated) }
         )
     }
-}
-
-@Preview
-@Composable
-private fun LoginScreenPreview() {
-    LoginScreen(
-        state = LoginUiState(),
-        onIntent = {}
-    )
 }

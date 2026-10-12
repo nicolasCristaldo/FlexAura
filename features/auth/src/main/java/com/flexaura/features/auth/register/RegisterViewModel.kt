@@ -34,7 +34,7 @@ internal class RegisterViewModel @Inject constructor(
         }
         is RegisterUiIntent.OnUsernameChanged -> _uiState.update { it.copy(username = intent.username) }
         is RegisterUiIntent.OnDisplayNameChanged -> _uiState.update { it.copy(displayName = intent.displayName) }
-        is RegisterUiIntent.OnLoginNavigated -> emmitEffect(RegisterUiEffect.NavigateToLogin)
+        is RegisterUiIntent.OnLoginNavigated -> emmitEffect(RegisterUiEffect.NavigateToLogin(null))
         is RegisterUiIntent.OnRegisterClicked -> {
             _uiState.update { it.copy(showErrors = true, showPasswordsMismatch = !it.passwordsMatch) }
             if (!_uiState.value.passwordsMatch) emmitEffect(RegisterUiEffect.ShowSnackBar("Passwords do not match."))
@@ -54,7 +54,7 @@ internal class RegisterViewModel @Inject constructor(
                 displayName = currentState.displayName
             )
             .onSuccess {
-                emmitEffect(RegisterUiEffect.NavigateToHome)
+                emmitEffect(RegisterUiEffect.NavigateToLogin(currentState.email))
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
