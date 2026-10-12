@@ -1,9 +1,12 @@
 package com.flexaura.features.auth.login
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.flexaura.data.domain.usecase.auth.LoginWithEmailUseCase
 import com.flexaura.data.domain.usecase.auth.LoginWithGoogleUseCase
+import com.flexaura.features.auth.navigation.LoginRouteDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,10 +20,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class LoginViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val loginWithEmailUseCase: LoginWithEmailUseCase,
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase
 ): ViewModel() {
-    private val _uiState: MutableStateFlow<LoginUiState> = MutableStateFlow(LoginUiState())
+    private val navArgs = savedStateHandle.toRoute<LoginRouteDestination>()
+
+    private val _uiState: MutableStateFlow<LoginUiState> = MutableStateFlow(
+        LoginUiState(
+            email = navArgs.email ?: "",
+            showVerificationDialog = navArgs.email != null
+        )
+    )
     val uiState: StateFlow<LoginUiState> get() = _uiState.asStateFlow()
 
     private val _uiEffect: MutableSharedFlow<LoginUiEffect> = MutableSharedFlow()
@@ -36,6 +47,7 @@ internal class LoginViewModel @Inject constructor(
         }
         is LoginUiIntent.OnGoogleLoginClicked -> loginWithGoogle()
         is LoginUiIntent.OnRegisterNavigated -> emitEffect(LoginUiEffect.NavigateToRegister)
+        is LoginUiIntent.OnDissmissVerificationDialog -> _uiState.update { it.copy(showVerificationDialog = false) }
     }
 
     private fun loginWithEmail() {
