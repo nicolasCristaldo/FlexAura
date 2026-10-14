@@ -24,6 +24,7 @@ fun PostList(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier.fillMaxSize()
     ) {
+
         items(items = posts, key = { it.id }) { post ->
             PostCard(
                 post = post,

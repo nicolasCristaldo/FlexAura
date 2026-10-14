@@ -52,8 +52,14 @@ class UserRepositoryImpl @Inject constructor(
 
                 userDao.updateFollowState(targetUserId, newFollowState, countChange)
 
-                if (newFollowState) networkDataSource.followUser(targetUserId)
-                else networkDataSource.unfollowUser(targetUserId)
+                try {
+                    if (newFollowState) networkDataSource.followUser(targetUserId)
+                    else networkDataSource.unfollowUser(targetUserId)
+                }
+                catch (e: Exception) {
+                    userDao.updateFollowState(targetUserId, wasFollowing, -countChange)
+                    throw e
+                }
             }
         }.await()
 

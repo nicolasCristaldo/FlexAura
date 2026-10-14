@@ -32,8 +32,6 @@ import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
 import com.flexaura.core.designsystem.theme.appMainBackground
-import com.flexaura.features.profile.profilescreen.components.ProfileScreenHeader
-import com.flexaura.features.profile.profilescreen.components.ProfileTopBar
 import com.flexaura.features.profile.profilescreen.ProfileUiEffect.NavigateToAuthorProfile
 import com.flexaura.features.profile.profilescreen.ProfileUiEffect.NavigateToPostDetail
 import com.flexaura.features.profile.profilescreen.ProfileUiEffect.ShowSnackBar
@@ -43,6 +41,8 @@ import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnPostClicked
 import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnSavedClicked
 import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnToggleFollowClicked
 import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnVoteClicked
+import com.flexaura.features.profile.profilescreen.components.ProfileScreenHeader
+import com.flexaura.features.profile.profilescreen.components.ProfileTopBar
 import kotlinx.coroutines.launch
 
 @Composable
