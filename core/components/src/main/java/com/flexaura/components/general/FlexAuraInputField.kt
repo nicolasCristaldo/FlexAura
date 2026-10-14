@@ -34,6 +34,7 @@ fun FlexAuraInputField(
     modifier: Modifier = Modifier,
     placeholder: String = "Write something...",
     singleLine: Boolean = true,
+    imeAction: ImeAction = ImeAction.Default,
     maxLines: Int = 1
 ) {
     Box(
@@ -67,7 +68,7 @@ fun FlexAuraInputField(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurfaceVariant),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardOptions = KeyboardOptions(imeAction = imeAction),
                     keyboardActions = KeyboardActions(
                         onSearch = { if (query.isNotBlank()) onAction() }
                     ),

@@ -1,5 +1,6 @@
 package com.flexaura.search
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -128,7 +130,10 @@ private fun SearchScreen(
             val showStateInfoScreen = (state.errorMessage != null && isEmptyList) || isEmptyList || !state.hasSearched
 
             when {
-                state.isSearching -> CircularProgressIndicator()
+                state.isSearching -> Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ){ CircularProgressIndicator() }
                 showStateInfoScreen -> {
                     val stateInfo = getSearchStateInfo(state = state, currentTab = currentTab) {
                         onIntent(Refresh)

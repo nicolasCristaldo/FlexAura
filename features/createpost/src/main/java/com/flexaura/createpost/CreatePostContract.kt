@@ -2,6 +2,7 @@ package com.flexaura.createpost
 
 import android.net.Uri
 import com.flexaura.data.domain.model.User
+import com.flexaura.data.domain.util.isValidLength
 
 internal sealed interface CreatePostUiIntent {
     data object Init : CreatePostUiIntent
@@ -18,7 +19,9 @@ internal data class CreatePostUiState(
     val isLoading: Boolean = false,
     val isPostPublishing: Boolean = false,
     val errorMessage: String? = null
-)
+) {
+    val isSubmitButtonEnabled = (imageUri != null || content.isValidLength(1, 280)) && !isPostPublishing
+}
 
 internal sealed interface CreatePostUiEffect {
     data class ShowSnackBar(val message: String) : CreatePostUiEffect

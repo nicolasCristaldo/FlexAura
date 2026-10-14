@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +40,9 @@ internal fun ProfileScreenHeader(
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
             ProfileImage(
                 imageModel = user.imageUrl,
@@ -51,7 +54,8 @@ internal fun ProfileScreenHeader(
                 displayName = user.displayName,
                 username = user.username,
                 displayNameStyle = MaterialTheme.typography.headlineMedium,
-                usernameStyle = MaterialTheme.typography.labelLarge
+                usernameStyle = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.widthIn(max = 250.dp)
             )
 
             if (!isOwnProfile) {
