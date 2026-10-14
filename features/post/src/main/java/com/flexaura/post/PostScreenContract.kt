@@ -2,6 +2,7 @@ package com.flexaura.post
 
 import com.flexaura.data.domain.model.Comment
 import com.flexaura.data.domain.model.Post
+import com.flexaura.data.domain.util.isValidLength
 
 internal sealed interface PostDetailUiIntent {
     data class Init(val postId: String) : PostDetailUiIntent
@@ -22,7 +23,9 @@ internal data class PostDetailUiState(
     val comments: List<Comment> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
-)
+) {
+    val commentButtonEnabled = commentContent.isValidLength(1, 280)
+}
 
 internal sealed interface PostDetailUiEffect {
     data class ShowSnackBar(val message: String) : PostDetailUiEffect

@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.flexaura.components.general.FlexAuraInputField
 import com.flexaura.core.designsystem.R
@@ -40,6 +41,7 @@ internal fun SearchTopBar(
             placeholder = "Search",
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             shape = CircleShape,
+            imeAction = ImeAction.Search,
             modifier = Modifier
                 .padding(vertical = 4.dp)
                 .fillMaxWidth(.7f)

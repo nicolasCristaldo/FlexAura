@@ -29,7 +29,7 @@ class UpdateProfileUseCase @Inject constructor(
                     username = username.trim(),
                     displayName = displayName.trim(),
                     imageBytes = imageBytes,
-                    bio = bio?.trim()
+                    bio = bio?.replace(Regex("\\n+"), " ")?.trim()
                 )
             }
         }

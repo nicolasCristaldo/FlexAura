@@ -9,6 +9,7 @@ import com.flexaura.core.network.model.PostWithInteractionsDto
 import com.flexaura.core.network.model.SaveDto
 import com.flexaura.core.network.model.SavedPostsResponseDto
 import com.flexaura.core.network.model.UserDto
+import com.flexaura.core.network.model.UserFollowCheckDto
 import com.flexaura.core.network.model.UserProfileDto
 import com.flexaura.core.network.model.VoteDto
 import io.github.jan.supabase.SupabaseClient
@@ -63,17 +64,36 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
     override suspend fun getUserProfile(userId: String): UserProfileDto? {
         val currentId = requireCurrentUserId()
 
-        return supabaseClient.postgrest["users"]
-            .select(
-                columns = Columns.raw(
-                    """
-                *,
-                follows!following_id(id).filter(follower_id.eq.$currentId),
-                """.trimIndent()
-                )
-            ) {
+        val userDto = supabaseClient.postgrest["users"]
+            .select {
                 filter { eq("id", userId) }
-            }.decodeSingleOrNull<UserProfileDto>()
+            }.decodeSingleOrNull<UserDto>() ?: return null
+
+        val followResult = supabaseClient.postgrest["follows"]
+            .select {
+                filter {
+                    eq("follower_id", currentId)
+                    eq("following_id", userId)
+                }
+            }.decodeList<FollowDto>()
+
+        val isFollowing = followResult.isNotEmpty()
+
+        return UserProfileDto(
+            id = userDto.id,
+            username = userDto.username,
+            displayName = userDto.displayName,
+            imageUrl = userDto.imageUrl,
+            bio = userDto.bio,
+            totalAura = userDto.totalAura,
+            followersCount = userDto.followersCount,
+            followingCount = userDto.followingCount,
+            createdAt = userDto.createdAt,
+            isFollowingList = if (isFollowing) {
+                listOf(UserFollowCheckDto(id = followResult.firstOrNull()?.id ?: "exists"))
+            }
+            else emptyList()
+        )
     }
 
     override suspend fun searchUsers(

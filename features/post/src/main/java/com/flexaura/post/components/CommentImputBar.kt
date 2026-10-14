@@ -29,6 +29,7 @@ internal fun CommentInputBar(
     content: String,
     onContentChanged: (String) -> Unit,
     onSubmitComment: () -> Unit,
+    commentButtonEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -56,7 +57,7 @@ internal fun CommentInputBar(
 
         IconButton(
             onClick = onSubmitComment,
-            enabled = content.isNotBlank(),
+            enabled = commentButtonEnabled,
             modifier = Modifier.size(32.dp)
         ) {
             Icon(
