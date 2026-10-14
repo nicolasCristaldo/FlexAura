@@ -14,8 +14,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
@@ -32,6 +37,8 @@ fun PostCard(
     onAuthorClicked: (authorId: String) -> Unit = {}
 ) {
     val isAuthor = onDeletePost != null
+    var showReadMore by remember { mutableStateOf(false) }
+    var isTextExpanded by remember { mutableStateOf(false) }
 
     Card(
         colors = CardDefaults
@@ -70,11 +77,28 @@ fun PostCard(
 
                 post.content?.let {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Column {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = if (isTextExpanded) Int.MAX_VALUE else 8,
+                            overflow = TextOverflow.Ellipsis,
+                            onTextLayout = { textLayoutResult ->
+                                if(!isTextExpanded && textLayoutResult.hasVisualOverflow) {
+                                    showReadMore = true
+                                }
+                            }
+                        )
+                        if (showReadMore) {
+                            Text(
+                                text = if (isTextExpanded) "See less" else "Read more",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.clickable { isTextExpanded = !isTextExpanded}
+                            )
+                        }
+                    }
                 }
 
                 post.imageUrl?.let {

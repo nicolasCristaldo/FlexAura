@@ -8,7 +8,10 @@ class CreatePostUseCase @Inject constructor(
     private val repository: PostRepository
 ) {
     suspend operator fun invoke(content: String? = null, imageBytes: ByteArray? = null): Result<Unit> {
-        val finalContent = if (content.isNullOrBlank()) null else content.trim()
+        val finalContent = if (content.isNullOrBlank()) null
+            else content
+                .replace(Regex("\\n{2,}"), "\n")
+                .trim()
 
         if (finalContent == null && imageBytes == null) {
             return Result.failure(IllegalArgumentException("The post cannot be empty"))

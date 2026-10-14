@@ -1,5 +1,6 @@
 package com.flexaura.features.home
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -118,7 +120,10 @@ private fun HomeScreen(
             val isEmptyList = posts.isEmpty()
 
             when {
-                state.isLoading && isEmptyList -> CircularProgressIndicator()
+                state.isLoading && isEmptyList -> Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ){ CircularProgressIndicator() }
                 (state.errorMessage != null && isEmptyList) || isEmptyList -> {
                     val stateInfo = getHomeStateInfo(state = state, currentTab = currentTab) {
                         onIntent(Refresh)

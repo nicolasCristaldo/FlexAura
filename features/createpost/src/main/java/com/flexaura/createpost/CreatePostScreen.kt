@@ -1,5 +1,6 @@
 package com.flexaura.createpost
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -47,6 +48,7 @@ import com.flexaura.createpost.CreatePostUiIntent.OnRemoveImageClicked
 import com.flexaura.createpost.CreatePostUiIntent.OnSubmitClicked
 import com.flexaura.createpost.components.PostContentInput
 import com.flexaura.createpost.components.SelectedImagePreview
+import com.flexaura.data.domain.util.isValidLength
 
 @Composable
 internal fun CreatePostRoute(
@@ -72,15 +74,13 @@ internal fun CreatePostRoute(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            val createPostButtonEnabled = state.content.isNotBlank() || state.imageUri != null
-
             NavigateBackTopBar(
                 onNavigateBack = onNavigateBack,
                 title = "Create post",
                 trailingContent = {
                     Button(
                         onClick = { viewModel.onIntent(OnSubmitClicked) },
-                        enabled = createPostButtonEnabled
+                        enabled = state.isSubmitButtonEnabled
                     ) { Text("Create") }
                 },
                 modifier = Modifier.fillMaxHeight(.065f)
@@ -99,7 +99,10 @@ internal fun CreatePostRoute(
         modifier = Modifier.appCircularGradientBackground()
     ) { innerPadding ->
         when {
-            state.isLoading -> LinearProgressIndicator()
+            state.isLoading -> Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) { CircularProgressIndicator() }
             state.errorMessage != null -> StateInfoScreen(
                 title = "Something went wrong",
                 text = state.errorMessage,
@@ -128,10 +131,6 @@ private fun CreatePostScreen(
     }
 
     Column(modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-        if (state.isPostPublishing) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 12.dp)
@@ -155,6 +154,7 @@ private fun CreatePostScreen(
             content = state.content,
             onContentChange = { onIntent(OnContentChange(it)) },
             focusRequester = focusRequester,
+            isError = !state.content.isValidLength(0, 280),
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
