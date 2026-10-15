@@ -23,12 +23,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraTextField
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.features.auth.R as AuthR
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.data.domain.util.isValidDisplayName
 import com.flexaura.data.domain.util.isValidEmail
@@ -84,90 +87,95 @@ private fun RegisterScreen(
             .fillMaxSize()
             .verticalScroll(scrollState)
             .imePadding()
-            .padding(16.dp)
+            .padding(FlexAuraTheme.dimens.paddingLarge)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingLarge))
 
         Text(
-            text = "Create account",
+            text = stringResource(AuthR.string.register_screen_title),
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.displayMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = FlexAuraTheme.dimens.paddingSmall)
         )
 
         Text(
-            text = "Fill in your details to get started",
+            text = stringResource(AuthR.string.register_screen_subtitle),
             style = MaterialTheme.typography.titleMedium
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingExtraLarge))
 
         FlexAuraTextField(
             value = state.email,
             onValueChange = { onIntent(RegisterUiIntent.OnEmailChanged(it)) },
-            label = "Email",
+            label = stringResource(AuthR.string.email_label),
             isError = !state.email.isValidEmail(),
-            errorMessage = "Invalid email format.",
+            errorMessage = stringResource(AuthR.string.invalid_email),
             forceErrorVisibility = state.showErrors,
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth(.9f)
         )
 
         FlexAuraTextField(
             value = state.displayName,
             onValueChange = { onIntent(RegisterUiIntent.OnDisplayNameChanged(it)) },
-            label = "Display Name",
+            label = stringResource(DesignR.string.display_name_label),
             isError = !state.displayName.isValidDisplayName(),
-            errorMessage = "Display name must be between 1 and 25 characters and cannot contain newlines.",
+            errorMessage = stringResource(DesignR.string.invalid_display_name),
             forceErrorVisibility = state.showErrors,
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth(.9f)
         )
 
         FlexAuraTextField(
             value = state.username,
             onValueChange = { onIntent(RegisterUiIntent.OnUsernameChanged(it)) },
-            label = "Username",
+            label = stringResource(DesignR.string.username_label),
             isError = !state.username.isValidUsername(),
-            errorMessage = "Username must be between 3 and 15 characters and can only contain letters, numbers, and underscores.",
+            errorMessage = stringResource(DesignR.string.invalid_username),
             forceErrorVisibility = state.showErrors,
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth(.9f)
         )
 
         FlexAuraTextField(
             value = state.password,
             onValueChange = { onIntent(RegisterUiIntent.OnPasswordChanged(it)) },
-            label = "Password",
+            label = stringResource(AuthR.string.password_label),
             isError = !state.password.isValidPassword(),
-            errorMessage = "Password must be at least 6 characters.",
+            errorMessage = stringResource(AuthR.string.invalid_password),
             forceErrorVisibility = state.showErrors,
             visualTransformation = PasswordVisualTransformation(),
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth(.9f)
         )
 
         FlexAuraTextField(
             value = state.confirmPassword,
             onValueChange = { onIntent(RegisterUiIntent.OnConfirmPasswordChanged(it)) },
-            label = "Confirm Password",
+            label = stringResource(AuthR.string.confirm_password_label),
             isError = state.showPasswordsMismatch,
-            errorMessage = "Passwords do not match.",
+            errorMessage = stringResource(AuthR.string.passwords_mismatch),
             visualTransformation = PasswordVisualTransformation(),
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth(.9f)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingLarge))
 
         if (state.isLoading) CircularProgressIndicator()
         else AuthButton(
-            title = "Register",
+            title = stringResource(AuthR.string.register_button),
             onClick = { onIntent(RegisterUiIntent.OnRegisterClicked) },
             modifier = Modifier.fillMaxWidth(.6f)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingExtraLarge))
 
         AuthenticationFooter(
-            text = "Already have an account?",
-            actionText = "Log in here",
+            text = stringResource(AuthR.string.register_footer_text),
+            actionText = stringResource(AuthR.string.register_footer_action),
             onActionClick = { onIntent(RegisterUiIntent.OnLoginNavigated) }
         )
     }

@@ -25,16 +25,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraTextField
 import com.flexaura.components.general.NavigateBackTopBar
 import com.flexaura.components.general.StateInfoScreen
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.data.domain.util.isValidDisplayName
 import com.flexaura.data.domain.util.isValidLength
 import com.flexaura.data.domain.util.isValidUsername
+import com.flexaura.features.profile.R as ProfileR
+import com.flexaura.core.designsystem.R as DesignR
 import com.flexaura.features.profile.editprofile.components.ProfileImagePicker
 
 @Composable
@@ -63,7 +66,7 @@ internal fun EditProfileRoute(
         topBar = {
             NavigateBackTopBar(
                 onNavigateBack = onNavigateBack,
-                title = "Edit profile",
+                title = stringResource(ProfileR.string.edit_profile_screen_title),
                 modifier = Modifier.fillMaxHeight(.065f)
             )
         },
@@ -78,7 +81,7 @@ internal fun EditProfileRoute(
 
             state.error != null -> {
                 StateInfoScreen(
-                    title = "Could not load profile",
+                    title = stringResource(ProfileR.string.profile_error_load_title),
                     text = state.error,
                     modifier = Modifier.fillMaxSize()
                 ) { viewModel.onIntent(EditProfileUiIntent.Init) }
@@ -102,43 +105,46 @@ private fun EditProfileScreen(
     val scrollState = rememberScrollState()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingLarge),
         modifier = modifier
             .verticalScroll(scrollState)
             .imePadding()
-            .padding(12.dp)
+            .padding(FlexAuraTheme.dimens.paddingMedium)
     ) {
         ProfileImagePicker(
             selectedImageUri = state.selectedImageUri ?: state.currentImageUrl,
             onImageSelected = { uri -> onIntent(EditProfileUiIntent.OnImageChanged(uri)) },
-            modifier = Modifier.size(120.dp)
+            modifier = Modifier.size(FlexAuraTheme.dimens.profileImageSizeLarge)
         )
 
         FlexAuraTextField(
             value = state.displayName,
             onValueChange = { onIntent(EditProfileUiIntent.OnDisplayNameChanged(it)) },
-            label = "Display name",
+            label = stringResource(DesignR.string.display_name_label),
             isError = !state.displayName.isValidDisplayName(),
-            errorMessage = "Display name must be between 1 and 25 characters and cannot contain newlines",
+            errorMessage = stringResource(DesignR.string.invalid_display_name),
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth()
         )
 
         FlexAuraTextField(
             value = state.username,
             onValueChange = { onIntent(EditProfileUiIntent.OnUsernameChanged(it)) },
-            label = "Username",
+            label = stringResource(DesignR.string.username_label),
             isError = !state.username.isValidUsername(),
-            errorMessage = "Username must be between 3 and 15 characters and can only contain letters, numbers, and underscores",
+            errorMessage = stringResource(DesignR.string.invalid_username),
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth()
         )
 
         FlexAuraTextField(
             value = state.bio,
             onValueChange = { onIntent(EditProfileUiIntent.OnBioChanged(it)) },
-            label = "Bio",
+            label = stringResource(ProfileR.string.bio_label),
             singleLine = false,
             isError = !state.bio.isValidLength(0, 200),
-            errorMessage = "The biography cannot exceed 200 characters",
+            errorMessage = stringResource(ProfileR.string.invalid_bio),
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -146,8 +152,8 @@ private fun EditProfileScreen(
             onClick = { onIntent(EditProfileUiIntent.OnSaveProfile) },
             enabled = state.saveButtonEnabled(),
             modifier = Modifier
-                .padding(vertical = 16.dp)
+                .padding(vertical = FlexAuraTheme.dimens.paddingLarge)
                 .fillMaxWidth(.6f)
-        ) { Text(text = "Save") }
+        ) { Text(text = stringResource(ProfileR.string.save_profile)) }
     }
 }

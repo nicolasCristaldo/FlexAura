@@ -22,14 +22,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.NavigateBackTopBar
 import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostOptionsMenu
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.post.PostDetailUiEffect.NavigateBack
 import com.flexaura.post.PostDetailUiEffect.NavigateToAuthorProfile
@@ -45,6 +46,7 @@ import com.flexaura.post.PostDetailUiIntent.OnVoteClicked
 import com.flexaura.post.components.CommentInputBar
 import com.flexaura.post.components.CommentsSection
 import com.flexaura.post.components.PostDetailContent
+import com.flexaura.core.designsystem.R as DesignR
 
 @Composable
 internal fun PostRoute(
@@ -152,20 +154,20 @@ private fun PostDetailScreen(
                 onAuthorClicked = { authorId ->
                     onIntent(OnNavigateToAuthorProfile(authorId))
                 },
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(FlexAuraTheme.dimens.paddingMedium)
             )
 
             HorizontalDivider(
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(bottom = FlexAuraTheme.dimens.paddingSmall),
                 color = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
-                text = "Comments",
+                text = stringResource(R.string.comments_section_title),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(horizontal = 12.dp)
+                modifier = Modifier.padding(horizontal = FlexAuraTheme.dimens.paddingMedium)
             )
 
             CommentsSection(
@@ -182,15 +184,17 @@ private fun PostDetailScreen(
     }
 }
 
+@Composable
 private fun getPostDetailStateInfo(
     state: PostDetailUiState,
     onAction: (() -> Unit)? = null
 ): StateInfo = when {
     state.errorMessage != null -> StateInfo(
-        title = "Something went wrong",
+        title = stringResource(DesignR.string.something_went_wrong),
         text = state.errorMessage,
-        onActionClick = onAction
+        onActionClick = onAction,
+        actionText = stringResource(DesignR.string.retry)
     )
 
-    else -> StateInfo(title = "Post not found")
+    else -> StateInfo(title = stringResource(R.string.post_not_found_title))
 }

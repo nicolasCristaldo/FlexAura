@@ -24,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,6 +33,7 @@ import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
 import com.flexaura.components.user.ProfileList
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appMainBackground
 import com.flexaura.search.SearchUiEffect.NavigateToAuthorProfile
 import com.flexaura.search.SearchUiEffect.NavigateToPostDetail
@@ -45,6 +47,8 @@ import com.flexaura.search.SearchUiIntent.OnTextChange
 import com.flexaura.search.SearchUiIntent.OnVoteClicked
 import com.flexaura.search.SearchUiIntent.Refresh
 import com.flexaura.search.components.SearchTopBar
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.search.R as SearchR
 import kotlinx.coroutines.launch
 
 @Composable
@@ -82,7 +86,12 @@ internal fun SearchRoute(
                 modifier = Modifier.fillMaxHeight(.065f)
             )
         },
-        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) },
+        floatingActionButton = {
+            FlexAuraFab(
+                onClick = onNavigateToCreatePost,
+                contentDescription = stringResource(DesignR.string.create_post_content_desc)
+            )
+        },
         containerColor = Color.Transparent,
         modifier = Modifier.appMainBackground()
     ) { innerPadding ->
@@ -149,7 +158,7 @@ private fun SearchScreen(
                         onProfileClicked = { userId ->
                             onIntent(OnAuthorClicked(userId))
                         },
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                     )
                     else PostList(
                         posts = state.postsResults,
@@ -169,7 +178,7 @@ private fun SearchScreen(
                         onDeletePost = { postId ->
                             onIntent(OnDeletePostClicked(postId))
                         },
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                     )
                 }
             }
@@ -177,26 +186,28 @@ private fun SearchScreen(
     }
 }
 
+@Composable
 private fun getSearchStateInfo(
     state: SearchUiState,
     currentTab: SearchTab,
     onRetry: (() -> Unit)? = null
 ): StateInfo = when {
     state.errorMessage != null -> StateInfo(
-        title = "Search failed",
+        title = stringResource(SearchR.string.search_error_title),
         text = state.errorMessage,
-        onActionClick = onRetry
+        onActionClick = onRetry,
+        actionText = stringResource(DesignR.string.retry)
     )
     !state.hasSearched -> StateInfo(
-        title = "Search for something!",
-        text = "Find amazing post and profiles to connect with."
+        title = stringResource(SearchR.string.search_empty_start_title),
+        text = stringResource(SearchR.string.search_empty_start_desc)
     )
     currentTab == SearchTab.PROFILES -> StateInfo(
-        title = "No users found",
-        text = "Try a different name or keyword."
+        title = stringResource(SearchR.string.search_no_results_users_title),
+        text = stringResource(SearchR.string.search_no_results_users_desc)
     )
     else -> StateInfo(
-        title = "No posts found",
-        text = "We couldn't find any posts matching your search."
+        title = stringResource(SearchR.string.search_no_results_posts_title),
+        text = stringResource(SearchR.string.search_no_results_posts_desc)
     )
 }

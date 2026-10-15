@@ -15,8 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import com.flexaura.components.general.NavigateBackTopBar
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.features.profile.R
 
 @Composable
 internal fun ProfileTopBar(
@@ -31,14 +33,14 @@ internal fun ProfileTopBar(
             horizontalArrangement = Arrangement.End,
             modifier = modifier.fillMaxWidth()
         ) {
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingSmall))
             IconButton(
                 onClick = onNavigateToEditProfile,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeLarge)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Edit,
-                    contentDescription = "Edit profile",
+                    contentDescription = stringResource(R.string.edit_profile_content_desc),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -47,21 +49,21 @@ internal fun ProfileTopBar(
 
             IconButton(
                 onClick = onLogOutClicked,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeLarge)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = "Log out",
+                    contentDescription = stringResource(R.string.logout),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingSmall))
         }
     }
     else {
         NavigateBackTopBar(
-            title = "Profile",
+            title = stringResource(R.string.profile_screen_title),
             onNavigateBack = onNavigateBack,
             modifier = modifier
         )
