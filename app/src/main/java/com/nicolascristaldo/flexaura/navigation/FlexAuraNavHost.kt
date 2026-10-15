@@ -6,13 +6,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.createpost.navigation.createPostScreen
 import com.flexaura.createpost.navigation.navigateToCreatePost
 import com.flexaura.features.auth.navigation.AuthGraph
@@ -92,7 +92,7 @@ internal fun FlexAuraNavHost(
                             else -> navController.navigateToHomeGraph(navOptions)
                         }
                     },
-                    modifier = Modifier.height(100.dp)
+                    modifier = Modifier.height(FlexAuraTheme.dimens.navigationBarHeight)
                 )
             }
         }

@@ -29,7 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraFab
@@ -38,7 +38,7 @@ import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.general.rememberPhotoPickerLauncher
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
-import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.createpost.CreatePostUiEffect.NavigateBack
 import com.flexaura.createpost.CreatePostUiEffect.ShowSnackBar
@@ -49,6 +49,8 @@ import com.flexaura.createpost.CreatePostUiIntent.OnSubmitClicked
 import com.flexaura.createpost.components.PostContentInput
 import com.flexaura.createpost.components.SelectedImagePreview
 import com.flexaura.data.domain.util.isValidLength
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.createpost.R as CreatePostR
 
 @Composable
 internal fun CreatePostRoute(
@@ -76,21 +78,21 @@ internal fun CreatePostRoute(
         topBar = {
             NavigateBackTopBar(
                 onNavigateBack = onNavigateBack,
-                title = "Create post",
+                title = stringResource(CreatePostR.string.create_post_title),
                 trailingContent = {
                     Button(
                         onClick = { viewModel.onIntent(OnSubmitClicked) },
                         enabled = state.isSubmitButtonEnabled
-                    ) { Text("Create") }
+                    ) { Text(stringResource(CreatePostR.string.create)) }
                 },
                 modifier = Modifier.fillMaxHeight(.065f)
             )
         },
         floatingActionButton = {
             FlexAuraFab(
-                onClick = { if(!state.isPostPublishing) launchPhotoPicker() },
-                icon = R.drawable.ic_camera,
-                contentDescription = "Pick image",
+                onClick = { if (!state.isPostPublishing) launchPhotoPicker() },
+                icon = CreatePostR.drawable.ic_camera,
+                contentDescription = stringResource(CreatePostR.string.pick_image),
                 modifier = Modifier
                     .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars))
             )
@@ -103,12 +105,15 @@ internal fun CreatePostRoute(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxWidth()
             ) { CircularProgressIndicator() }
+
             state.errorMessage != null -> StateInfoScreen(
-                title = "Something went wrong",
+                title = stringResource(DesignR.string.something_went_wrong),
                 text = state.errorMessage,
                 onActionClick = { viewModel.onIntent(CreatePostUiIntent.Init) },
+                actionText = stringResource(DesignR.string.retry),
                 modifier = Modifier.fillMaxWidth()
             )
+
             else -> CreatePostScreen(
                 state = state,
                 onIntent = viewModel::onIntent,
@@ -130,17 +135,23 @@ private fun CreatePostScreen(
         focusRequester.requestFocus()
     }
 
-    Column(modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+    Column(
+        modifier = modifier
+            .padding(
+                horizontal = FlexAuraTheme.dimens.paddingMedium,
+                vertical = FlexAuraTheme.dimens.paddingSmall
+            )
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = FlexAuraTheme.dimens.paddingMedium)
         ) {
             ProfileImage(
                 imageModel = state.currentUser?.imageUrl,
                 size = 56
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingSmall))
 
             UserIdentity(
                 displayName = state.currentUser?.displayName ?: "",
@@ -155,14 +166,14 @@ private fun CreatePostScreen(
             onContentChange = { onIntent(OnContentChange(it)) },
             focusRequester = focusRequester,
             isError = !state.content.isValidLength(0, 280),
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = FlexAuraTheme.dimens.paddingMedium)
         )
 
         if (state.imageUri != null) {
             SelectedImagePreview(
                 imageUri = state.imageUri,
                 onRemoveImage = { onIntent(OnRemoveImageClicked) },
-                modifier = Modifier.size(410.dp)
+                modifier = Modifier.size(FlexAuraTheme.dimens.imagePreviewSize)
             )
         }
     }

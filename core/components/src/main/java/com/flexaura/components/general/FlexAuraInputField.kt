@@ -21,8 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
+import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 fun FlexAuraInputField(
@@ -31,8 +33,8 @@ fun FlexAuraInputField(
     onAction: () -> Unit,
     containerColor: Color,
     shape: Shape,
+    placeholder: String,
     modifier: Modifier = Modifier,
-    placeholder: String = "Write something...",
     singleLine: Boolean = true,
     imeAction: ImeAction = ImeAction.Default,
     maxLines: Int = 1
@@ -41,7 +43,7 @@ fun FlexAuraInputField(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
             .background(color = containerColor, shape = shape)
-            .padding(horizontal = 12.dp)
+            .padding(horizontal = FlexAuraTheme.dimens.paddingMedium)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -79,10 +81,10 @@ fun FlexAuraInputField(
             if (query.isNotBlank()) {
                 Icon(
                     imageVector = Icons.Default.Clear,
-                    contentDescription = "Clear",
+                    contentDescription = stringResource(R.string.clear_content_desc),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
-                        .size(18.dp)
+                        .size(FlexAuraTheme.dimens.iconSizeSmall)
                         .clickable { onValueChange("") }
                 )
             }

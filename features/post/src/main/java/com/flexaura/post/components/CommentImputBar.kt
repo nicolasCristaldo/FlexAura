@@ -21,8 +21,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import com.flexaura.components.general.FlexAuraInputField
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.post.R
 
 @Composable
 internal fun CommentInputBar(
@@ -37,32 +39,32 @@ internal fun CommentInputBar(
         modifier = modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = FlexAuraTheme.dimens.paddingMedium, vertical = FlexAuraTheme.dimens.paddingSmall)
     ) {
         FlexAuraInputField(
             query = content,
             onValueChange = { onContentChanged(it) },
             onAction = onSubmitComment,
-            placeholder = "Write a comment...",
+            placeholder = stringResource(R.string.post_comment_input_placeholder),
             singleLine = false,
             maxLines = 2,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             shape = CircleShape,
             modifier = Modifier
                 .weight(1f)
-                .height(42.dp)
+                .height(FlexAuraTheme.dimens.commentBarHeight)
         )
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingMedium))
 
         IconButton(
             onClick = onSubmitComment,
             enabled = commentButtonEnabled,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeLarge)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
-                contentDescription = "Send comment",
+                contentDescription = stringResource(R.string.send_comment_content_desc),
                 tint = if (content.isNotBlank()) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )

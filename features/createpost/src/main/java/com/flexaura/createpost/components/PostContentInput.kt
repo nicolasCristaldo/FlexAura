@@ -12,6 +12,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
+import com.flexaura.createpost.R
 
 @Composable
 internal fun PostContentInput(
@@ -29,7 +31,7 @@ internal fun PostContentInput(
     Box(modifier = modifier) {
         if (content.isEmpty()) {
             Text(
-                text = "What's on your mind?",
+                text = stringResource(R.string.create_post_input_placeholder),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .7f)
             )

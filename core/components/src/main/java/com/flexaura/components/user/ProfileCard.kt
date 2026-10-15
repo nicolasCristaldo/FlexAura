@@ -14,7 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.data.domain.model.User
 
 @Composable
@@ -29,17 +29,17 @@ fun ProfileCard(
             .cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .2f)
             ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(FlexAuraTheme.dimens.cornerRadiusLarge),
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingExtraSmall),
+            modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
         ) {
             ProfileImage(
                 imageModel = user.imageUrl,
                 onClick = { onUserClicked(user.id) },
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(FlexAuraTheme.dimens.profileImageSizeSmall)
             )
 
             Column {
@@ -55,7 +55,7 @@ fun ProfileCard(
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = FlexAuraTheme.dimens.paddingSmall)
                     )
                 }
             }

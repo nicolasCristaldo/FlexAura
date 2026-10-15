@@ -6,15 +6,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 fun FlexAuraFab(
     onClick: () -> Unit,
+    contentDescription: String,
     modifier: Modifier = Modifier,
     icon: Int = R.drawable.ic_pen,
-    contentDescription: String = "Create post"
 ) {
     FloatingActionButton(
         onClick = onClick,
@@ -23,7 +23,7 @@ fun FlexAuraFab(
         Icon(
             painter = painterResource(id = icon),
             contentDescription = contentDescription,
-            modifier = Modifier.size(34.dp)
+            modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeLarge)
         )
     }
 }

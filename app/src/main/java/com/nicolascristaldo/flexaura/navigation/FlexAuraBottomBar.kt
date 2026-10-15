@@ -7,10 +7,11 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 internal fun FlexAuraBottomBar(
@@ -33,8 +34,8 @@ internal fun FlexAuraBottomBar(
                 icon = {
                     Icon(
                         painter = painterResource(destination.iconRes),
-                        contentDescription = destination.label,
-                        modifier = Modifier.size(24.dp)
+                        contentDescription = stringResource(destination.labelRes),
+                        modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeMedium)
                     )
                 }
             )

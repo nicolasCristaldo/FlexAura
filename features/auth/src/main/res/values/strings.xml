@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- labels -->
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="confirm_password_label">Confirm Password</string>
+
+    <!-- Login screen -->
+    <string name="login_screen_title">FlexAura</string>
+    <string name="login_screen_subtitle">Log in to your account</string>
+    <string name="login_button">Log in</string>
+    <string name="login_button_google">Log in with Google</string>
+    <string name="login_divider_or">Or</string>
+    <string name="login_footer_text">Don\'t have an account?</string>
+    <string name="login_footer_action">Register here</string>
+
+    <!-- Register screen -->
+    <string name="register_screen_title">Create account</string>
+    <string name="register_screen_subtitle">Fill in your details to get started</string>
+    <string name="register_button">Register</string>
+    <string name="register_footer_text">Already have an account?</string>
+    <string name="register_footer_action">Log in here</string>
+
+    <!-- Dialog -->
+    <string name="dialog_verify_email_title">Verify your email</string>
+    <string name="dialog_verify_email_desc">"We've sent a verification link to %s.\nPlease check your inbox and follow the instructions to sign in.</string>
+    <string name="dialog_verify_email_confirm">Got it</string>
+
+    <!-- Content descriptions -->
+    <string name="hide_password_content_desc">Hide password</string>
+    <string name="show_password_content_desc">Show password</string>
+
+    <!-- Validation errors -->
+    <string name="passwords_mismatch">Passwords do not match.</string>
+    <string name="invalid_password">Password must be at least 6 characters.</string>
+    <string name="google_sign_in_failed">Google sign in failed</string>
+    <string name="invalid_email">Invalid email format.</string>
+</resources>

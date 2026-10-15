@@ -14,9 +14,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import com.flexaura.components.general.rememberPhotoPickerLauncher
 import com.flexaura.components.user.ProfileImage
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.features.profile.R
 
 @Composable
 internal fun ProfileImagePicker(
@@ -33,7 +35,7 @@ internal fun ProfileImagePicker(
         ProfileImage(
             imageModel = selectedImageUri,
             onClick = launchPhotoPicker,
-            modifier = Modifier.size(120.dp)
+            modifier = Modifier.size(FlexAuraTheme.dimens.profileImageSizeLarge)
         )
 
         IconButton(
@@ -43,14 +45,14 @@ internal fun ProfileImagePicker(
                 contentColor = MaterialTheme.colorScheme.onSecondary
             ),
             modifier = Modifier
-                .size(32.dp)
+                .size(FlexAuraTheme.dimens.iconSizeLarge)
                 .align(Alignment.BottomEnd)
                 .clip(CircleShape)
         ) {
             Icon(
                 imageVector = Icons.Default.Edit,
-                contentDescription = "Edit profile photo",
-                modifier = Modifier.size(24.dp)
+                contentDescription = stringResource(R.string.edit_profile_photo_content_desc),
+                modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeMedium)
             )
         }
     }

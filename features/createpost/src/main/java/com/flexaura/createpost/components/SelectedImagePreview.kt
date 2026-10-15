@@ -17,8 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.createpost.R
 
 @Composable
 internal fun SelectedImagePreview(
@@ -29,11 +31,11 @@ internal fun SelectedImagePreview(
     Box(modifier = modifier) {
         AsyncImage(
             model = imageUri,
-            contentDescription = "Selected image",
+            contentDescription = stringResource(R.string.selected_image),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(FlexAuraTheme.dimens.paddingSmall))
         )
         IconButton(
             onClick = onRemoveImage,
@@ -43,12 +45,12 @@ internal fun SelectedImagePreview(
             modifier = Modifier
                 .clip(CircleShape)
                 .align(Alignment.TopEnd)
-                .padding(8.dp)
+                .padding(FlexAuraTheme.dimens.paddingSmall)
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 tint = Color.Black,
-                contentDescription = "Remove image"
+                contentDescription = stringResource(R.string.remove_image)
             )
         }
     }

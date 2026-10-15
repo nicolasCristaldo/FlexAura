@@ -12,12 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 data class StateInfo(
     val title: String,
     val text: String? = null,
-    val onActionButtonText: String = "Retry",
+    val actionText: String? = null,
     val onActionClick: (() -> Unit)? = null
 )
 
@@ -29,7 +29,7 @@ fun StateInfoScreen(
     StateInfoScreen(
         title = stateInfo.title,
         text = stateInfo.text,
-        onActionButtonText = stateInfo.onActionButtonText,
+        actionText = stateInfo.actionText,
         onActionClick = stateInfo.onActionClick,
         modifier = modifier
     )
@@ -40,7 +40,7 @@ fun StateInfoScreen(
     title: String,
     modifier: Modifier = Modifier,
     text: String? = null,
-    onActionButtonText: String = "Retry",
+    actionText: String? = null,
     onActionClick: (() -> Unit)? = null
 ) {
     Column(
@@ -54,7 +54,7 @@ fun StateInfoScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingSmall))
 
         text?.let {
             Text(
@@ -63,12 +63,12 @@ fun StateInfoScreen(
             )
         }
 
-        if(onActionClick != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+        if(onActionClick != null && actionText != null) {
+            Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingLarge))
 
             OutlinedButton(
                 onClick = onActionClick,
-                content = { Text(text = onActionButtonText) },
+                content = { Text(text = actionText) },
                 shape = CircleShape
             )
         }
