@@ -23,13 +23,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraFab
 import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appMainBackground
 import com.flexaura.features.home.HomeUiEffect.NavigateToAuthorProfile
 import com.flexaura.features.home.HomeUiEffect.NavigateToPostDetail
@@ -41,6 +42,8 @@ import com.flexaura.features.home.HomeUiIntent.OnSavedClicked
 import com.flexaura.features.home.HomeUiIntent.OnVoteClicked
 import com.flexaura.features.home.HomeUiIntent.Refresh
 import com.flexaura.features.home.components.HomeTopAppBar
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.features.home.R as HomeR
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +79,12 @@ internal fun HomeRoute(
                 modifier = Modifier.fillMaxHeight(.065f)
             )
         },
-        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) },
+        floatingActionButton = {
+            FlexAuraFab(
+                onClick = onNavigateToCreatePost,
+                contentDescription = stringResource(DesignR.string.create_post_content_desc),
+            )
+        },
         containerColor = Color.Transparent,
         modifier = Modifier.appMainBackground()
     ) { innerPadding ->
@@ -86,7 +94,6 @@ internal fun HomeRoute(
             modifier = Modifier.padding(innerPadding)
         )
     }
-
 }
 
 @Composable
@@ -151,28 +158,28 @@ private fun HomeScreen(
                     onDeletePost = { postId ->
                         onIntent(OnDeletePostClicked(postId))
                     },
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                 )
             }
         }
     }
 }
 
+@Composable
 private fun getHomeStateInfo(
     state: HomeUiState,
     currentTab: HomeTab,
     onRetry: (() -> Unit)? = null
 ): StateInfo = when {
     state.errorMessage != null -> StateInfo(
-        title = "Something went wrong",
+        title = stringResource(DesignR.string.something_went_wrong),
         text = state.errorMessage,
-        onActionClick = onRetry
+        onActionClick = onRetry,
+        actionText = stringResource(DesignR.string.retry)
     )
-    currentTab == HomeTab.DISCOVER -> StateInfo(
-        title = "No posts found"
-    )
+    currentTab == HomeTab.DISCOVER -> StateInfo(title = stringResource(DesignR.string.no_posts_found))
     else -> StateInfo(
-        title = "Your feed is empty",
-        text = "Follow someone to see their posts here."
+        title = stringResource(HomeR.string.empty_following_title),
+        text = stringResource(HomeR.string.empty_following_desc)
     )
 }

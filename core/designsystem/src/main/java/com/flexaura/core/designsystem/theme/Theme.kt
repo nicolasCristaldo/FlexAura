@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -262,6 +263,8 @@ fun FlexAuraTheme(
     dynamicColor: Boolean = false,
     content: @Composable() () -> Unit
 ) {
+    val dimensions = AppDimensions
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
@@ -272,9 +275,17 @@ fun FlexAuraTheme(
         else -> lightScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalDimensions provides dimensions) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
+}
+
+object FlexAuraTheme {
+    val dimens: AppDimensions
+        @Composable
+        get() = LocalDimensions.current
 }

@@ -17,7 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,9 +26,9 @@ fun ConfirmationDialog(
     text: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
+    confirmText: String,
+    dismissText: String,
     modifier: Modifier = Modifier,
-    confirmText: String = "Delete",
-    dismissText: String = "Cancel",
     isDestructive: Boolean = true
 ) {
     BasicAlertDialog(
@@ -37,17 +37,16 @@ fun ConfirmationDialog(
     ) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp
+            color = MaterialTheme.colorScheme.surface
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(FlexAuraTheme.dimens.paddingLarge)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingLarge))
 
                 Text(
                     text = text,
@@ -55,7 +54,7 @@ fun ConfirmationDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingLarge))
 
                 Row(
                     horizontalArrangement = Arrangement.End,
@@ -65,7 +64,7 @@ fun ConfirmationDialog(
                         Text(text = dismissText)
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingMedium))
 
                     TextButton(onClick = onConfirm) {
                         Text(

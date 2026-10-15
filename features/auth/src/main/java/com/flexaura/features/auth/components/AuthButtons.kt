@@ -15,10 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.features.auth.R
 
 @Composable
 internal fun LoginButtonsSection(
@@ -35,19 +36,19 @@ internal fun LoginButtonsSection(
             CircularProgressIndicator()
         } else {
             AuthButton(
-                title = "Log in",
+                title = stringResource(R.string.login_button),
                 onClick = onLoginWithEmailClicked,
                 modifier = Modifier.fillMaxWidth(.3f)
             )
 
             Text(
-                text = "Or",
+                text = stringResource(R.string.login_divider_or),
                 style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(4.dp)
+                modifier = Modifier.padding(FlexAuraTheme.dimens.paddingExtraSmall)
             )
 
             AuthButton(
-                title = "Log in with Google",
+                title = stringResource(R.string.login_button_google),
                 iconRes = R.drawable.ic_google,
                 onClick = onLoginWithGoogleClicked,
                 modifier = Modifier.fillMaxWidth(.9f)
@@ -73,7 +74,7 @@ internal fun AuthButton(
                     painter = painterResource(id = it),
                     contentDescription = null,
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeMedium)
                 )
             }
 

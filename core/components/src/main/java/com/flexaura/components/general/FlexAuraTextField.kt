@@ -18,19 +18,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 fun FlexAuraTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    trailingIconDescription: String,
     modifier: Modifier = Modifier,
     trailingIconRes: Int = R.drawable.ic_clear,
     onTrailingIconClick: () -> Unit = { onValueChange("") },
-    trailingIconDescription: String = "Clear text",
     isError: Boolean = false,
     errorMessage: String? = null,
     forceErrorVisibility: Boolean = false,
@@ -41,7 +42,7 @@ fun FlexAuraTextField(
     val showError = isError && (isDirty || forceErrorVisibility)
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingSmall),
         modifier = modifier
     ) {
         Text(
@@ -61,7 +62,7 @@ fun FlexAuraTextField(
                 if (value.isNotEmpty()) {
                     IconButton(
                         onClick = { onTrailingIconClick() },
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeMedium)
                     ) {
                         Icon(
                             painter = painterResource(id = trailingIconRes),
@@ -74,7 +75,7 @@ fun FlexAuraTextField(
             supportingText = {
                 if (showError) {
                     Text(
-                        text = errorMessage ?: "Error",
+                        text = errorMessage ?: stringResource(R.string.error),
                         color = MaterialTheme.colorScheme.error
                     )
                 }

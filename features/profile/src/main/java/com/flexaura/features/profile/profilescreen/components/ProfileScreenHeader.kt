@@ -15,13 +15,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
-import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.features.profile.R as ProfileR
 import com.flexaura.core.designsystem.theme.negativeAuraColor
 import com.flexaura.core.designsystem.theme.positiveAuraColor
 import com.flexaura.core.designsystem.util.toCompactString
@@ -36,7 +39,7 @@ internal fun ProfileScreenHeader(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingLarge),
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
@@ -47,7 +50,7 @@ internal fun ProfileScreenHeader(
             ProfileImage(
                 imageModel = user.imageUrl,
                 size = 78,
-                modifier = Modifier.padding(end = 12.dp)
+                modifier = Modifier.padding(end = FlexAuraTheme.dimens.paddingMedium)
             )
 
             UserIdentity(
@@ -55,16 +58,22 @@ internal fun ProfileScreenHeader(
                 username = user.username,
                 displayNameStyle = MaterialTheme.typography.headlineMedium,
                 usernameStyle = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.widthIn(max = 250.dp)
+                modifier = Modifier.widthIn(max = FlexAuraTheme.dimens.userIdentityMaxWidth)
             )
 
             if (!isOwnProfile) {
                 FollowButton(
                     onToggleFollow = onToggleFollowClicked,
-                    iconRes = if (user.isFollowedByCurrentUser) R.drawable.ic_remove else R.drawable.ic_add,
-                    contentDescription = if (user.isFollowedByCurrentUser) "Unfollow" else "Follow",
+                    iconRes = if (user.isFollowedByCurrentUser) ProfileR.drawable.ic_remove else ProfileR.drawable.ic_add,
+                    contentDescription = stringResource(
+                        if (user.isFollowedByCurrentUser) ProfileR.string.unfollow
+                        else ProfileR.string.follow
+                    ),
                     modifier = Modifier
-                        .padding(start = 8.dp, top = 20.dp)
+                        .padding(
+                            start = FlexAuraTheme.dimens.paddingSmall,
+                            top = FlexAuraTheme.dimens.paddingLarge
+                        )
                         .align(Alignment.Top)
                 )
             }
@@ -104,28 +113,28 @@ private fun ProfileStats(
     ) {
         StatItem(
             value = totalAura,
-            label = "Aura",
+            label = stringResource(ProfileR.string.aura_label),
             icon = {
-                val iconToShow = if (totalAura >= 0) R.drawable.ic_flame else R.drawable.ic_skull
+                val iconToShow = if (totalAura >= 0) DesignR.drawable.ic_flame else DesignR.drawable.ic_skull
                 val tint = if (totalAura >= 0) positiveAuraColor else negativeAuraColor
 
                 Icon(
                     painter = painterResource(id = iconToShow),
                     contentDescription = null,
                     tint = tint,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeLarge)
                 )
             }
         )
 
         StatItem(
             value = followersCount,
-            label = "Followers"
+            label = stringResource(ProfileR.string.followers_label)
         )
 
         StatItem(
             value = followingCount,
-            label = "Following"
+            label = stringResource(ProfileR.string.following_label)
         )
     }
 }
@@ -144,17 +153,17 @@ private fun StatItem(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = value.toCompactString(),
+                text = value.toCompactString(LocalContext.current),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(end = 4.dp)
+                modifier = Modifier.padding(end = FlexAuraTheme.dimens.paddingExtraSmall)
             )
 
             icon()
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingExtraSmall))
 
         Text(
             text = label,

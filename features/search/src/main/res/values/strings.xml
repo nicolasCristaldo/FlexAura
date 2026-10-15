@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Placeholders -->
+    <string name="search">Search</string>
+
+    <!-- Error states -->
+    <string name="search_error_title">Search failed</string>
+
+    <!-- Initial state -->
+    <string name="search_empty_start_title">Search for something!</string>
+    <string name="search_empty_start_desc">Find amazing post and profiles to connect with.</string>
+
+    <!-- Search results -->
+    <string name="search_no_results_users_title">No users found</string>
+    <string name="search_no_results_users_desc">Try a different name or keyword.</string>
+    <string name="search_no_results_posts_title">No posts found</string>
+    <string name="search_no_results_posts_desc">We couldn\'t find any posts matching your search.</string>
+</resources>

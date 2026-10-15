@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen titles -->
+    <string name="profile_screen_title">Profile</string>
+    <string name="edit_profile_screen_title">Edit profile</string>
+
+    <!-- Empty & Error states -->
+    <string name="profile_error_load_title">Could not load profile</string>
+    <string name="profile_empty_posts_title">No posts found</string>
+    <string name="profile_empty_posts_desc">This user has no posts</string>
+    <string name="profile_empty_posts_own_desc">Create a post to see it here</string>
+    <string name="profile_empty_saved_title">No saved posts found</string>
+    <string name="profile_empty_saved_desc">Save a post to see it here</string>
+
+    <!-- Actions -->
+    <string name="save_profile">Save profile</string>
+    <string name="logout">Log out</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="follow">Follow</string>
+
+    <!-- Labels -->
+    <string name="bio_label">Bio</string>
+    <string name="aura_label">Aura</string>
+    <string name="followers_label">Followers</string>
+    <string name="following_label">Following</string>
+
+    <!-- Content descriptions -->
+    <string name="edit_profile_photo_content_desc">Edit profile photo</string>
+    <string name="edit_profile_content_desc">Edit profile</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_logout_text">Are you sure you want to log out?</string>
+
+    <!-- Errors -->
+    <string name="invalid_bio">The biography cannot exceed 200 characters</string>
+    <string name="error_loading_profile">Error loading profile</string>
+</resources>

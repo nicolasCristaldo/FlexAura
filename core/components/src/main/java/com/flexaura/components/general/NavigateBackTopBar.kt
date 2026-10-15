@@ -14,9 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 fun NavigateBackTopBar(
@@ -31,21 +32,21 @@ fun NavigateBackTopBar(
             .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth()
     ) {
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingSmall))
 
         IconButton(
             onClick = onNavigateBack,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(FlexAuraTheme.dimens.iconSizeLarge)
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_arrow_back),
-                contentDescription = "Navigate back",
+                contentDescription = stringResource(R.string.navigate_back_content_desc),
                 tint = MaterialTheme.colorScheme.onBackground
             )
         }
 
         title?.let { title ->
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingSmall))
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
@@ -58,7 +59,7 @@ fun NavigateBackTopBar(
 
         trailingContent?.let { icon ->
             icon()
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(FlexAuraTheme.dimens.paddingSmall))
         }
     }
 }

@@ -21,7 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,7 +60,7 @@ fun PostInteractionButtons(
         PostIcon(
             interactions = post.commentsCount,
             iconRes = R.drawable.ic_comment,
-            contentDescription = "Comments",
+            contentDescription = stringResource(R.string.comments_content_desc),
             onClick = { onPostClicked(post.id) },
             size = iconSize
         )
@@ -66,7 +68,7 @@ fun PostInteractionButtons(
         PostIcon(
             interactions = post.savesCount,
             iconRes = R.drawable.ic_bookmark,
-            contentDescription = "Saves",
+            contentDescription = stringResource(R.string.saves_content_desc),
             tint = if (post.isSavedByUser) MaterialTheme.colorScheme.secondary.copy(alpha = .8f)
             else MaterialTheme.colorScheme.onSurfaceVariant,
             onClick = { onSavedClicked(post.id) },
@@ -74,7 +76,7 @@ fun PostInteractionButtons(
         )
 
         Text(
-            text = post.createdAt.toRelativeTimeSpan(),
+            text = post.createdAt.toRelativeTimeSpan(context = LocalContext.current),
             textAlign = TextAlign.End,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -97,7 +99,7 @@ private fun ExpandableIconVote(
         PostIcon(
             interactions = totalAura,
             iconRes = if (totalAura >= 0) R.drawable.ic_flame else R.drawable.ic_skull,
-            contentDescription = "Aura",
+            contentDescription = stringResource(R.string.aura_content_desc),
             onClick = { expanded = !expanded },
             tint = when (currentVote) {
                 0 -> MaterialTheme.colorScheme.onSurfaceVariant
@@ -147,7 +149,7 @@ private fun PostIcon(
         modifier = modifier
     ) {
         Text(
-            text = interactions.toCompactString(),
+            text = interactions.toCompactString(context = LocalContext.current),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
