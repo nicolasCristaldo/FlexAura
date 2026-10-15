@@ -23,7 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.ConfirmationDialog
@@ -31,6 +31,9 @@ import com.flexaura.components.general.FlexAuraFab
 import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.features.profile.R as ProfileR
 import com.flexaura.core.designsystem.theme.appMainBackground
 import com.flexaura.features.profile.profilescreen.ProfileUiEffect.NavigateToAuthorProfile
 import com.flexaura.features.profile.profilescreen.ProfileUiEffect.NavigateToPostDetail
@@ -80,7 +83,12 @@ internal fun ProfileRoute(
                 modifier = Modifier.fillMaxHeight(.05f)
             )
         },
-        floatingActionButton = { FlexAuraFab(onClick = onNavigateToCreatePost) },
+        floatingActionButton = {
+            FlexAuraFab(
+                onClick = onNavigateToCreatePost,
+                contentDescription = stringResource(DesignR.string.create_post_content_desc)
+            )
+        },
         containerColor = Color.Transparent,
         modifier = Modifier.appMainBackground()
     ) { innerPadding ->
@@ -91,7 +99,8 @@ internal fun ProfileRoute(
             ) { CircularProgressIndicator() }
 
             (state.errorMessage != null && state.user == null) || state.user == null-> StateInfoScreen(
-                title = "Error loading profile",
+                title = stringResource(ProfileR.string.error_loading_profile),
+                actionText = stringResource(DesignR.string.retry),
                 modifier = Modifier.fillMaxSize()
             ) { viewModel.handleIntent(ProfileUiIntent.Refresh) }
 
@@ -119,11 +128,12 @@ private fun ProfileScreen(
 
     if (state.showDialog) {
         ConfirmationDialog(
-            title = "Log out",
-            text = "Are you sure you want to log out?",
+            title = stringResource(ProfileR.string.logout),
+            text = stringResource(ProfileR.string.dialog_logout_text),
             onConfirm = { onIntent(ProfileUiIntent.LogoutConfirmed) },
             onDismiss = { onIntent(ProfileUiIntent.ShowLogoutDialog(false)) },
-            confirmText = "Log out"
+            confirmText = stringResource(ProfileR.string.logout),
+            dismissText = stringResource(DesignR.string.cancel),
         )
     }
 
@@ -135,7 +145,7 @@ private fun ProfileScreen(
                 user = it,
                 isOwnProfile = state.isOwnProfile,
                 onToggleFollowClicked = { onIntent(OnToggleFollowClicked) },
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(FlexAuraTheme.dimens.paddingMedium)
             )
 
             TabRow(
@@ -183,7 +193,7 @@ private fun ProfileScreen(
                         onAuthorClicked = { authorId ->
                             if (state.user.id != authorId) onIntent(OnAuthorClicked(authorId))
                         },
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                     )
                 }
             }
@@ -191,6 +201,7 @@ private fun ProfileScreen(
     }
 }
 
+@Composable
 private fun getTabStateInfo(
     currentTab: ProfileTab,
     isOwnProfile: Boolean,
@@ -198,16 +209,20 @@ private fun getTabStateInfo(
     onRetry: (() -> Unit)? = null
 ): StateInfo = when {
     errorMessage != null -> StateInfo(
-        title = "Something went wrong",
+        title = stringResource(DesignR.string.something_went_wrong),
         text = errorMessage,
-        onActionClick = onRetry
+        onActionClick = onRetry,
+        actionText = stringResource(DesignR.string.retry)
     )
     currentTab == ProfileTab.POSTS -> StateInfo(
-        title = if (isOwnProfile) "No posts found" else "This user has no posts",
-        text = if (isOwnProfile) "Create a post to see it here." else null
+        title = stringResource(
+            if (isOwnProfile) ProfileR.string.profile_empty_posts_title
+            else ProfileR.string.profile_empty_posts_desc
+        ),
+        text = if (isOwnProfile) stringResource(ProfileR.string.profile_empty_posts_own_desc) else null
     )
     else -> StateInfo(
-        title = if (isOwnProfile) "No saved posts found" else "This user has no saved posts",
-        text = if (isOwnProfile) "Save a post to see it here." else null
+        title = stringResource(ProfileR.string.profile_empty_saved_title),
+        text = if (isOwnProfile) stringResource(ProfileR.string.profile_empty_saved_desc) else null
     )
 }

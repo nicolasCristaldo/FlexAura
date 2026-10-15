@@ -23,14 +23,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraTextField
-import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.features.auth.R as AuthR
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.data.domain.util.isValidEmail
 import com.flexaura.data.domain.util.isValidPassword
@@ -91,12 +93,12 @@ private fun LoginScreen(
     if (state.showVerificationDialog) {
         AlertDialog(
             onDismissRequest = { onIntent(LoginUiIntent.OnDissmissVerificationDialog) },
-            title = { Text(text = "Verify your email") },
-            text = { Text(text = "We've sent a verification link to ${state.email}. Please check your inbox and follow the instructions to sign in.") },
+            title = { Text(text = stringResource(AuthR.string.dialog_verify_email_title)) },
+            text = { Text(text = stringResource(AuthR.string.dialog_verify_email_desc, state.email)) },
             confirmButton = {
                 TextButton(
                     onClick = { onIntent(LoginUiIntent.OnDissmissVerificationDialog) }
-                ) { Text(text = "Got it") }
+                ) { Text(text = stringResource(AuthR.string.dialog_verify_email_confirm)) }
             }
         )
     }
@@ -106,20 +108,20 @@ private fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(FlexAuraTheme.dimens.paddingLarge)
     ) {
         Spacer(modifier = Modifier.weight(.5f))
 
         Text(
-            text = "FlexAura",
+            text = stringResource(AuthR.string.login_screen_title),
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.displayLarge,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = FlexAuraTheme.dimens.paddingSmall)
         )
 
         Text(
-            text = "Log in to your account",
+            text = stringResource(AuthR.string.login_screen_subtitle),
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -128,26 +130,30 @@ private fun LoginScreen(
         FlexAuraTextField(
             value = state.email,
             onValueChange = { onIntent(LoginUiIntent.OnEmailChanged(it)) },
-            label = "Email",
+            label = stringResource(AuthR.string.email_label),
             isError = !state.email.isValidEmail(),
-            errorMessage = "Invalid email.",
+            errorMessage = stringResource(AuthR.string.invalid_email),
             forceErrorVisibility = state.showErrors,
+            trailingIconDescription = stringResource(DesignR.string.clear_content_desc),
             modifier = Modifier.fillMaxWidth(.9f)
         )
 
-        Spacer(modifier = Modifier.padding(8.dp))
+        Spacer(modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall))
 
         FlexAuraTextField(
             value = state.password,
             onValueChange = { onIntent(LoginUiIntent.OnPasswordChanged(it)) },
-            label = "Password",
+            label = stringResource(AuthR.string.password_label),
             isError = !state.password.isValidPassword(),
-            trailingIconDescription = if (state.showPassword) "Hide password" else "Show password",
-            trailingIconRes = if (state.showPassword) R.drawable.ic_visibility_off else R.drawable.ic_visibility,
+            trailingIconDescription = stringResource(
+                if (state.showPassword) AuthR.string.hide_password_content_desc
+                else AuthR.string.show_password_content_desc
+            ),
+            trailingIconRes = if (state.showPassword) AuthR.drawable.ic_visibility_off else AuthR.drawable.ic_visibility,
             onTrailingIconClick = { onIntent(LoginUiIntent.OnShowPasswordChanged) },
             visualTransformation = if (state.showPassword) VisualTransformation.None
                 else PasswordVisualTransformation(),
-            errorMessage = "Password must be at least 6 characters.",
+            errorMessage = stringResource(AuthR.string.invalid_password),
             forceErrorVisibility = state.showErrors,
             modifier = Modifier.fillMaxWidth(.9f)
         )
@@ -164,8 +170,8 @@ private fun LoginScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         AuthenticationFooter(
-            text = "Don't have an account?",
-            actionText = "Register here",
+            text = stringResource(AuthR.string.login_footer_text),
+            actionText = stringResource(AuthR.string.login_footer_action),
             onActionClick = { onIntent(LoginUiIntent.OnRegisterNavigated) }
         )
     }

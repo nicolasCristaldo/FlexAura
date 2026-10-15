@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Titles & Texts -->
+    <string name="create_post_title">Create post</string>
+
+    <!-- Actions -->
+    <string name="create">Create post</string>
+
+    <!-- Placeholders -->
+    <string name="create_post_input_placeholder">What\'s on your mind?</string>
+
+    <!-- Content descriptions -->
+    <string name="selected_image">Selected image</string>
+    <string name="remove_image">Remove image</string>
+    <string name="pick_image">Pick image</string>
+</resources>

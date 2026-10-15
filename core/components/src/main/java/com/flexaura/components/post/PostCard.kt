@@ -20,10 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
+import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.data.domain.model.Post
 
 @Composable
@@ -45,14 +47,14 @@ fun PostCard(
             .cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .2f)
             ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(FlexAuraTheme.dimens.cornerRadiusLarge),
         modifier = modifier
             .fillMaxWidth()
             .clickable { onPostClicked(post.id) }
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingExtraSmall),
+            modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
         ) {
             ProfileImage(
                 imageModel = post.author?.imageUrl,
@@ -76,7 +78,7 @@ fun PostCard(
                 }
 
                 post.content?.let {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingSmall))
                     Column {
                         Text(
                             text = it,
@@ -92,7 +94,10 @@ fun PostCard(
                         )
                         if (showReadMore) {
                             Text(
-                                text = if (isTextExpanded) "See less" else "Read more",
+                                text = stringResource(
+                                    if (isTextExpanded) R.string.see_less
+                                    else R.string.read_more
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.clickable { isTextExpanded = !isTextExpanded}
@@ -102,11 +107,11 @@ fun PostCard(
                 }
 
                 post.imageUrl?.let {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingSmall))
                     PostImage(imageUrl = it, size = 250)
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingSmall))
 
                 PostInteractionButtons(
                     post = post,

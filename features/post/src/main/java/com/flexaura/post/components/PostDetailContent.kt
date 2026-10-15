@@ -8,11 +8,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.flexaura.components.post.PostImage
 import com.flexaura.components.post.PostInteractionButtons
 import com.flexaura.components.user.ProfileImage
 import com.flexaura.components.user.UserIdentity
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.data.domain.model.Post
 
 @Composable
@@ -24,12 +24,12 @@ internal fun PostDetailContent(
     modifier: Modifier = Modifier
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingMedium),
         modifier = modifier
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingSmall)
         ) {
             ProfileImage(
                 imageModel = post.author?.imageUrl,

@@ -9,6 +9,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.flexaura.features.home.R
 
 @Composable
 internal fun HomeTopAppBar(
@@ -25,7 +27,7 @@ internal fun HomeTopAppBar(
             onClick = onClick
         ) {
             Text(
-                text = "FlexAura",
+                text = stringResource(R.string.home_screen_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )

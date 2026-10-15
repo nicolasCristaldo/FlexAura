@@ -6,8 +6,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import com.flexaura.core.designsystem.R
 
 @Composable
 fun UserIdentity(
@@ -29,7 +31,7 @@ fun UserIdentity(
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            text = "@$username",
+            text = stringResource(R.string.username_format, username),
             style = usernameStyle,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

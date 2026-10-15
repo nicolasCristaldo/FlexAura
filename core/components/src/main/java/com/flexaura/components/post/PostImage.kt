@@ -6,8 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 fun PostImage(
@@ -17,10 +20,10 @@ fun PostImage(
 ) {
     AsyncImage(
         model = imageUrl,
-        contentDescription = "Post image",
+        contentDescription = stringResource(R.string.post_image_content_desc),
         contentScale = ContentScale.Crop,
         modifier = modifier
             .heightIn(max = size.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(FlexAuraTheme.dimens.cornerRadiusSmall))
     )
 }

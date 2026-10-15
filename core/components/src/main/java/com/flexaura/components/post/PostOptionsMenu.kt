@@ -16,8 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import com.flexaura.components.general.ConfirmationDialog
+import com.flexaura.core.designsystem.R
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 fun PostOptionsMenu(
@@ -30,9 +32,9 @@ fun PostOptionsMenu(
     Box(modifier = modifier) {
         Icon(
             imageVector = Icons.Default.MoreVert,
-            contentDescription = "Options",
+            contentDescription = stringResource(R.string.options_content_desc),
             modifier = Modifier
-                .size(18.dp)
+                .size(FlexAuraTheme.dimens.iconSizeSmall)
                 .clickable { showMenu = !showMenu }
         )
         DropdownMenu(
@@ -42,7 +44,7 @@ fun PostOptionsMenu(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = "Delete",
+                        text = stringResource(R.string.delete),
                         color = MaterialTheme.colorScheme.error
                     )
                 },
@@ -55,13 +57,15 @@ fun PostOptionsMenu(
 
         if (showDeleteDialog) {
             ConfirmationDialog(
-                title = "Delete Post",
-                text = "Are you sure you want to delete this post? This action cannot be undone.",
+                title = stringResource(R.string.dialog_delete_post_title),
+                text = stringResource(R.string.dialog_delete_post_text),
                 onConfirm = {
                     showDeleteDialog = false
                     onDeletePost()
                 },
-                onDismiss = { showDeleteDialog = false }
+                onDismiss = { showDeleteDialog = false },
+                confirmText = stringResource(R.string.delete),
+                dismissText = stringResource(R.string.cancel)
             )
         }
     }

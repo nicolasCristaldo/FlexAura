@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 internal fun FollowButton(
@@ -23,7 +23,7 @@ internal fun FollowButton(
             containerColor = MaterialTheme.colorScheme.onBackground,
             contentColor = MaterialTheme.colorScheme.background
         ),
-        modifier = modifier.size(18.dp)
+        modifier = modifier.size(FlexAuraTheme.dimens.iconSizeSmall)
     ) {
         Icon(
             painter = painterResource(iconRes),

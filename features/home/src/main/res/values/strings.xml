@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Titles & Texts -->
+    <string name="home_screen_title">FlexAura</string>
+
+    <!-- Empty states -->
+    <string name="empty_following_title">Your feed is empty</string>
+    <string name="empty_following_desc">Follow someone to see their posts here.</string>
+</resources>

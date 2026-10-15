@@ -9,7 +9,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 @Composable
 internal fun AuthenticationFooter(
@@ -25,7 +25,7 @@ internal fun AuthenticationFooter(
     ) {
         Text(text)
 
-        Spacer(modifier = Modifier.padding(4.dp))
+        Spacer(modifier = Modifier.padding(FlexAuraTheme.dimens.paddingExtraSmall))
 
         TextButton(onClick = onActionClick) {
             Text(actionText)
