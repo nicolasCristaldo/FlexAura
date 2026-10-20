@@ -35,6 +35,8 @@ internal class SearchViewModel @Inject constructor(
     private val deletePostUseCase: DeletePostUseCase,
     private val toggleSavePostUseCase: ToggleSavePostUseCase
 ) : ViewModel() {
+    private val pageSize = 10
+
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> get() = _uiState.asStateFlow()
 
@@ -62,6 +64,8 @@ internal class SearchViewModel @Inject constructor(
         )
 
         is SearchUiIntent.OnDeletePostClicked -> deletePost(intent.postId)
+        is SearchUiIntent.LoadPosts -> loadPosts(intent.isRetry)
+        is SearchUiIntent.LoadUsers -> loadUsers(intent.isRetry)
     }
 
     private fun observeAuthUser() = viewModelScope.launch {
@@ -82,9 +86,18 @@ internal class SearchViewModel @Inject constructor(
         if (query.isBlank()) return@launch
         _uiState.update { it.copy(isSearching = true, errorMessage = null, hasSearched = true) }
 
+        _uiState.update {
+            it.copy(
+                isSearching = true,
+                errorMessage = null,
+                hasSearched = true,
+                postsResults = it.postsResults.copy(items = emptyList(), currentPage = 1, endReached = false),
+                usersResults = it.usersResults.copy(items = emptyList(), currentPage = 1, endReached = false)
+            )
+        }
         try {
-            val usersDeferred = async { searchUsersUseCase(query, 1, 10) }
-            val postsDeferred = async { searchPostsUseCase(query, 1, 10) }
+            val usersDeferred = async { searchUsersUseCase(query, 1, pageSize) }
+            val postsDeferred = async { searchPostsUseCase(query, 1, pageSize) }
 
             val usersResult = usersDeferred.await()
             val postsResult = postsDeferred.await()
@@ -95,16 +108,121 @@ internal class SearchViewModel @Inject constructor(
                 return@launch
             }
 
+            val users = usersResult.getOrDefault(emptyList())
+            val posts = postsResult.getOrDefault(emptyList())
+
             _uiState.update {
                 it.copy(
-                    postsResults = postsResult.getOrDefault(emptyList()),
-                    usersResults = usersResult.getOrDefault(emptyList()),
+                    postsResults = it.postsResults.copy(
+                        items = postsResult.getOrDefault(emptyList()),
+                        currentPage = 2,
+                        endReached = posts.size < pageSize
+                    ),
+                    usersResults = it.usersResults.copy(
+                        items = usersResult.getOrDefault(emptyList()),
+                        currentPage = 2,
+                        endReached = users.size < pageSize
+                    ),
                     isSearching = false,
                     errorMessage = null
                 )
             }
         } catch (e: Exception) {
             handleSearchError(e)
+        }
+    }
+
+    private fun loadUsers(isRetry: Boolean = false) {
+        val state = _uiState.value
+        if (
+            state.usersResults.endReached ||
+            state.usersResults.isLoadingMore ||
+            (state.usersResults.hasPaginationError && !isRetry)
+        ) return
+
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val updatedUsersPagination = state.usersResults.copy(
+                    isLoadingMore = true,
+                    hasPaginationError = false
+                )
+                state.copy(usersResults = updatedUsersPagination)
+            }
+
+            val result = searchUsersUseCase(
+                query = state.query,
+                page = state.usersResults.currentPage,
+                pageSize = pageSize
+            )
+
+            result.fold(
+                onSuccess = { users ->
+                    val isEndReached = users.size < pageSize
+                    val updatedUsersPagination = state.usersResults.copy(
+                        isLoadingMore = false,
+                        endReached = isEndReached,
+                        currentPage = state.usersResults.currentPage + 1,
+                        items = state.usersResults.items + users
+                    )
+                    _uiState.update { it.copy(usersResults = updatedUsersPagination) }
+                },
+                onFailure = {
+                    _uiState.update { state ->
+                        val updatedUsersPagination = state.usersResults.copy(
+                            isLoadingMore = false,
+                            hasPaginationError = true
+                        )
+                        state.copy(usersResults = updatedUsersPagination)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun loadPosts(isRetry: Boolean = false) {
+        val state = _uiState.value
+        if (
+            state.postsResults.endReached ||
+            state.postsResults.isLoadingMore ||
+            (state.postsResults.hasPaginationError && !isRetry)
+        ) return
+
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val updatedPostsPagination = state.postsResults.copy(
+                    isLoadingMore = true,
+                    hasPaginationError = false
+                )
+                state.copy(postsResults = updatedPostsPagination)
+            }
+
+            val result = searchPostsUseCase(
+                query = state.query,
+                page = state.postsResults.currentPage,
+                pageSize = pageSize
+            )
+
+            result.fold(
+                onSuccess = { posts ->
+                    val isEndReached = posts.size < pageSize
+                    val updatedPostsPagination = state.postsResults.copy(
+                        isLoadingMore = false,
+                        endReached = isEndReached,
+                        currentPage = state.postsResults.currentPage + 1,
+                        items = state.postsResults.items + posts
+                    )
+                    _uiState.update { it.copy(postsResults = updatedPostsPagination) }
+                },
+                onFailure = {
+                    _uiState.update { state ->
+                        val updatedPostsPagination = state.postsResults.copy(
+                            isLoadingMore = false,
+                            hasPaginationError = true
+                        )
+                        state.copy(postsResults = updatedPostsPagination)
+                    }
+                }
+            )
         }
     }
 
@@ -149,12 +267,12 @@ internal class SearchViewModel @Inject constructor(
     }
 
     private fun updatePostInState(postId: String, update: (Post) -> Post) {
-        _uiState.update { currentState ->
-            val updatedPosts = currentState.postsResults.map { post ->
+        _uiState.update { state ->
+            val updatedPosts = state.postsResults.items.map { post ->
                 if (post.id == postId) update(post) else post
             }
 
-            currentState.copy(postsResults = updatedPosts)
+            state.copy(postsResults = state.postsResults.copy(items = updatedPosts))
         }
     }
 

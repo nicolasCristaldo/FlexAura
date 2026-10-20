@@ -65,7 +65,7 @@ internal fun CommentInputBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = stringResource(R.string.send_comment_content_desc),
-                tint = if (content.isNotBlank()) MaterialTheme.colorScheme.primary
+                tint = if (commentButtonEnabled) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
         }

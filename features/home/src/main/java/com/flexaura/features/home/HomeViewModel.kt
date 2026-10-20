@@ -12,8 +12,18 @@ import com.flexaura.data.domain.usecase.post.SyncFollowingPostsUseCase
 import com.flexaura.data.domain.usecase.post.SyncPostsUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
-import com.flexaura.features.home.HomeUiEffect.*
-import com.flexaura.features.home.HomeUiIntent.*
+import com.flexaura.features.home.HomeUiEffect.NavigateToAuthorProfile
+import com.flexaura.features.home.HomeUiEffect.NavigateToPostDetail
+import com.flexaura.features.home.HomeUiEffect.ShowSnackBar
+import com.flexaura.features.home.HomeUiIntent.LoadDiscoverPosts
+import com.flexaura.features.home.HomeUiIntent.LoadFollowingPosts
+import com.flexaura.features.home.HomeUiIntent.OnAuthorClicked
+import com.flexaura.features.home.HomeUiIntent.OnDeletePostClicked
+import com.flexaura.features.home.HomeUiIntent.OnPostClicked
+import com.flexaura.features.home.HomeUiIntent.OnSavedClicked
+import com.flexaura.features.home.HomeUiIntent.OnVoteClicked
+import com.flexaura.features.home.HomeUiIntent.Refresh
+import com.flexaura.features.home.HomeUiIntent.SyncPosts
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,7 +47,11 @@ internal class HomeViewModel @Inject constructor(
     private val toggleSavePostUseCase: ToggleSavePostUseCase,
     private val deletePostUseCase: DeletePostUseCase
 ) : ViewModel() {
-    private val _uiState: MutableStateFlow<HomeUiState> = MutableStateFlow(HomeUiState())
+    private val pageSize = 20
+
+    private val _uiState: MutableStateFlow<HomeUiState> = MutableStateFlow(
+        HomeUiState(isLoading = true)
+    )
     val uiState: StateFlow<HomeUiState> get() = _uiState.asStateFlow()
 
     private val _uiEffect: MutableSharedFlow<HomeUiEffect> = MutableSharedFlow()
@@ -46,18 +60,25 @@ internal class HomeViewModel @Inject constructor(
     init {
         observeLocalDataBase()
         observeAuthUser()
-        handleIntent(Init)
+        handleIntent(SyncPosts)
     }
 
     fun handleIntent(intent: HomeUiIntent) = when (intent) {
-        is Init -> syncPosts()
+        is SyncPosts -> {
+            loadDiscoverPosts()
+            loadFollowingPosts()
+        }
+
+        is Refresh -> refresh()
+        is LoadDiscoverPosts -> loadDiscoverPosts(intent.isRetry)
+        is LoadFollowingPosts -> loadFollowingPosts(intent.isRetry)
         is OnSavedClicked -> toggleSavePost(postId = intent.postId)
         is OnVoteClicked -> votePost(
             postId = intent.postId,
             vote = intent.vote,
             currentVote = intent.currentVote
         )
-        is Refresh -> syncPosts()
+
         is OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
         is OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
         is OnDeletePostClicked -> deletePost(intent.postId)
@@ -70,7 +91,12 @@ internal class HomeViewModel @Inject constructor(
         ) { discover, following ->
             discover to following
         }.collect { (discover, following) ->
-            _uiState.update { it.copy(discoverPosts = discover, followingPosts = following) }
+            _uiState.update {
+                it.copy(
+                    discover = it.discover.copy(items = discover),
+                    following = it.following.copy(items = following)
+                )
+            }
         }
     }
 
@@ -80,45 +106,135 @@ internal class HomeViewModel @Inject constructor(
                 is AuthState.Authenticated -> {
                     _uiState.update { it.copy(currentUserId = authState.userId) }
                 }
+
                 is AuthState.Unauthenticated -> {
                     _uiState.update { it.copy(currentUserId = null) }
                 }
+
                 is AuthState.Loading -> Unit
             }
         }
     }
 
-    private fun syncPosts(isRefresh: Boolean = false) = viewModelScope.launch {
-        val pageToFetch = if (isRefresh) 1 else uiState.value.currentPage
+    private fun loadDiscoverPosts(isRetry: Boolean = false) {
+        val state = _uiState.value
+        if (
+            state.discover.endReached ||
+            state.discover.isLoadingMore ||
+            (state.discover.hasPaginationError && !isRetry)
+        ) return
+        val isInitialLoad = state.discover.currentPage == 1 && state.discover.isEmpty
 
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val updatedDiscoverPagination = state.discover.copy(
+                    isLoadingMore = true,
+                    hasPaginationError = false
+                )
+                state.copy(discover = updatedDiscoverPagination)
+            }
+
+            val result = syncPostsUseCase(page = state.discover.currentPage, pageSize = pageSize)
+
+            result.fold(
+                onSuccess = { fetchedCount ->
+                    _uiState.update { state ->
+                        val isEndReached = fetchedCount < pageSize
+                        val updatedDiscoverPagination = state.discover.copy(
+                            isLoadingMore = false,
+                            endReached = isEndReached,
+                            currentPage = state.discover.currentPage + 1
+                        )
+                        state.copy(discover = updatedDiscoverPagination)
+                    }
+                },
+                onFailure = { error ->
+                    if (isInitialLoad) _uiState.update { state ->
+                        state.copy(errorMessage = error.toUserReadableMessage(), isLoading = false)
+                    }
+                    else _uiState.update { state ->
+                        val updatedDiscoverPagination = state.discover.copy(
+                            isLoadingMore = false,
+                            hasPaginationError = true
+                        )
+                        state.copy(discover = updatedDiscoverPagination)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun loadFollowingPosts(isRetry: Boolean = false) {
+        val state = _uiState.value
+        if (
+            state.following.endReached ||
+            state.following.isLoadingMore ||
+            (state.following.hasPaginationError && !isRetry)
+        ) return
+        val isInitialLoad = state.following.currentPage == 1 && state.following.isEmpty
+
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val updatedFollowingPagination = state.following.copy(
+                    isLoadingMore = true,
+                    hasPaginationError = false
+                )
+                state.copy(following = updatedFollowingPagination)
+            }
+
+            val result = syncFollowingPostsUseCase(page = state.following.currentPage, pageSize = pageSize)
+
+            result.fold(
+                onSuccess = { fetchedCount ->
+                    _uiState.update { state ->
+                        val isEndReached = fetchedCount < pageSize
+                        val updatedFollowingPagination = state.following.copy(
+                            isLoadingMore = false,
+                            endReached = isEndReached,
+                            currentPage = state.following.currentPage + 1
+                        )
+                        state.copy(following = updatedFollowingPagination)
+                    }
+                },
+                onFailure = { error ->
+                    if (isInitialLoad) _uiState.update { state ->
+                        state.copy(errorMessage = error.toUserReadableMessage(), isLoading = false)
+                    }
+                    else _uiState.update { state ->
+                        val updatedFollowingPagination = state.following.copy(
+                            isLoadingMore = false,
+                            hasPaginationError = true
+                        )
+                        state.copy(following = updatedFollowingPagination)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun refresh() = viewModelScope.launch {
         _uiState.update {
-            it.copy(isRefreshing = isRefresh, isLoading = !isRefresh, errorMessage = null)
+            it.copy(
+                isRefreshing = true,
+                following = it.following.copy(currentPage = 1, endReached = false),
+                discover = it.discover.copy(currentPage = 1, endReached = false),
+                isLoading = false,
+                errorMessage = null
+            )
         }
 
-        try {
-            val discoverSync = async { syncPostsUseCase(page = pageToFetch) }
-            val followingSync = async { syncFollowingPostsUseCase(page = pageToFetch) }
+        val discoverRes = async { syncPostsUseCase(page = 1, pageSize = pageSize) }
+        val followingRes = async { syncFollowingPostsUseCase(page = 1, pageSize = pageSize) }
 
-            val discoverResult = discoverSync.await()
-            val followingResult = followingSync.await()
+        discoverRes.await()
+        followingRes.await()
 
-            val error = discoverResult.exceptionOrNull() ?: followingResult.exceptionOrNull()
-
-            if (error != null) {
-                handleSyncError(error)
-                return@launch
-            }
-
-            _uiState.update {
-                it.copy(
-                    currentPage = if (isRefresh) 1 else it.currentPage + 1,
-                    isRefreshing = false,
-                    isLoading = false,
-                    errorMessage = null
-                )
-            }
-        } catch (e: Exception) {
-            handleSyncError(e)
+        _uiState.update {
+            it.copy(
+                isRefreshing = false,
+                following = it.following.copy(currentPage = 2),
+                discover = it.discover.copy(currentPage = 2)
+            )
         }
     }
 
@@ -145,18 +261,5 @@ internal class HomeViewModel @Inject constructor(
 
     private fun emitEffect(effect: HomeUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
-    }
-
-    private fun handleSyncError(e: Throwable) {
-        val message = e.toUserReadableMessage()
-        val hasPosts = uiState.value.discoverPosts.isNotEmpty() || uiState.value.followingPosts.isNotEmpty()
-
-        if (hasPosts) {
-            _uiState.update { it.copy(isLoading = false, isRefreshing = false) }
-            emitEffect(ShowSnackBar(message))
-        }
-        else {
-            _uiState.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = message) }
-        }
     }
 }

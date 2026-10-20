@@ -57,4 +57,6 @@
     <string name="something_went_wrong">Something went wrong</string>
     <string name="invalid_display_name">Display name must be between 1 and 25 characters and cannot contain newlines.</string>
     <string name="invalid_username">Username must be between 3 and 15 characters and can only contain letters, numbers, and underscores.</string>
+    <string name="error_loading_users">Error loading users.</string>
+    <string name="error_loading_posts">Error loading posts.</string>
 </resources>

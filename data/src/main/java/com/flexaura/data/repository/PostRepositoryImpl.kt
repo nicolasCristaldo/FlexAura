@@ -54,7 +54,7 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun syncPosts(
         page: Int,
         pageSize: Int
-    ): Result<Unit> = withContext(dispatcher) {
+    ): Result<Int> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.getPosts(page, pageSize)
 
@@ -65,6 +65,7 @@ class PostRepositoryImpl @Inject constructor(
 
             val postEntities = remotePosts.map { it.toEntity() }
             postDao.upsertPosts(postEntities)
+            remotePosts.size
         }
     }
 
@@ -72,7 +73,7 @@ class PostRepositoryImpl @Inject constructor(
         userId: String,
         page: Int,
         pageSize: Int
-    ): Result<Unit> = withContext(dispatcher) {
+    ): Result<Int> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.getPostsByAuthor(userId, page, pageSize)
 
@@ -83,13 +84,14 @@ class PostRepositoryImpl @Inject constructor(
 
             val postEntities = remotePosts.map { it.toEntity() }
             postDao.upsertPosts(postEntities)
+            remotePosts.size
         }
     }
 
     override suspend fun syncSavedPosts(
         page: Int,
         pageSize: Int
-    ): Result<Unit> = withContext(dispatcher) {
+    ): Result<Int> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.getSavedPosts(page, pageSize)
 
@@ -103,10 +105,11 @@ class PostRepositoryImpl @Inject constructor(
 
             val postEntities = remotePosts.map { it.toEntity() }
             postDao.upsertPosts(postEntities)
+            remotePosts.size
         }
     }
 
-    override suspend fun syncFollowingPosts(page: Int, pageSize: Int): Result<Unit> =
+    override suspend fun syncFollowingPosts(page: Int, pageSize: Int): Result<Int> =
         withContext(dispatcher) {
             runCatching {
                 val remotePosts = networkDataSource.getFollowingPosts(page, pageSize)
@@ -120,6 +123,7 @@ class PostRepositoryImpl @Inject constructor(
 
                 val postsEntities = remotePosts.map { it.toEntity() }
                 postDao.upsertPosts(postsEntities)
+                remotePosts.size
             }
         }
 
@@ -144,6 +148,7 @@ class PostRepositoryImpl @Inject constructor(
                 imageUrl = uploadedImageUrl
             )
             syncPosts(page = 1, pageSize = 10).getOrThrow()
+            Unit
         }
     }.await()
 
@@ -206,6 +211,8 @@ class PostRepositoryImpl @Inject constructor(
     ): Result<List<Post>> = withContext(dispatcher) {
         runCatching {
             val remotePosts = networkDataSource.searchPosts(query, page, pageSize)
+
+            if(remotePosts.isEmpty()) return@runCatching emptyList()
 
             val usersToUpsert = remotePosts.mapNotNull {
                 it.author?.toEntity(isCurrentUserFollowing = false)

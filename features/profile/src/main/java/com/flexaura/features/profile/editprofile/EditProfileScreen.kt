@@ -76,7 +76,7 @@ internal fun EditProfileRoute(
         when {
             state.isLoading -> Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.fillMaxSize()
             ) { CircularProgressIndicator() }
 
             state.error != null -> {

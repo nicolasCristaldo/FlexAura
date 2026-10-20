@@ -32,15 +32,8 @@ import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
 import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appMainBackground
-import com.flexaura.features.home.HomeUiEffect.NavigateToAuthorProfile
-import com.flexaura.features.home.HomeUiEffect.NavigateToPostDetail
-import com.flexaura.features.home.HomeUiEffect.ShowSnackBar
-import com.flexaura.features.home.HomeUiIntent.OnAuthorClicked
-import com.flexaura.features.home.HomeUiIntent.OnDeletePostClicked
-import com.flexaura.features.home.HomeUiIntent.OnPostClicked
-import com.flexaura.features.home.HomeUiIntent.OnSavedClicked
-import com.flexaura.features.home.HomeUiIntent.OnVoteClicked
-import com.flexaura.features.home.HomeUiIntent.Refresh
+import com.flexaura.features.home.HomeUiEffect.*
+import com.flexaura.features.home.HomeUiIntent.*
 import com.flexaura.features.home.components.HomeTopAppBar
 import com.flexaura.core.designsystem.R as DesignR
 import com.flexaura.features.home.R as HomeR
@@ -123,14 +116,15 @@ private fun HomeScreen(
             modifier = Modifier.fillMaxSize()
         ) { page ->
             val currentTab = HomeTab.entries[page]
-            val posts = if (currentTab == HomeTab.DISCOVER) state.discoverPosts else state.followingPosts
-            val isEmptyList = posts.isEmpty()
+            val paginationState = if (currentTab == HomeTab.DISCOVER) state.discover else state.following
+            val isEmptyList = paginationState.isEmpty
 
             when {
                 state.isLoading && isEmptyList -> Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 ){ CircularProgressIndicator() }
+
                 (state.errorMessage != null && isEmptyList) || isEmptyList -> {
                     val stateInfo = getHomeStateInfo(state = state, currentTab = currentTab) {
                         onIntent(Refresh)
@@ -140,8 +134,9 @@ private fun HomeScreen(
                         modifier = Modifier.fillMaxSize()
                     )
                 }
+
                 else -> PostList(
-                    posts = posts,
+                    paginationState = paginationState,
                     currentUserId = state.currentUserId,
                     onPostClicked = { postId ->
                         onIntent(OnPostClicked(postId))
@@ -149,14 +144,18 @@ private fun HomeScreen(
                     onVoteClicked = { postId, vote, currentVote ->
                         onIntent(OnVoteClicked(postId, vote, currentVote))
                     },
-                    onSavedClicked = { postId ->
-                        onIntent(OnSavedClicked(postId))
+                    onSavedClicked = {
+                        postId -> onIntent(OnSavedClicked(postId))
                     },
                     onAuthorClicked = { authorId ->
                         onIntent(OnAuthorClicked(authorId))
                     },
                     onDeletePost = { postId ->
                         onIntent(OnDeletePostClicked(postId))
+                    },
+                    onLoadMore = { isRetry ->
+                        if (currentTab == HomeTab.DISCOVER) onIntent(LoadDiscoverPosts(isRetry))
+                        else onIntent(LoadFollowingPosts(isRetry))
                     },
                     modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                 )
