@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.flexaura.core.designsystem.util.toUserReadableMessage
 import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
 import com.flexaura.data.domain.usecase.auth.LogoutUseCase
@@ -53,12 +54,11 @@ ProfileViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
     private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
+    val pageSize = 10
     private val argumentUserId: String? = savedStateHandle.toRoute<ProfileDestinations.ProfileScreen>().userId
 
     private val _uiState: MutableStateFlow<ProfileUiState> = MutableStateFlow(
-        ProfileUiState(
-            isLoading = true
-        )
+        ProfileUiState(isLoading = true)
     )
     val uiState: StateFlow<ProfileUiState> get() = _uiState.asStateFlow()
 
@@ -66,18 +66,16 @@ ProfileViewModel @Inject constructor(
     val uiEffect: SharedFlow<ProfileUiEffect> get() = _uiEffect
 
     init {
-        handleIntent(ProfileUiIntent.Init)
+        handleIntent(ProfileUiIntent.LoadProfile)
     }
 
     fun handleIntent(intent: ProfileUiIntent) = when (intent) {
-        is ProfileUiIntent.Init -> {
+        is ProfileUiIntent.LoadProfile -> {
             observeProfileData()
-            refreshData()
+            syncProfileData()
         }
-        is ProfileUiIntent.Refresh -> {
-            observeProfileData()
-            refreshData()
-        }
+        is ProfileUiIntent.LoadSavedPosts -> loadSavedPosts(intent.isRetry)
+        is ProfileUiIntent.LoadUserPosts -> loadUserPosts(intent.isRetry)
         is ProfileUiIntent.OnToggleFollowClicked -> { toggleFollowUser() }
         is ProfileUiIntent.OnVoteClicked -> {
             handleVote(intent.postId, intent.vote, intent.currentVote)
@@ -93,6 +91,13 @@ ProfileViewModel @Inject constructor(
         }
     }
 
+    private suspend fun getTargetUserId(): String? =
+        if (argumentUserId != null) argumentUserId
+        else {
+            val authState = getAuthUserUseCase().first()
+            (authState as? AuthState.Authenticated)?.userId
+        }
+
     private fun observeProfileData() = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -100,9 +105,8 @@ ProfileViewModel @Inject constructor(
             val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
             val targetUserId = argumentUserId ?: currentLoggedUserId
 
-            if (targetUserId == null) {
-                flowOf(null)
-            } else {
+            if (targetUserId == null) { flowOf(null) }
+            else {
                 val isOwnProfile = targetUserId == currentLoggedUserId
 
                 combine(
@@ -119,13 +123,13 @@ ProfileViewModel @Inject constructor(
                 return@collect
             }
             val (combinedData, isOwnProfile) = data
-            val (user, posts, savedPosts) = combinedData
+            val (user, userPosts, savedPosts) = combinedData
 
             _uiState.update {
                 it.copy(
                     user = user,
-                    posts = posts,
-                    savedPosts = savedPosts,
+                    posts = it.posts.copy(items = userPosts),
+                    saved = it.saved.copy(items = savedPosts),
                     isOwnProfile = isOwnProfile,
                     isLoading = false,
                     errorMessage = if (user == null) "User not found" else null
@@ -134,31 +138,152 @@ ProfileViewModel @Inject constructor(
         }
     }
 
-    private fun refreshData() = viewModelScope.launch {
+    private fun syncProfileData() = viewModelScope.launch {
+        val targetUserId = getTargetUserId() ?: return@launch
         val authState = getAuthUserUseCase().first()
         val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
-        val targetUserId = argumentUserId ?: currentLoggedUserId ?: return@launch
         val isOwnProfile = targetUserId == currentLoggedUserId
-        _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
+
+        _uiState.update {
+            it.copy(
+                errorMessage = null,
+                posts = it.posts.copy(currentPage = 1, endReached = false),
+                saved = it.saved.copy(currentPage = 1, endReached = false)
+            )
+        }
 
         try {
             val userSync = async { syncUserUseCase(targetUserId) }
-            val postsSync = async { syncPostsByAuthorUseCase(targetUserId) }
-            val savedSync = if (isOwnProfile) async { syncSavedPostsUseCase() } else null
+            val postsSync = async {
+                syncPostsByAuthorUseCase(userId = targetUserId, page = 1, pageSize =  pageSize)
+            }
+            val savedSync = if (isOwnProfile) async {
+                syncSavedPostsUseCase(page = 1, pageSize = pageSize)
+            } else null
 
             val userRes = userSync.await()
             val postsRes = postsSync.await()
             val savedPostsRes = savedSync?.await()
 
-            val error = userRes.exceptionOrNull() ?: postsRes.exceptionOrNull()
-            ?: savedPostsRes?.exceptionOrNull()
-            if (error != null) {
-                handleSyncError(error)
+            _uiState.update {
+                it.copy(
+                    posts = it.posts.copy(currentPage = 2),
+                    saved = if(isOwnProfile) it.saved.copy(currentPage = 2) else it.saved
+                )
             }
+
+            val error = userRes.exceptionOrNull() ?:
+                postsRes.exceptionOrNull() ?:
+                savedPostsRes?.exceptionOrNull()
+
+            if (error != null) { handleSyncError(error) }
         } catch(e: Exception) {
             handleSyncError(e)
-        } finally {
-            _uiState.update { it.copy(isRefreshing = false) }
+        }
+    }
+
+    private fun loadUserPosts(isRetry: Boolean = false) {
+        val state = _uiState.value
+        if (
+            state.posts.endReached ||
+            state.posts.isLoadingMore ||
+            (state.posts.hasPaginationError && !isRetry)
+        ) return
+        val isInitialLoad = state.posts.currentPage == 1 && state.posts.isEmpty
+
+        viewModelScope.launch {
+            val targetUserId = getTargetUserId() ?: return@launch
+
+            _uiState.update { state ->
+                val updatedPostsPagination = state.posts.copy(
+                    isLoadingMore = true,
+                    hasPaginationError = false
+                )
+                state.copy(posts = updatedPostsPagination)
+            }
+
+            val result = syncPostsByAuthorUseCase(
+                userId = targetUserId,
+                page = state.posts.currentPage,
+                pageSize = pageSize
+            )
+
+            result.fold(
+                onSuccess = { fetchedCount ->
+                    _uiState.update { state ->
+                        val isEndReached = fetchedCount < pageSize
+                        val updatedPostsPagination = state.posts.copy(
+                            isLoadingMore = false,
+                            endReached = isEndReached,
+                            currentPage = state.posts.currentPage + 1
+                        )
+                        state.copy(posts = updatedPostsPagination)
+                    }
+                },
+                onFailure = { error ->
+                    if (isInitialLoad) _uiState.update { state ->
+                        state.copy(errorMessage = error.toUserReadableMessage(), isLoading = false)
+                    }
+                    else _uiState.update { state ->
+                        val updatedPostsPagination = state.posts.copy(
+                            isLoadingMore = false,
+                            hasPaginationError = true
+                        )
+                        state.copy(posts = updatedPostsPagination)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun loadSavedPosts(isRetry: Boolean = false) {
+        val state = _uiState.value
+        if (
+            state.saved.endReached ||
+            state.saved.isLoadingMore ||
+            (state.saved.hasPaginationError && !isRetry)
+        ) return
+        val isInitialLoad = state.saved.currentPage == 1 && state.saved.isEmpty
+
+        viewModelScope.launch {
+            _uiState.update { state ->
+                val updatedSavedPagination = state.saved.copy(
+                    isLoadingMore = true,
+                    hasPaginationError = false
+                )
+                state.copy(saved = updatedSavedPagination)
+            }
+
+            val result = syncSavedPostsUseCase(
+                page = state.saved.currentPage,
+                pageSize = pageSize
+            )
+
+            result.fold(
+                onSuccess = { fetchedCount ->
+                    _uiState.update { state ->
+                        val isEndReached = fetchedCount < pageSize
+                        val updatedSavedPagination = state.saved.copy(
+                            isLoadingMore = false,
+                            endReached = isEndReached,
+                            currentPage = state.saved.currentPage + 1
+                        )
+                        state.copy(saved = updatedSavedPagination)
+                    }
+                },
+                onFailure = { error ->
+                    if (isInitialLoad) _uiState.update { state ->
+                        state.copy(errorMessage = error.toUserReadableMessage(), isLoading = false)
+                    }
+                    else _uiState.update { state ->
+                        val updatedSavedPagination = state.saved.copy(
+                            isLoadingMore = false,
+                            hasPaginationError = true
+                        )
+                        state.copy(saved = updatedSavedPagination)
+                    }
+                }
+            )
         }
     }
 

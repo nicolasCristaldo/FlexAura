@@ -23,7 +23,7 @@ internal data class EditProfileUiState(
     val error: String? = null
 ) {
     fun saveButtonEnabled(): Boolean =
-        !isLoading && username.isValidUsername() && displayName.isValidLength(1, 25) && bio.isValidLength(0, 150)
+        !isLoading && username.isValidUsername() && displayName.isValidLength(1, 25) && bio.isValidLength(0, 200)
 }
 
 internal sealed interface EditProfileUiEffect {

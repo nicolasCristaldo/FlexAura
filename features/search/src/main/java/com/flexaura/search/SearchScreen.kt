@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraFab
@@ -35,17 +34,8 @@ import com.flexaura.components.post.PostList
 import com.flexaura.components.user.ProfileList
 import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appMainBackground
-import com.flexaura.search.SearchUiEffect.NavigateToAuthorProfile
-import com.flexaura.search.SearchUiEffect.NavigateToPostDetail
-import com.flexaura.search.SearchUiEffect.ShowSnackBar
-import com.flexaura.search.SearchUiIntent.OnAuthorClicked
-import com.flexaura.search.SearchUiIntent.OnDeletePostClicked
-import com.flexaura.search.SearchUiIntent.OnPostClicked
-import com.flexaura.search.SearchUiIntent.OnSavedClicked
-import com.flexaura.search.SearchUiIntent.OnSearchClicked
-import com.flexaura.search.SearchUiIntent.OnTextChange
-import com.flexaura.search.SearchUiIntent.OnVoteClicked
-import com.flexaura.search.SearchUiIntent.Refresh
+import com.flexaura.search.SearchUiEffect.*
+import com.flexaura.search.SearchUiIntent.*
 import com.flexaura.search.components.SearchTopBar
 import com.flexaura.core.designsystem.R as DesignR
 import com.flexaura.search.R as SearchR
@@ -135,8 +125,9 @@ private fun SearchScreen(
         ) { page ->
             val currentTab = SearchTab.entries[page]
             val results = if (currentTab == SearchTab.PROFILES) state.usersResults else state.postsResults
-            val isEmptyList = results.isEmpty()
-            val showStateInfoScreen = (state.errorMessage != null && isEmptyList) || isEmptyList || !state.hasSearched
+            val isEmptyList = results.isEmpty
+            val showStateInfoScreen = (state.errorMessage != null && isEmptyList) ||
+                    isEmptyList || !state.hasSearched
 
             when {
                 state.isSearching -> Box(
@@ -154,14 +145,17 @@ private fun SearchScreen(
                 }
                 else -> {
                     if (currentTab == SearchTab.PROFILES) ProfileList(
-                        users = state.usersResults,
+                        paginationState = state.usersResults,
                         onProfileClicked = { userId ->
                             onIntent(OnAuthorClicked(userId))
+                        },
+                        onLoadMore = { isRetry ->
+                            onIntent(LoadUsers(isRetry))
                         },
                         modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                     )
                     else PostList(
-                        posts = state.postsResults,
+                        paginationState = state.postsResults,
                         currentUserId = state.currentUserId,
                         onPostClicked = { postId ->
                             onIntent(OnPostClicked(postId))
@@ -177,6 +171,9 @@ private fun SearchScreen(
                         },
                         onDeletePost = { postId ->
                             onIntent(OnDeletePostClicked(postId))
+                        },
+                        onLoadMore = { isRetry ->
+                            onIntent(LoadPosts(isRetry))
                         },
                         modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                     )

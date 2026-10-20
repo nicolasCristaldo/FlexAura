@@ -1,11 +1,13 @@
 package com.flexaura.features.profile.profilescreen
 
+import com.flexaura.components.general.PaginationState
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
 
 internal sealed interface ProfileUiIntent {
-    data object Init : ProfileUiIntent
-    data object Refresh : ProfileUiIntent
+    data object LoadProfile : ProfileUiIntent
+    data class LoadUserPosts(val isRetry: Boolean = false) : ProfileUiIntent
+    data class LoadSavedPosts(val isRetry: Boolean = false) : ProfileUiIntent
     data class OnVoteClicked(val postId: String, val vote: Int, val currentVote: Int) : ProfileUiIntent
     data class OnSavedClicked(val postId: String) : ProfileUiIntent
     data object OnToggleFollowClicked : ProfileUiIntent
@@ -19,13 +21,11 @@ internal sealed interface ProfileUiIntent {
 internal data class ProfileUiState(
     val currentUserId: String? = null,
     val user: User? = null,
-    val posts: List<Post> = emptyList(),
-    val savedPosts: List<Post> = emptyList(),
-    val currentPage: Int = 1,
+    val posts: PaginationState<Post> = PaginationState(),
+    val saved: PaginationState<Post> = PaginationState(),
     val isOwnProfile: Boolean = false,
     val showDialog: Boolean = false,
     val isLoading: Boolean = false,
-    val isRefreshing: Boolean = false,
     val errorMessage: String? = null
 )
 
