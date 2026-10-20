@@ -1,10 +1,13 @@
 package com.flexaura.features.home
 
+import com.flexaura.components.general.PaginationState
 import com.flexaura.data.domain.model.Post
 
 internal sealed interface HomeUiIntent {
-    data object Init : HomeUiIntent
+    data object SyncPosts : HomeUiIntent
     data object Refresh : HomeUiIntent
+    data class LoadDiscoverPosts(val isRetry: Boolean = false) : HomeUiIntent
+    data class LoadFollowingPosts(val isRetry: Boolean = false) : HomeUiIntent
     data class OnVoteClicked(val postId: String, val vote: Int, val currentVote: Int) : HomeUiIntent
     data class OnSavedClicked(val postId: String) : HomeUiIntent
     data class OnPostClicked(val postId: String) : HomeUiIntent
@@ -14,9 +17,8 @@ internal sealed interface HomeUiIntent {
 
 internal data class HomeUiState(
     val currentUserId: String? = null,
-    val discoverPosts: List<Post> = emptyList(),
-    val followingPosts: List<Post> = emptyList(),
-    val currentPage: Int = 1,
+    val discover: PaginationState<Post> = PaginationState(),
+    val following: PaginationState<Post> = PaginationState(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null

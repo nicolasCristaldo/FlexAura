@@ -99,6 +99,8 @@ class UserRepositoryImpl @Inject constructor(
         runCatching {
             val remoteUsers = networkDataSource.searchUsers(query, page, pageSize)
 
+            if(remoteUsers.isEmpty()) return@runCatching emptyList()
+
             remoteUsers.map { userDto ->
                 val localUser = userDao.getUserById(userDto.id)
                 val isFollowed = localUser?.isFollowedByCurrentUser ?: false

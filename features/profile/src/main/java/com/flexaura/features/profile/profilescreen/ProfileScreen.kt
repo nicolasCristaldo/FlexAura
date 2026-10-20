@@ -32,21 +32,14 @@ import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
 import com.flexaura.components.post.PostList
 import com.flexaura.core.designsystem.theme.FlexAuraTheme
-import com.flexaura.core.designsystem.R as DesignR
-import com.flexaura.features.profile.R as ProfileR
 import com.flexaura.core.designsystem.theme.appMainBackground
-import com.flexaura.features.profile.profilescreen.ProfileUiEffect.NavigateToAuthorProfile
-import com.flexaura.features.profile.profilescreen.ProfileUiEffect.NavigateToPostDetail
-import com.flexaura.features.profile.profilescreen.ProfileUiEffect.ShowSnackBar
-import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnAuthorClicked
-import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnDeletePostClicked
-import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnPostClicked
-import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnSavedClicked
-import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnToggleFollowClicked
-import com.flexaura.features.profile.profilescreen.ProfileUiIntent.OnVoteClicked
+import com.flexaura.features.profile.profilescreen.ProfileUiEffect.*
+import com.flexaura.features.profile.profilescreen.ProfileUiIntent.*
 import com.flexaura.features.profile.profilescreen.components.ProfileScreenHeader
 import com.flexaura.features.profile.profilescreen.components.ProfileTopBar
 import kotlinx.coroutines.launch
+import com.flexaura.core.designsystem.R as DesignR
+import com.flexaura.features.profile.R as ProfileR
 
 @Composable
 internal fun ProfileRoute(
@@ -67,7 +60,7 @@ internal fun ProfileRoute(
                 is ShowSnackBar -> snackBarHostState.showSnackbar(effect.message)
                 is NavigateToPostDetail -> onNavigateToPostDetail(effect.postId)
                 is NavigateToAuthorProfile -> onNavigateToAuthorProfile(effect.authorId)
-                is ProfileUiEffect.NavigateToAuth -> onLogout?.invoke()
+                is NavigateToAuth -> onLogout?.invoke()
             }
         }
     }
@@ -79,7 +72,7 @@ internal fun ProfileRoute(
             ProfileTopBar(
                 onNavigateBack = onNavigateBack,
                 onNavigateToEditProfile = onNavigateToEditProfile,
-                onLogOutClicked = { viewModel.handleIntent(ProfileUiIntent.ShowLogoutDialog())},
+                onLogOutClicked = { viewModel.handleIntent(ShowLogoutDialog())},
                 modifier = Modifier.fillMaxHeight(.05f)
             )
         },
@@ -102,7 +95,7 @@ internal fun ProfileRoute(
                 title = stringResource(ProfileR.string.error_loading_profile),
                 actionText = stringResource(DesignR.string.retry),
                 modifier = Modifier.fillMaxSize()
-            ) { viewModel.handleIntent(ProfileUiIntent.Refresh) }
+            ) { viewModel.handleIntent(LoadProfile) }
 
             else -> ProfileScreen(
                 state = state,
@@ -130,8 +123,8 @@ private fun ProfileScreen(
         ConfirmationDialog(
             title = stringResource(ProfileR.string.logout),
             text = stringResource(ProfileR.string.dialog_logout_text),
-            onConfirm = { onIntent(ProfileUiIntent.LogoutConfirmed) },
-            onDismiss = { onIntent(ProfileUiIntent.ShowLogoutDialog(false)) },
+            onConfirm = { onIntent(LogoutConfirmed) },
+            onDismiss = { onIntent(ShowLogoutDialog(false)) },
             confirmText = stringResource(ProfileR.string.logout),
             dismissText = stringResource(DesignR.string.cancel),
         )
@@ -163,15 +156,15 @@ private fun ProfileScreen(
 
             HorizontalPager(state = pagerState) { pageIndex ->
                 val currentTab = tabs[pageIndex]
-                val posts = if (currentTab == ProfileTab.POSTS) state.posts else state.savedPosts
-                val isEmptyList = posts.isEmpty()
+                val paginationState = if (currentTab == ProfileTab.POSTS) state.posts else state.saved
+                val isEmptyList = paginationState.isEmpty
 
                 if((state.errorMessage != null && isEmptyList) || isEmptyList) {
                     val stateInfo = getTabStateInfo(
                         currentTab = currentTab,
                         isOwnProfile = state.isOwnProfile,
                         errorMessage = state.errorMessage,
-                        onRetry = { onIntent(ProfileUiIntent.Refresh) }
+                        onRetry = { onIntent(LoadProfile) }
                     )
                     StateInfoScreen(
                         stateInfo = stateInfo,
@@ -180,7 +173,7 @@ private fun ProfileScreen(
                 }
                 else {
                     PostList(
-                        posts = posts,
+                        paginationState = paginationState,
                         currentUserId = state.currentUserId,
                         onPostClicked = { postId -> onIntent(OnPostClicked(postId)) },
                         onVoteClicked = { postId, vote, currentVote ->
@@ -192,6 +185,10 @@ private fun ProfileScreen(
                         },
                         onAuthorClicked = { authorId ->
                             if (state.user.id != authorId) onIntent(OnAuthorClicked(authorId))
+                        },
+                        onLoadMore = { isRetry ->
+                            if (currentTab == ProfileTab.POSTS) onIntent(LoadUserPosts(isRetry))
+                            else onIntent(LoadSavedPosts(isRetry))
                         },
                         modifier = Modifier.padding(FlexAuraTheme.dimens.paddingSmall)
                     )

@@ -1,10 +1,13 @@
 package com.flexaura.search
 
+import com.flexaura.components.general.PaginationState
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
 
 internal sealed interface SearchUiIntent {
     data object Refresh : SearchUiIntent
+    data class LoadUsers(val isRetry: Boolean = false) : SearchUiIntent
+    data class LoadPosts(val isRetry: Boolean = false) : SearchUiIntent
     data class OnTextChange(val newText: String) : SearchUiIntent
     data class OnSearchClicked(val searchText: String) : SearchUiIntent
     data class OnPostClicked(val postId: String) : SearchUiIntent
@@ -18,8 +21,8 @@ internal data class SearchUiState(
     val currentUserId: String? = null,
     val query: String = "",
     val isSearching: Boolean = false,
-    val postsResults: List<Post> = emptyList(),
-    val usersResults: List<User> = emptyList(),
+    val postsResults: PaginationState<Post> = PaginationState(),
+    val usersResults: PaginationState<User> = PaginationState(),
     val errorMessage: String? = null,
     val hasSearched: Boolean = false
 )
