@@ -91,4 +91,13 @@ class AuthRepositoryImpl @Inject constructor(
             postDao.deleteAllPosts()
         }
     }.await()
+
+    override suspend fun deleteAccount(): Result<Unit> = scope.async(dispatcher) {
+        runCatching {
+            authRemoteDataSource.deleteAccount()
+
+            userDao.deleteAllUsers()
+            postDao.deleteAllPosts()
+        }
+    }.await()
 }
