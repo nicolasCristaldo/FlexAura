@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.flexaura.core.designsystem.util.toUserReadableMessage
 import com.flexaura.data.domain.repository.AuthState
+import com.flexaura.data.domain.usecase.auth.DeleteAccountUseCase
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
 import com.flexaura.data.domain.usecase.auth.LogoutUseCase
 import com.flexaura.data.domain.usecase.post.DeletePostUseCase
@@ -52,7 +53,8 @@ ProfileViewModel @Inject constructor(
     private val votePostUseCase: VotePostUseCase,
     private val deletePostUseCase: DeletePostUseCase,
     private val getAuthUserUseCase: GetAuthUserUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val deleteAccountUseCase: DeleteAccountUseCase
 ) : ViewModel() {
     val pageSize = 10
     private val argumentUserId: String? = savedStateHandle.toRoute<ProfileDestinations.ProfileScreen>().userId
@@ -84,10 +86,14 @@ ProfileViewModel @Inject constructor(
         is ProfileUiIntent.OnPostClicked -> emitEffect(NavigateToPostDetail(intent.postId))
         is ProfileUiIntent.OnDeletePostClicked -> deletePost(intent.postId)
         is ProfileUiIntent.OnAuthorClicked -> emitEffect(NavigateToAuthorProfile(intent.authorId))
-        is ProfileUiIntent.ShowLogoutDialog -> _uiState.update { it.copy(showDialog = intent.show) }
+        is ProfileUiIntent.ShowDialog -> _uiState.update { it.copy(dialogActive = intent.dialogType) }
         is ProfileUiIntent.LogoutConfirmed -> {
-            _uiState.update { it.copy(isLoading = true, showDialog = false) }
+            _uiState.update { it.copy(isLoading = true, dialogActive = null) }
             logout()
+        }
+        is ProfileUiIntent.DeleteAccountConfirmed -> {
+            _uiState.update { it.copy(isLoading = true, dialogActive = null) }
+            deleteAccount()
         }
     }
 
@@ -325,6 +331,16 @@ ProfileViewModel @Inject constructor(
             onFailure = {
                 _uiState.update { state -> state.copy(isLoading = false) }
                 emitEffect(ShowSnackBar("Error logging out."))
+            }
+        )
+    }
+
+    private fun deleteAccount() = viewModelScope.launch {
+        deleteAccountUseCase().fold(
+            onSuccess = { emitEffect(NavigateToAuth) },
+            onFailure = {
+                _uiState.update { state -> state.copy(isLoading = false) }
+                emitEffect(ShowSnackBar("Error deleting account."))
             }
         )
     }

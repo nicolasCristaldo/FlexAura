@@ -10,4 +10,5 @@ interface AuthRemoteDataSource {
     suspend fun signInWithEmail(email: String, password: String)
     suspend fun signInWithGoogle(idToken: String)
     suspend fun signOut()
+    suspend fun deleteAccount()
 }

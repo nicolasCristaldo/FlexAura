@@ -3,6 +3,7 @@ package com.flexaura.features.profile.profilescreen
 import com.flexaura.components.general.PaginationState
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
+import com.flexaura.features.profile.profilescreen.components.ProfileDialogType
 
 internal sealed interface ProfileUiIntent {
     data object LoadProfile : ProfileUiIntent
@@ -14,8 +15,9 @@ internal sealed interface ProfileUiIntent {
     data class OnPostClicked(val postId: String) : ProfileUiIntent
     data class OnDeletePostClicked(val postId: String) : ProfileUiIntent
     data class OnAuthorClicked(val authorId: String) : ProfileUiIntent
-    data class ShowLogoutDialog(val show: Boolean = true) : ProfileUiIntent
+    data class ShowDialog(val dialogType: ProfileDialogType?) : ProfileUiIntent
     data object LogoutConfirmed : ProfileUiIntent
+    data object DeleteAccountConfirmed : ProfileUiIntent
 }
 
 internal data class ProfileUiState(
@@ -24,7 +26,7 @@ internal data class ProfileUiState(
     val posts: PaginationState<Post> = PaginationState(),
     val saved: PaginationState<Post> = PaginationState(),
     val isOwnProfile: Boolean = false,
-    val showDialog: Boolean = false,
+    val dialogActive: ProfileDialogType? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )

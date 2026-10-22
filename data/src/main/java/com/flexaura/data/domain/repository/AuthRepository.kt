@@ -9,6 +9,7 @@ interface AuthRepository {
     suspend fun loginWithEmail(email: String, password: String): Result<Unit>
     suspend fun loginWithGoogle(idToken: String): Result<Unit>
     suspend fun logout(): Result<Unit>
+    suspend fun deleteAccount(): Result<Unit>
 }
 
 sealed interface AuthState {
