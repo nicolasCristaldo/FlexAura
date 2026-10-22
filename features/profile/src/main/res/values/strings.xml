@@ -15,8 +15,11 @@
     <!-- Actions -->
     <string name="save_profile">Save profile</string>
     <string name="logout">Log out</string>
+    <string name="delete">Delete</string>
+    <string name="delete_account">Delete account</string>
     <string name="unfollow">Unfollow</string>
     <string name="follow">Follow</string>
+    <string name="cancel">Cancel</string>
 
     <!-- Labels -->
     <string name="bio_label">Bio</string>
@@ -27,9 +30,11 @@
     <!-- Content descriptions -->
     <string name="edit_profile_photo_content_desc">Edit profile photo</string>
     <string name="edit_profile_content_desc">Edit profile</string>
+    <string name="options_content_desc">Options</string>
 
     <!-- Dialogs -->
     <string name="dialog_logout_text">Are you sure you want to log out?</string>
+    <string name="dialog_delete_account_text">Are you sure you want to delete your account?</string>
 
     <!-- Errors -->
     <string name="invalid_bio">The biography cannot exceed 200 characters</string>

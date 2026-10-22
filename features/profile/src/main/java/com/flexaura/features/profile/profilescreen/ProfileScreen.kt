@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.flexaura.components.general.ConfirmationDialog
 import com.flexaura.components.general.FlexAuraFab
 import com.flexaura.components.general.StateInfo
 import com.flexaura.components.general.StateInfoScreen
@@ -35,8 +34,11 @@ import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appMainBackground
 import com.flexaura.features.profile.profilescreen.ProfileUiEffect.*
 import com.flexaura.features.profile.profilescreen.ProfileUiIntent.*
+import com.flexaura.features.profile.profilescreen.components.ProfileDialog
+import com.flexaura.features.profile.profilescreen.components.ProfileDialogType
 import com.flexaura.features.profile.profilescreen.components.ProfileScreenHeader
 import com.flexaura.features.profile.profilescreen.components.ProfileTopBar
+import com.flexaura.features.profile.profilescreen.components.getDialogConfig
 import kotlinx.coroutines.launch
 import com.flexaura.core.designsystem.R as DesignR
 import com.flexaura.features.profile.R as ProfileR
@@ -72,7 +74,8 @@ internal fun ProfileRoute(
             ProfileTopBar(
                 onNavigateBack = onNavigateBack,
                 onNavigateToEditProfile = onNavigateToEditProfile,
-                onLogOutClicked = { viewModel.handleIntent(ShowLogoutDialog())},
+                onLogOutClicked = { viewModel.handleIntent(ShowDialog(ProfileDialogType.LOGOUT)) },
+                onDeleteAccountClicked = { viewModel.handleIntent(ShowDialog(ProfileDialogType.DELETE_ACCOUNT)) },
                 modifier = Modifier.fillMaxHeight(.05f)
             )
         },
@@ -119,15 +122,14 @@ private fun ProfileScreen(
     val pagerState = rememberPagerState { tabs.size }
     val coroutineScope = rememberCoroutineScope()
 
-    if (state.showDialog) {
-        ConfirmationDialog(
-            title = stringResource(ProfileR.string.logout),
-            text = stringResource(ProfileR.string.dialog_logout_text),
-            onConfirm = { onIntent(LogoutConfirmed) },
-            onDismiss = { onIntent(ShowLogoutDialog(false)) },
-            confirmText = stringResource(ProfileR.string.logout),
-            dismissText = stringResource(DesignR.string.cancel),
+    if (state.dialogActive != null) {
+        val dialogConfig = getDialogConfig(
+            dialogType = state.dialogActive,
+            onLogout = { onIntent(LogoutConfirmed) },
+            onDeleteAccount = { onIntent(DeleteAccountConfirmed) },
+            onDismiss = { onIntent(ShowDialog(null)) }
         )
+        ProfileDialog(dialogConfig = dialogConfig)
     }
 
     Column(

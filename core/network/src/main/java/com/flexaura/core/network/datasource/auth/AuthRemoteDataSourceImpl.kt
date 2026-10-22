@@ -1,12 +1,12 @@
 package com.flexaura.core.network.datasource.auth
 
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -49,4 +49,9 @@ class AuthRemoteDataSourceImpl @Inject constructor(
         }
 
     override suspend fun signOut() = supabaseClient.auth.signOut()
+
+    override suspend fun deleteAccount() {
+        supabaseClient.postgrest.rpc("delete_user_account")
+        signOut()
+    }
 }
