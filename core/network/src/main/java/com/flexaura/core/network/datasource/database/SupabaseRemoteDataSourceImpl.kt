@@ -58,6 +58,7 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
         return supabaseClient.postgrest["users"]
             .update(updateBody) {
                 filter { eq("id", currentId) }
+                select()
             }.decodeSingle<UserDto>()
     }
 
