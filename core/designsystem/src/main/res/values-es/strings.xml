@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Destinations -->
+    <string name="home">Inicio</string>
+    <string name="profile">Perfil</string>
+    <string name="search">Buscar</string>
+
+    <!-- Titles & Texts -->
+    <string name="no_posts_found">No se encontraron publicaciones</string>
+
+    <!-- Labels -->
+    <string name="display_name_label">Nombre para mostrar</string>
+    <string name="username_label">Nombre de usuario</string>
+
+    <!-- Actions -->
+    <string name="retry">Reintentar</string>
+    <string name="see_less">Ver menos</string>
+    <string name="read_more">Leer más</string>
+    <string name="delete">Eliminar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="log_out">Cerrar sesión</string>
+
+    <!-- Placeholders -->
+    <string name="write_something_placeholder">Escribe algo…</string>
+
+    <!-- User -->
+    <string name="username_format">\@%s</string>
+
+    <!-- Content descriptions -->
+    <string name="create_post_content_desc">Crear publicación</string>
+    <string name="clear_content_desc">Limpiar</string>
+    <string name="navigate_back_content_desc">Volver atrás</string>
+    <string name="post_image_content_desc">Imagen de la publicación</string>
+    <string name="comments_content_desc">Comentarios</string>
+    <string name="saves_content_desc">Guardados</string>
+    <string name="aura_content_desc">Aura</string>
+    <string name="options_content_desc">Opciones</string>
+    <string name="profile_image_content_desc">Imagen de perfil</string>
+
+    <!-- Compact numbers -->
+    <string name="compact_k">%1$s%2$dk</string>
+    <string name="compact_m">%1$s%2$.1fM</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_delete_post_title">Eliminar publicación</string>
+    <string name="dialog_delete_post_text">¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.</string>
+
+    <!-- Time -->
+    <string name="time_just_now">ahora</string>
+    <string name="time_minutes">%d min</string>
+    <string name="time_hours">%d h</string>
+    <string name="time_days">%d d</string>
+    <string name="time_date_format">dd MMM</string>
+
+    <!-- Errors -->
+    <string name="error">Error</string>
+    <string name="something_went_wrong">Algo salió mal</string>
+    <string name="invalid_display_name">El nombre para mostrar debe tener entre 1 y 25 caracteres y no puede contener saltos de línea.</string>
+    <string name="invalid_username">El nombre de usuario debe tener entre 3 y 15 caracteres y solo puede contener letras, números y guiones bajos.</string>
+    <string name="error_loading_users">Error al cargar usuarios.</string>
+    <string name="error_loading_posts">Error al cargar publicaciones.</string>
+</resources>

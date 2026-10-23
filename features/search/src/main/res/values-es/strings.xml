@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Placeholders -->
+    <string name="search">Buscar</string>
+
+    <!-- tabs -->
+    <string name="profiles">Perfiles</string>
+    <string name="posts">Posts</string>
+
+    <!-- Error states -->
+    <string name="search_error_title">Error en la búsqueda</string>
+
+    <!-- Initial state -->
+    <string name="search_empty_start_title">¡Busca algo!</string>
+    <string name="search_empty_start_desc">Encuentra publicaciones y perfiles increíbles para conectar.</string>
+
+    <!-- Search results -->
+    <string name="search_no_results_users_title">No se encontraron usuarios</string>
+    <string name="search_no_results_users_desc">Prueba con un nombre o palabra clave diferente.</string>
+    <string name="search_no_results_posts_title">No se encontraron publicaciones.</string>
+    <string name="search_no_results_posts_desc">No pudimos encontrar ninguna publicación que coincida con tu búsqueda.</string>
+</resources>

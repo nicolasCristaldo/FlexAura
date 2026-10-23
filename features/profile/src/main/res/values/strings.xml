@@ -4,6 +4,10 @@
     <string name="profile_screen_title">Profile</string>
     <string name="edit_profile_screen_title">Edit profile</string>
 
+    <!-- Tabs -->
+    <string name="posts">Posts</string>
+    <string name="saved">Saved</string>
+
     <!-- Empty & Error states -->
     <string name="profile_error_load_title">Could not load profile</string>
     <string name="profile_empty_posts_title">No posts found</string>

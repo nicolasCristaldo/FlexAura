@@ -151,7 +151,7 @@ private fun ProfileScreen(
                     Tab(
                         selected = pagerState.currentPage == index,
                         onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
-                        text = { Text(text = tab.title) }
+                        text = { Text(text = stringResource(tab.titleRes)) }
                     )
                 }
             }

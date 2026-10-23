@@ -102,7 +102,7 @@ private fun HomeScreen(
         TabRow(selectedTabIndex = pagerState.currentPage) {
             HomeTab.entries.forEachIndexed { index, tab ->
                 Tab(
-                    text = { Text(tab.title) },
+                    text = { Text(stringResource(tab.titleRes)) },
                     selected = pagerState.currentPage == index,
                     onClick = {
                         coroutineScope.launch { pagerState.animateScrollToPage(index) }

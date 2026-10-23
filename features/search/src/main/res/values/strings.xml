@@ -3,6 +3,10 @@
     <!-- Placeholders -->
     <string name="search">Search</string>
 
+    <!-- tabs -->
+    <string name="profiles">Profiles</string>
+    <string name="posts">Posts</string>
+
     <!-- Error states -->
     <string name="search_error_title">Search failed</string>
 
