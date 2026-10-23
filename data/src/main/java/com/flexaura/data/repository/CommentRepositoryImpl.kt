@@ -1,6 +1,7 @@
 package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.CommentDao
+import com.flexaura.core.database.dao.PostDao
 import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
@@ -19,6 +20,7 @@ import javax.inject.Inject
 
 class CommentRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
+    private val postDao: PostDao,
     private val networkDataSource: SupabaseRemoteDataSource,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
@@ -43,14 +45,29 @@ class CommentRepositoryImpl @Inject constructor(
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
             networkDataSource.createComment(postId = postId, content = content)
-            syncComments(postId).getOrThrow()
+            postDao.updateLocalCommentsCount(postId = postId, increment = 1)
+
+            try {
+                syncComments(postId).getOrThrow()
+            }
+            catch (e: Exception) {
+                postDao.updateLocalCommentsCount(postId = postId, increment = -1)
+                throw e
+            }
         }
     }.await()
 
     override suspend fun deleteComment(commentId: String): Result<Unit> =
         scope.async(dispatcher) {
             runCatching {
+                val comment = commentDao.getCommentById(commentId = commentId)
+
                 commentDao.deleteCommentById(commentId)
+
+                comment?.let {
+                    postDao.updateLocalCommentsCount(postId = it.postId, increment = -1)
+                }
+
                 networkDataSource.deleteComment(commentId)
             }
         }.await()
