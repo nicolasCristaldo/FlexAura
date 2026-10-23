@@ -10,6 +10,7 @@ internal sealed interface EditProfileUiIntent {
     data class OnDisplayNameChanged(val displayName: String) : EditProfileUiIntent
     data class OnBioChanged(val bio: String) : EditProfileUiIntent
     data class OnImageChanged(val imageUri: Uri?) : EditProfileUiIntent
+    data object OnRemoveImage : EditProfileUiIntent
     data object OnSaveProfile : EditProfileUiIntent
 }
 
@@ -19,6 +20,7 @@ internal data class EditProfileUiState(
     val bio: String = "",
     val currentImageUrl: String? = null,
     val selectedImageUri: Uri? = null,
+    val isImageRemoved: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
 ) {

@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flexaura.components.general.FlexAuraTextField
 import com.flexaura.components.general.NavigateBackTopBar
 import com.flexaura.components.general.StateInfoScreen
+import com.flexaura.components.general.rememberPhotoPickerLauncher
 import com.flexaura.core.designsystem.theme.FlexAuraTheme
 import com.flexaura.core.designsystem.theme.appCircularGradientBackground
 import com.flexaura.data.domain.util.isValidDisplayName
@@ -103,6 +104,11 @@ private fun EditProfileScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    val photoPickerLauncher = rememberPhotoPickerLauncher { uri ->
+        onIntent(EditProfileUiIntent.OnImageChanged(uri))
+    }
+    val hasProfileImage = state.selectedImageUri != null || state.currentImageUrl != null
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(FlexAuraTheme.dimens.paddingLarge),
@@ -113,7 +119,9 @@ private fun EditProfileScreen(
     ) {
         ProfileImagePicker(
             selectedImageUri = state.selectedImageUri ?: state.currentImageUrl,
-            onImageSelected = { uri -> onIntent(EditProfileUiIntent.OnImageChanged(uri)) },
+            hasImage = hasProfileImage,
+            onPickImage = photoPickerLauncher,
+            onRemoveImage = { onIntent(EditProfileUiIntent.OnRemoveImage) },
             modifier = Modifier.size(FlexAuraTheme.dimens.profileImageSizeLarge)
         )
 

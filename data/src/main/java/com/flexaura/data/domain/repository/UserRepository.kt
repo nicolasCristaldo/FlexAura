@@ -11,7 +11,8 @@ interface UserRepository {
         username: String,
         displayName: String,
         imageBytes: ByteArray? = null,
-        bio: String?
+        bio: String?,
+        isImageRemoved: Boolean
     ): Result<Unit>
     suspend fun searchUsers(query: String, page: Int, pageSize: Int): Result<List<User>>
 }
