@@ -67,15 +67,25 @@ class UserRepositoryImpl @Inject constructor(
         username: String,
         displayName: String,
         imageBytes: ByteArray?,
-        bio: String?
+        bio: String?,
+        isImageRemoved: Boolean
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
             val currentId = networkDataSource.currentUserId ?: throw Exception("No user logged in")
-            val newImage = if (imageBytes != null) {
-                mediaRepository.uploadAvatar(userId = currentId, imageBytes = imageBytes).getOrThrow()
-            }
-            else {
-                userDao.getUserById(currentId)?.imageUrl
+
+            val newImage = when {
+                imageBytes != null -> {
+                    mediaRepository.uploadAvatar(userId = currentId, imageBytes = imageBytes).getOrThrow()
+                }
+                isImageRemoved -> {
+                    runCatching {
+                        mediaRepository.deleteImage("avatars", "$currentId.jpg")
+                    }
+                    null
+                }
+                else -> {
+                    userDao.getUserById(currentId)?.imageUrl
+                }
             }
 
             val updatedUserDto = networkDataSource.updateProfile(
