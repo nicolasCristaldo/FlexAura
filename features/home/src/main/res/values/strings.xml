@@ -3,6 +3,10 @@
     <!-- Titles & Texts -->
     <string name="home_screen_title">FlexAura</string>
 
+    <!-- Tabs -->
+    <string name="discover">Discover</string>
+    <string name="following">Following</string>
+
     <!-- Empty states -->
     <string name="empty_following_title">Your feed is empty</string>
     <string name="empty_following_desc">Follow someone to see their posts here.</string>

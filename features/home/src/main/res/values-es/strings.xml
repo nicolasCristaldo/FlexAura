@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Titles & Texts -->
+    <string name="home_screen_title">FlexAura</string>
+
+    <!-- Tabs -->
+    <string name="discover">Descubre</string>
+    <string name="following">Siguiendo</string>
+
+    <!-- Empty states -->
+    <string name="empty_following_title">Tu feed está vacío</string>
+    <string name="empty_following_desc">Sigue a alguien para ver sus publicaciones aquí.</string>
+</resources>

@@ -30,7 +30,7 @@ internal sealed interface HomeUiEffect {
     data class NavigateToAuthorProfile(val authorId: String) : HomeUiEffect
 }
 
-internal enum class HomeTab(val title: String) {
-    DISCOVER("Discover"),
-    FOLLOWING("Following")
+internal enum class HomeTab(val titleRes: Int) {
+    DISCOVER(R.string.discover),
+    FOLLOWING(R.string.following)
 }

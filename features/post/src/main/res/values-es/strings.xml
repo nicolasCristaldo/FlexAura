@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Titles & Texts -->
+    <string name="comments_section_title">Comentarios</string>
+    <string name="post_not_found_title">Publicación no encontrada</string>
+
+    <!-- Placeholders -->
+    <string name="post_comment_input_placeholder">Escribe un comentario…</string>
+
+    <!-- Content descriptions -->
+    <string name="send_comment_content_desc">Enviar comentario</string>
+</resources>
