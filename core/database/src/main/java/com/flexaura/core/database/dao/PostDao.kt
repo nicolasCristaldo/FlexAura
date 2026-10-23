@@ -60,6 +60,15 @@ interface PostDao {
     """)
     suspend fun updateLocalSaveState(postId: String, isSaved: Boolean, savesCount: Int)
 
+    @Query(
+        """
+        UPDATE posts
+        SET comments_count = comments_count + :increment
+        WHERE id = :postId
+    """
+    )
+    suspend fun updateLocalCommentsCount(postId: String, increment: Int)
+
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePostById(postId: String)
 
