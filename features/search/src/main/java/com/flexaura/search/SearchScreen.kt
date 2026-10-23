@@ -112,7 +112,7 @@ private fun SearchScreen(
                             pagerState.animateScrollToPage(index)
                         }
                     },
-                    text = { Text(tab.title) }
+                    text = { Text(stringResource(tab.titleRes)) }
                 )
             }
         }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen titles -->
+    <string name="profile_screen_title">Perfil</string>
+    <string name="edit_profile_screen_title">Editar perfil</string>
+
+    <!-- Tabs -->
+    <string name="posts">Posts</string>
+    <string name="saved">Guardados</string>
+
+    <!-- Empty & Error states -->
+    <string name="profile_error_load_title">No se pudo cargar el perfil</string>
+    <string name="profile_empty_posts_title">No se encontraron publicaciones</string>
+    <string name="profile_empty_posts_desc">Este usuario no tiene publicaciones</string>
+    <string name="profile_empty_posts_own_desc">Crea una publicación para verla aquí</string>
+    <string name="profile_empty_saved_title">No hay publicaciones guardadas</string>
+    <string name="profile_empty_saved_desc">Guarda una publicación para verla aquí</string>
+
+    <!-- Actions -->
+    <string name="save_profile">Guardar perfil</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="delete">Eliminar</string>
+    <string name="delete_account">Eliminar cuenta</string>
+    <string name="unfollow">Dejar de seguir</string>
+    <string name="follow">Seguir</string>
+    <string name="cancel">Cancelar</string>
+    <string name="select_image">Seleccionar imagen de la galería</string>
+    <string name="remove_image">Eliminar imagen</string>
+
+    <!-- Labels -->
+    <string name="bio_label">Biografía</string>
+    <string name="aura_label">Aura</string>
+    <string name="followers_label">Seguidores</string>
+    <string name="following_label">Siguiendo</string>
+
+    <!-- Content descriptions -->
+    <string name="edit_profile_photo_content_desc">Editar foto de perfil</string>
+    <string name="edit_profile_content_desc">Editar perfil</string>
+    <string name="options_content_desc">Opciones</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_logout_text">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="dialog_delete_account_text">¿Estás seguro de que quieres eliminar tu cuenta?</string>
+
+    <!-- Errors -->
+    <string name="invalid_bio">La biografía no puede superar los 200 caracteres</string>
+    <string name="error_loading_profile">Error al cargar el perfil</string>
+</resources>

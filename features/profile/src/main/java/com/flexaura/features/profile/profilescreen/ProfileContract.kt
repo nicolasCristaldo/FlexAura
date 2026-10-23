@@ -3,6 +3,7 @@ package com.flexaura.features.profile.profilescreen
 import com.flexaura.components.general.PaginationState
 import com.flexaura.data.domain.model.Post
 import com.flexaura.data.domain.model.User
+import com.flexaura.features.profile.R
 import com.flexaura.features.profile.profilescreen.components.ProfileDialogType
 
 internal sealed interface ProfileUiIntent {
@@ -38,7 +39,7 @@ internal sealed interface ProfileUiEffect {
     data object NavigateToAuth : ProfileUiEffect
 }
 
-internal enum class ProfileTab(val title: String) {
-    POSTS("Posts"),
-    SAVED("Saved")
+internal enum class ProfileTab(val titleRes: Int) {
+    POSTS(R.string.posts),
+    SAVED(R.string.saved)
 }

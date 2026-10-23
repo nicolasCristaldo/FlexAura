@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- labels -->
+    <string name="email_label">Correo electrónico</string>
+    <string name="password_label">Contraseña</string>
+    <string name="confirm_password_label">Confirmar contraseña</string>
+
+    <!-- Login screen -->
+    <string name="login_screen_title">FlexAura</string>
+    <string name="login_screen_subtitle">Inicia sesión en tu cuenta</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="login_button_google">Iniciar sesión con Google</string>
+    <string name="login_divider_or">O</string>
+    <string name="login_footer_text">¿No tienes una cuenta?</string>
+    <string name="login_footer_action">Regístrate aquí</string>
+
+    <!-- Register screen -->
+    <string name="register_screen_title">Crear cuenta</string>
+    <string name="register_screen_subtitle">Completa tus datos para comenzar</string>
+    <string name="register_button">Registrarse</string>
+    <string name="register_footer_text">¿Ya tienes una cuenta?</string>
+    <string name="register_footer_action">Inicia sesión aquí</string>
+
+    <!-- Dialog -->
+    <string name="dialog_verify_email_title">Verifica tu correo</string>
+    <string name="dialog_verify_email_desc">"Hemos enviado un enlace de verificación a %s.\nPor favor, revisa tu bandeja de entrada y sigue las instrucciones para iniciar sesión.</string>
+    <string name="dialog_verify_email_confirm">Entendido</string>
+
+    <!-- Content descriptions -->
+    <string name="hide_password_content_desc">Ocultar contraseña</string>
+    <string name="show_password_content_desc">Mostrar contraseña</string>
+
+    <!-- Validation errors -->
+    <string name="passwords_mismatch">Las contraseñas no coinciden.</string>
+    <string name="invalid_password">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="google_sign_in_failed">El inicio de sesión con Google falló</string>
+    <string name="invalid_email">Formato de correo electrónico inválido.</string>
+</resources>
