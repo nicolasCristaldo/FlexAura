@@ -7,14 +7,9 @@ import com.flexaura.data.domain.repository.AuthState
 import com.flexaura.data.domain.usecase.auth.GetAuthUserUseCase
 import com.flexaura.data.domain.usecase.user.GetUserByIdUseCase
 import com.flexaura.data.domain.usecase.user.UpdateProfileUseCase
-import com.flexaura.features.profile.editprofile.EditProfileUiEffect.NavigateBack
-import com.flexaura.features.profile.editprofile.EditProfileUiEffect.ShowSnackBar
-import com.flexaura.features.profile.editprofile.EditProfileUiIntent.Init
-import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnBioChanged
-import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnDisplayNameChanged
-import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnImageChanged
-import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnSaveProfile
-import com.flexaura.features.profile.editprofile.EditProfileUiIntent.OnUsernameChanged
+import com.flexaura.data.domain.util.compressAndGetImageBytes
+import com.flexaura.features.profile.editprofile.EditProfileUiEffect.*
+import com.flexaura.features.profile.editprofile.EditProfileUiIntent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,8 +44,11 @@ internal class EditProfileViewModel @Inject constructor(
         is OnUsernameChanged -> _uiState.update { it.copy(username = intent.username) }
         is OnBioChanged -> _uiState.update { it.copy(bio = intent.bio) }
         is OnDisplayNameChanged -> _uiState.update { it.copy(displayName = intent.displayName) }
-        is OnImageChanged -> _uiState.update { it.copy(selectedImageUri = intent.imageUri) }
-        OnSaveProfile -> saveProfile()
+        is OnImageChanged -> _uiState.update { it.copy(selectedImageUri = intent.imageUri, isImageRemoved = false) }
+        is OnRemoveImage -> _uiState.update {
+            it.copy(isImageRemoved = true, selectedImageUri = null, currentImageUrl = null)
+        }
+        is OnSaveProfile -> saveProfile()
     }
 
     private fun loadInitialUserData() = viewModelScope.launch {
@@ -99,14 +97,15 @@ internal class EditProfileViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true) }
 
         val imageBytes = state.selectedImageUri?.let { uri ->
-            context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            context.compressAndGetImageBytes(uri = uri, quality = 50)
         }
 
         updateProfileUseCase(
             username = state.username,
             displayName = state.displayName,
             imageBytes = imageBytes,
-            bio = state.bio
+            bio = state.bio,
+            isImageRemoved = state.isImageRemoved
         ).fold(
             onSuccess = {
                 _uiState.update { it.copy(isLoading = false) }

@@ -12,7 +12,8 @@ class UpdateProfileUseCase @Inject constructor(
         username: String,
         displayName: String,
         imageBytes: ByteArray?,
-        bio: String?
+        bio: String?,
+        isImageRemoved: Boolean
     ): Result<Unit> {
         return when {
             !username.isValidUsername() -> {
@@ -29,7 +30,8 @@ class UpdateProfileUseCase @Inject constructor(
                     username = username.trim(),
                     displayName = displayName.trim(),
                     imageBytes = imageBytes,
-                    bio = bio?.replace(Regex("\\n+"), " ")?.trim()
+                    bio = bio?.replace(Regex("\\n+"), " ")?.trim(),
+                    isImageRemoved = isImageRemoved
                 )
             }
         }
