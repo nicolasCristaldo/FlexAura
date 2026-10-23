@@ -33,7 +33,7 @@ sealed interface SearchUiEffect {
     data class NavigateToAuthorProfile(val authorId: String) : SearchUiEffect
 }
 
-internal enum class SearchTab(val title: String) {
-    PROFILES("Profiles"),
-    POSTS("Posts")
+internal enum class SearchTab(val titleRes: Int) {
+    PROFILES(R.string.profiles),
+    POSTS(R.string.posts)
 }

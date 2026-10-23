@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import com.flexaura.core.designsystem.theme.FlexAuraTheme
 
 data class StateInfo(
@@ -51,7 +52,8 @@ fun StateInfoScreen(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(FlexAuraTheme.dimens.paddingSmall))
@@ -59,7 +61,8 @@ fun StateInfoScreen(
         text?.let {
             Text(
                 text = it,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
             )
         }
 
