@@ -2,7 +2,7 @@ package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.CommentDao
 import com.flexaura.core.database.dao.PostDao
-import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.database.comment.CommentRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.Comment
@@ -21,7 +21,7 @@ import javax.inject.Inject
 class CommentRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
     private val postDao: PostDao,
-    private val networkDataSource: SupabaseRemoteDataSource,
+    private val dataSource: CommentRemoteDataSource,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ): CommentRepository {
@@ -32,7 +32,7 @@ class CommentRepositoryImpl @Inject constructor(
 
     override suspend fun syncComments(postId: String): Result<Unit> = withContext(dispatcher) {
         runCatching {
-            val remoteComments = networkDataSource.getComments(postId)
+            val remoteComments = dataSource.getComments(postId)
             val commentEntities = remoteComments.map { it.toEntity() }
 
             commentDao.insertComments(commentEntities)
@@ -44,7 +44,7 @@ class CommentRepositoryImpl @Inject constructor(
         content: String
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            networkDataSource.createComment(postId = postId, content = content)
+            dataSource.createComment(postId = postId, content = content)
             postDao.updateLocalCommentsCount(postId = postId, increment = 1)
 
             try {
@@ -68,7 +68,7 @@ class CommentRepositoryImpl @Inject constructor(
                     postDao.updateLocalCommentsCount(postId = it.postId, increment = -1)
                 }
 
-                networkDataSource.deleteComment(commentId)
+                dataSource.deleteComment(commentId)
             }
         }.await()
 }

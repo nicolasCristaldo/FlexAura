@@ -2,7 +2,7 @@ package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.PostDao
 import com.flexaura.core.database.dao.UserDao
-import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.database.post.PostRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.Post
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
     private val userDao: UserDao,
-    private val networkDataSource: SupabaseRemoteDataSource,
+    private val dataSource: PostRemoteDataSource,
     private val mediaRepository: MediaRepository,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
@@ -56,7 +56,7 @@ class PostRepositoryImpl @Inject constructor(
         pageSize: Int
     ): Result<Int> = withContext(dispatcher) {
         runCatching {
-            val remotePosts = networkDataSource.getPosts(page, pageSize)
+            val remotePosts = dataSource.getPosts(page, pageSize)
 
             val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity() }.distinct()
             if(usersToUpsert.isNotEmpty()) {
@@ -75,7 +75,7 @@ class PostRepositoryImpl @Inject constructor(
         pageSize: Int
     ): Result<Int> = withContext(dispatcher) {
         runCatching {
-            val remotePosts = networkDataSource.getPostsByAuthor(userId, page, pageSize)
+            val remotePosts = dataSource.getPostsByAuthor(userId, page, pageSize)
 
             val usersToUpsert = remotePosts.mapNotNull { it.author?.toEntity(isCurrentUserFollowing = false) }.distinct()
             if(usersToUpsert.isNotEmpty()) {
@@ -93,7 +93,7 @@ class PostRepositoryImpl @Inject constructor(
         pageSize: Int
     ): Result<Int> = withContext(dispatcher) {
         runCatching {
-            val remotePosts = networkDataSource.getSavedPosts(page, pageSize)
+            val remotePosts = dataSource.getSavedPosts(page, pageSize)
 
             val usersToUpsert = remotePosts.mapNotNull {
                 it.author?.toEntity(isCurrentUserFollowing = false)
@@ -112,7 +112,7 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun syncFollowingPosts(page: Int, pageSize: Int): Result<Int> =
         withContext(dispatcher) {
             runCatching {
-                val remotePosts = networkDataSource.getFollowingPosts(page, pageSize)
+                val remotePosts = dataSource.getFollowingPosts(page, pageSize)
                 val usersToUpsert = remotePosts.mapNotNull {
                     it.author?.toEntity(isCurrentUserFollowing = true)
                 }.distinct()
@@ -142,7 +142,7 @@ class PostRepositoryImpl @Inject constructor(
                 ).getOrThrow()
             }
 
-            networkDataSource.createPost(
+            dataSource.createPost(
                 id = postId,
                 content = content,
                 imageUrl = uploadedImageUrl
@@ -163,8 +163,8 @@ class PostRepositoryImpl @Inject constructor(
 
                 postDao.updateLocalSaveState(postId, newSaveState, newSavesCount)
 
-                if (newSaveState) networkDataSource.savePost(postId)
-                else networkDataSource.unsavePost(postId)
+                if (newSaveState) dataSource.savePost(postId)
+                else dataSource.unsavePost(postId)
             }
         }.await()
 
@@ -183,7 +183,7 @@ class PostRepositoryImpl @Inject constructor(
                 }
 
                 postDao.deletePostById(postId)
-                networkDataSource.deletePost(postId)
+                dataSource.deletePost(postId)
             }
         }.await()
 
@@ -199,8 +199,8 @@ class PostRepositoryImpl @Inject constructor(
 
             postDao.updateLocalVote(postId = postId, voteValue = voteValue, newTotalAura = newTotalAura)
 
-            if (voteValue == 0) networkDataSource.deleteVote(postId = postId)
-            else networkDataSource.upsertVote(postId = postId, value = voteValue)
+            if (voteValue == 0) dataSource.deleteVote(postId = postId)
+            else dataSource.upsertVote(postId = postId, value = voteValue)
         }
     }.await()
 
@@ -210,7 +210,7 @@ class PostRepositoryImpl @Inject constructor(
         pageSize: Int
     ): Result<List<Post>> = withContext(dispatcher) {
         runCatching {
-            val remotePosts = networkDataSource.searchPosts(query, page, pageSize)
+            val remotePosts = dataSource.searchPosts(query, page, pageSize)
 
             if(remotePosts.isEmpty()) return@runCatching emptyList()
 
