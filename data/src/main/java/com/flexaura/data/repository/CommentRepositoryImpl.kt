@@ -18,6 +18,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [CommentRepository] utilizing local Room DAOs and remote data sources
+ * to manage comment workflows and cache consistency.
+ *
+ * @property commentDao Data Access Object for local comment caching and queries.
+ * @property postDao Data Access Object for updating local comment counters.
+ * @property dataSource Remote data source for comment operations.
+ * @property dispatcher The coroutine dispatcher for background thread execution.
+ * @property scope The coroutine scope used for concurrent asynchronous tasks.
+ */
 class CommentRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
     private val postDao: PostDao,

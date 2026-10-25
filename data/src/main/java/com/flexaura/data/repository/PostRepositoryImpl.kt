@@ -20,6 +20,17 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
+/**
+ * Implementation of [PostRepository] utilizing local Room DAOs, remote data sources,
+ * and media repositories to manage posts, synchronization, caching, and user interactions.
+ *
+ * @property postDao Data Access Object for local post caching and query management.
+ * @property userDao Data Access Object for caching post authors.
+ * @property dataSource Remote data source for post queries, searches, and interactions.
+ * @property mediaRepository Repository for handling post image uploads and deletions.
+ * @property dispatcher The coroutine dispatcher for background thread execution.
+ * @property scope The coroutine scope used for executing asynchronous tasks.
+ */
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
     private val userDao: UserDao,

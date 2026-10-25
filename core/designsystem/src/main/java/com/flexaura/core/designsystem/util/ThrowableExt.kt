@@ -5,6 +5,11 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
+/**
+ * Maps low-level exceptions (such as network, timeout, or I/O errors) to clean, user-friendly error messages.
+ *
+ * @return A descriptive error message suitable for UI display and user feedback.
+ */
 fun Throwable.toUserReadableMessage(): String = when(this) {
     is UnknownHostException, is ConnectException -> "No internet connection. Please check your connection and try again."
     is SocketTimeoutException -> "Request timed out. Try again."

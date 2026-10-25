@@ -5,6 +5,11 @@ import io.github.jan.supabase.storage.storage
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Implementation of [StorageRemoteDataSource] utilizing the Supabase storage client for file management.
+ *
+ * @property supabaseClient The Supabase client instance used to access storage buckets.
+ */
 @Singleton
 class StorageRemoteDataSourceImpl @Inject constructor(
     private val supabaseClient: SupabaseClient

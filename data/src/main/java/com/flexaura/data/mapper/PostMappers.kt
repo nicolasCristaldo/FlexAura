@@ -6,6 +6,12 @@ import com.flexaura.core.network.model.PostDto
 import com.flexaura.core.network.model.PostWithInteractionsDto
 import com.flexaura.data.domain.model.Post
 
+/**
+ * Converts a [PostWithInteractionsDto] into a [PostEntity] for local storage, calculating the total aura score.
+ *
+ * @receiver The post with interactions DTO to convert.
+ * @return The corresponding [PostEntity].
+ */
 fun PostWithInteractionsDto.toEntity(): PostEntity {
     val totalAura = votes1 + (votes3 * 3) + (votes5 * 5) - votesMinus1
     return PostEntity(
@@ -22,6 +28,12 @@ fun PostWithInteractionsDto.toEntity(): PostEntity {
     )
 }
 
+/**
+ * Converts a [PostEntity] from the local database into a domain [Post] model.
+ *
+ * @receiver The post entity to convert.
+ * @return The corresponding domain [Post].
+ */
 fun PostEntity.toDomain(): Post = Post(
     id = id,
     authorId = authorId,
@@ -35,6 +47,12 @@ fun PostEntity.toDomain(): Post = Post(
     isSavedByUser = isSavedByUser
 )
 
+/**
+ * Converts a raw [PostDto] into a [PostEntity] for local storage, computing total aura from vote weights.
+ *
+ * @receiver The post DTO to convert.
+ * @return The corresponding [PostEntity].
+ */
 fun PostDto.toEntity(): PostEntity {
     val totalAura = votes1 + (votes3 * 3) + (votes5 * 5) - votesMinus1
 
@@ -52,6 +70,12 @@ fun PostDto.toEntity(): PostEntity {
     )
 }
 
+/**
+ * Converts a [PostWithAuthorRelation] database query result into a domain [Post] model.
+ *
+ * @receiver The post with author relation to convert.
+ * @return The corresponding domain [Post] including its author profile if available.
+ */
 fun PostWithAuthorRelation.toDomain(): Post = Post(
     id = post.id,
     authorId = post.authorId,

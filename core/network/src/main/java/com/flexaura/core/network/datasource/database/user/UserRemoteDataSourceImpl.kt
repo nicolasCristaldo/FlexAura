@@ -14,6 +14,12 @@ import kotlinx.serialization.json.put
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Implementation of [UserRemoteDataSource] utilizing the Supabase client and user session for remote user and social workflows.
+ *
+ * @property supabaseClient The Supabase client instance used for PostgREST queries and mutations.
+ * @property userSession Helper class to obtain the currently authenticated user's ID.
+ */
 @Singleton
 class UserRemoteDataSourceImpl @Inject constructor(
     private val supabaseClient: SupabaseClient,

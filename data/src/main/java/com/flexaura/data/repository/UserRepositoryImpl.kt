@@ -19,6 +19,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [UserRepository] utilizing local Room DAOs, remote data sources,
+ * user session management, and media repositories to handle user profiles and social workflows.
+ *
+ * @property userDao Data Access Object for local user caching and follower count updates.
+ * @property userSession Helper class to obtain the currently authenticated user's ID.
+ * @property dataSource Remote data source for user profile queries, updates, searches, and follow actions.
+ * @property mediaRepository Repository for handling avatar uploads and deletions.
+ * @property dispatcher The coroutine dispatcher for background thread execution.
+ * @property scope The coroutine scope used for executing asynchronous tasks.
+ */
 class UserRepositoryImpl @Inject constructor(
     private val userDao: UserDao,
     private val userSession: UserSession,

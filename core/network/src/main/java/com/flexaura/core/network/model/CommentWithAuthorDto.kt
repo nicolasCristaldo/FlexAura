@@ -3,6 +3,16 @@ package com.flexaura.core.network.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Data Transfer Object (DTO) representing a comment bundled with its author's profile details.
+ *
+ * @property id The unique identifier of the comment.
+ * @property postId The unique identifier of the post the comment belongs to.
+ * @property authorId The unique identifier of the user who authored the comment.
+ * @property content The text content of the comment.
+ * @property createdAt The ISO-8601 timestamp of when the comment was created, or `null`.
+ * @property author The profile [UserDto] of the user who wrote the comment.
+ */
 @Serializable
 data class CommentWithAuthorDto(
     @SerialName("id") val id: String,

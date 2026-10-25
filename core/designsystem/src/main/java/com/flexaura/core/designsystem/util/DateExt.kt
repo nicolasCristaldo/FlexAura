@@ -8,6 +8,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/**
+ * Converts an timestamp string into a localized relative time span (e.g., "just now", "5 min", "2 h")
+ * or a formatted date pattern based on the elapsed duration.
+ *
+ * @param context The Android context used to access localized string resources and date patterns.
+ * @return A localized human-readable relative time string, or the original string if parsing fails.
+ */
 fun String.toRelativeTimeSpan(context: Context): String {
     if (this.isBlank()) return ""
     return try {

@@ -34,6 +34,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing post details, comment synchronization, comment creation and deletion,
+ * post voting, bookmarking, and deletion workflows.
+ *
+ * @property getAuthUserUseCase Use case for observing the current authentication state.
+ * @property getPostByIdUseCase Use case for fetching a single post by ID.
+ * @property votePostUseCase Use case for casting or updating votes on posts.
+ * @property toggleSavePostUseCase Use case for toggling post bookmark/save states.
+ * @property getCommentsUseCase Use case for observing comments associated with a post.
+ * @property syncCommentsUseCase Use case for synchronizing comments from remote.
+ * @property submitCommentUseCase Use case for creating a new comment on a post.
+ * @property deleteCommentUseCase Use case for deleting a comment.
+ * @property deletePostUseCase Use case for deleting a post.
+ */
 @HiltViewModel
 internal class PostScreenViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
@@ -56,6 +70,11 @@ internal class PostScreenViewModel @Inject constructor(
 
     init { observeAuthUser() }
 
+    /**
+     * Processes incoming [PostDetailUiIntent] actions from the UI and updates state or triggers workflows.
+     *
+     * @param intent The [PostDetailUiIntent] to handle.
+     */
     fun onIntent(intent: PostDetailUiIntent) = when(intent) {
         is Init -> {
             currentPostId = intent.postId
@@ -77,6 +96,9 @@ internal class PostScreenViewModel @Inject constructor(
         is OnNavigateToAuthorProfile -> emitEffect(NavigateToAuthorProfile(intent.authorId))
     }
 
+    /**
+     * Observes the authenticated user and updates the UI state accordingly.
+     */
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
             when(authState) {
@@ -92,6 +114,11 @@ internal class PostScreenViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads a single post by ID and updates the UI state accordingly.
+     *
+     * @param postId The unique identifier of the post to load.
+     */
     private fun loadPost(postId: String) = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -105,12 +132,22 @@ internal class PostScreenViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Observes comments associated with a post and updates the UI state accordingly.
+     *
+     * @param postId The unique identifier of the post to observe comments for.
+     */
     private fun observeComments(postId: String) = viewModelScope.launch {
         getCommentsUseCase(postId).collect { comments ->
             _uiState.update { it.copy(comments = comments) }
         }
     }
 
+    /**
+     * Synchronizes comments from the remote data source and updates the UI state accordingly.
+     *
+     * @param postId The unique identifier of the post to synchronize comments for.
+     */
     private fun syncComments(postId: String) = viewModelScope.launch {
         val result = syncCommentsUseCase(postId)
 
@@ -119,6 +156,13 @@ internal class PostScreenViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Casts or updates a vote on a post and updates the UI state accordingly.
+     *
+     * @param postId The unique identifier of the post to vote on.
+     * @param vote The target vote value.
+     * @param currentVote The user's current vote value prior to this action.
+     */
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
             .onFailure { error ->
@@ -126,6 +170,11 @@ internal class PostScreenViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Toggles the bookmark/save state of a post and updates the UI state accordingly.
+     *
+     * @param postId The unique identifier of the post to toggle the bookmark/save state for.
+     */
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
@@ -133,6 +182,12 @@ internal class PostScreenViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Submits a new comment on a post and updates the UI state accordingly.
+     *
+     * @param postId The unique identifier of the post to comment on.
+     * @param content The text content of the comment.
+     */
     private fun submitComment(postId: String, content: String) = viewModelScope.launch {
         submitCommentUseCase(postId = postId, content = content)
             .onSuccess {
@@ -143,6 +198,11 @@ internal class PostScreenViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Deletes a comment and updates the UI state accordingly.
+     *
+     * @param commentId The unique identifier of the comment to delete.
+     */
     private fun deleteComment(commentId: String) = viewModelScope.launch {
         deleteCommentUseCase(commentId = commentId)
             .onFailure { error ->
@@ -150,6 +210,11 @@ internal class PostScreenViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Deletes a post and updates the UI state accordingly.
+     *
+     * @param postId The unique identifier of the post to delete.
+     */
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onSuccess {
@@ -160,6 +225,11 @@ internal class PostScreenViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Emits a one-off [PostDetailUiEffect] to the UI.
+     *
+     * @param effect The [PostDetailUiEffect] to emit.
+     */
     private fun emitEffect(effect: PostDetailUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }

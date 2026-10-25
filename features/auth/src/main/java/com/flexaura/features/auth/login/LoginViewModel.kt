@@ -18,6 +18,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing authentication state, handling user UI intents,
+ * and executing email and Google login use cases.
+ *
+ * @property savedStateHandle Handle to saved state parameters, used to extract navigation route arguments.
+ * @property loginWithEmailUseCase Use case for authenticating users via email and password.
+ * @property loginWithGoogleUseCase Use case for authenticating users via Google ID tokens.
+ */
 @HiltViewModel
 internal class LoginViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -37,6 +45,11 @@ internal class LoginViewModel @Inject constructor(
     private val _uiEffect: MutableSharedFlow<LoginUiEffect> = MutableSharedFlow()
     val uiEffect: SharedFlow<LoginUiEffect> get() = _uiEffect.asSharedFlow()
 
+    /**
+     * Processes incoming [LoginUiIntent] actions from the UI and updates state or triggers effects accordingly.
+     *
+     * @param intent The [LoginUiIntent] to handle.
+     */
     fun handleIntent(intent: LoginUiIntent) = when (intent) {
         is LoginUiIntent.OnEmailChanged -> _uiState.update { it.copy(email = intent.email) }
         is LoginUiIntent.OnPasswordChanged -> _uiState.update { it.copy(password = intent.password) }
@@ -47,9 +60,12 @@ internal class LoginViewModel @Inject constructor(
         }
         is LoginUiIntent.OnGoogleLoginClicked -> loginWithGoogle()
         is LoginUiIntent.OnRegisterNavigated -> emitEffect(LoginUiEffect.NavigateToRegister)
-        is LoginUiIntent.OnDissmissVerificationDialog -> _uiState.update { it.copy(showVerificationDialog = false) }
+        is LoginUiIntent.OnDismissVerificationDialog -> _uiState.update { it.copy(showVerificationDialog = false) }
     }
 
+    /**
+     * Initiates the authentication process with the provided email and password.
+     */
     private fun loginWithEmail() {
         val currentState = _uiState.value
         _uiState.update { it.copy(isLoading = true) }
@@ -66,11 +82,19 @@ internal class LoginViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Initiates the Google authentication process.
+     */
     private fun loginWithGoogle() {
         _uiState.update { it.copy(isLoading = true) }
         emitEffect(LoginUiEffect.LaunchGoogleSignIn)
     }
 
+    /**
+     * Handles the receipt of a Google ID token following a successful Google authentication flow.
+     *
+     * @param token The Google ID token string.
+     */
     fun onGoogleTokenReceived(token: String) = viewModelScope.launch {
         loginWithGoogleUseCase(token)
             .onSuccess {
@@ -82,10 +106,18 @@ internal class LoginViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Resets the loading state when the Google sign-in flow is cancelled by the user.
+     */
     fun onGoogleSignInCancelled() {
         _uiState.update { it.copy(isLoading = false) }
     }
 
+    /**
+     * Emits a one-off [LoginUiEffect] to the UI.
+     *
+     * @param effect The [LoginUiEffect] to emit.
+     */
     private fun emitEffect(effect: LoginUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }

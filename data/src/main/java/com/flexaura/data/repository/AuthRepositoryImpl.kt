@@ -20,10 +20,22 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [AuthRepository] utilizing remote data sources, user session helpers,
+ * and local Room DAOs to manage authentication workflows and local cache persistence.
+ *
+ * @property authRemoteDataSource Remote source for handling authentication requests and session statuses.
+ * @property userSession Helper class to obtain the current user's ID.
+ * @property userRemoteDataSource Remote source for fetching user profile information.
+ * @property userDao Data Access Object for local user entity caching.
+ * @property postDao Data Access Object for local post caching and deletion.
+ * @property dispatcher The coroutine dispatcher for background operations.
+ * @property scope The coroutine scope used for executing asynchronous tasks.
+ */
 class AuthRepositoryImpl @Inject constructor(
     private val authRemoteDataSource: AuthRemoteDataSource,
     private val userSession: UserSession,
-    private val dataSource: UserRemoteDataSource,
+    private val userRemoteDataSource: UserRemoteDataSource,
     private val userDao: UserDao,
     private val postDao: PostDao,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
@@ -65,7 +77,7 @@ class AuthRepositoryImpl @Inject constructor(
         runCatching {
             authRemoteDataSource.signInWithEmail(email = email, password = password)
             val userId = userSession.currentUserId ?: throw Exception("Login failed")
-            val remoteUser = dataSource.getUser(userId = userId) ?: throw Exception("Login failed")
+            val remoteUser = userRemoteDataSource.getUser(userId = userId) ?: throw Exception("Login failed")
 
             userDao.upsertUser(user = remoteUser.toEntity())
         }
@@ -78,7 +90,7 @@ class AuthRepositoryImpl @Inject constructor(
 
                 val userId = userSession.currentUserId
                     ?: throw Exception("Login failed")
-                val remoteUser = dataSource.getUser(userId = userId)
+                val remoteUser = userRemoteDataSource.getUser(userId = userId)
                     ?: throw Exception("Login failed")
 
                 userDao.upsertUser(user = remoteUser.toEntity())

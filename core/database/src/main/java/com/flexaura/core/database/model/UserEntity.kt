@@ -4,6 +4,19 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+/**
+ * Room entity representing a user profile.
+ *
+ * @property id Unique identifier for the user.
+ * @property username Author's username.
+ * @property displayName Author's display name.
+ * @property imageUrl URL to the author's avatar image.
+ * @property totalAura Total aura score of the author.
+ * @property followersCount Number of followers the author has.
+ * @property followingCount Number of users the author is following.
+ * @property createdAt Timestamp indicating when the comment was created.
+ * @property isFollowedByCurrentUser Flag indicating if the current user is following the author.
+ */
 @Entity(tableName = "users")
 data class UserEntity(
     @PrimaryKey val id: String,
