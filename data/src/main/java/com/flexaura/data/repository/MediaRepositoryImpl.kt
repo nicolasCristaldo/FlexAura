@@ -1,14 +1,20 @@
 package com.flexaura.data.repository
 
-import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.database.storage.StorageRemoteDataSource
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.repository.MediaRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [MediaRepository] utilizing storage remote data sources for image management.
+ *
+ * @property dataSource Remote data source for Supabase storage bucket operations.
+ * @property dispatcher The coroutine dispatcher for background thread execution.
+ */
 class MediaRepositoryImpl @Inject constructor(
-    private val networkDataSource: SupabaseRemoteDataSource,
+    private val dataSource: StorageRemoteDataSource,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
 ): MediaRepository {
     override suspend fun uploadPostImage(
@@ -17,7 +23,7 @@ class MediaRepositoryImpl @Inject constructor(
     ): Result<String> = withContext(dispatcher) {
         runCatching {
             val fileName = "$postId.jpg"
-            networkDataSource.uploadImage(
+            dataSource.uploadImage(
                 bucketName = "posts",
                 path = fileName,
                 imageBytes = imageBytes,
@@ -32,7 +38,7 @@ class MediaRepositoryImpl @Inject constructor(
     ): Result<String> = withContext(dispatcher) {
         runCatching {
             val fileName = "$userId.jpg"
-            val publicUrl = networkDataSource.uploadImage(
+            val publicUrl = dataSource.uploadImage(
                 bucketName = "avatars",
                 path = fileName,
                 imageBytes = imageBytes,
@@ -48,7 +54,7 @@ class MediaRepositoryImpl @Inject constructor(
         fileName: String
     ): Result<Unit> = withContext(dispatcher) {
         runCatching {
-            networkDataSource.deleteImage(bucketName, fileName)
+            dataSource.deleteImage(bucketName, fileName)
         }
     }
 }

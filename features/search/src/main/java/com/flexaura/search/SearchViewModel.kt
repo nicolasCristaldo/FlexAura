@@ -26,6 +26,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing search query operations across user profiles and posts,
+ * handling paginated search result updates, optimistic vote and bookmark toggling, and post deletions.
+ *
+ * @property getAuthUserUseCase Use case for observing the current authentication state.
+ * @property searchPostsUseCase Use case for querying posts matching a keyword.
+ * @property searchUsersUseCase Use case for querying user profiles matching a keyword.
+ * @property votePostUseCase Use case for casting or updating votes on posts.
+ * @property deletePostUseCase Use case for deleting posts.
+ * @property toggleSavePostUseCase Use case for toggling post bookmark/save states.
+ */
 @HiltViewModel
 internal class SearchViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
@@ -47,6 +58,11 @@ internal class SearchViewModel @Inject constructor(
         observeAuthUser()
     }
 
+    /**
+     * Processes incoming [SearchUiIntent] actions from the UI and updates state or triggers workflows.
+     *
+     * @param intent The [SearchUiIntent] to handle.
+     */
     fun onIntent(intent: SearchUiIntent) = when (intent) {
         is SearchUiIntent.OnSearchClicked -> {
             if (!_uiState.value.hasSearched) _uiState.update { it.copy(hasSearched = true) }
@@ -68,6 +84,9 @@ internal class SearchViewModel @Inject constructor(
         is SearchUiIntent.LoadUsers -> loadUsers(intent.isRetry)
     }
 
+    /**
+     * Observes the current authentication state and updates the UI state accordingly.
+     */
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
             when (authState) {
@@ -82,6 +101,11 @@ internal class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Initiates a search request with the provided query.
+     *
+     * @param query The search keyword.
+     */
     private fun search(query: String) = viewModelScope.launch {
         if (query.isBlank()) return@launch
         _uiState.update { it.copy(isSearching = true, errorMessage = null, hasSearched = true) }
@@ -132,6 +156,11 @@ internal class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads user profiles with pagination support.
+     *
+     * @param isRetry Flag indicating whether this is a retry attempt after a pagination error.
+     */
     private fun loadUsers(isRetry: Boolean = false) {
         val state = _uiState.value
         if (
@@ -179,6 +208,11 @@ internal class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads posts with pagination support.
+     *
+     * @param isRetry Flag indicating whether this is a retry attempt after a pagination error.
+     */
     private fun loadPosts(isRetry: Boolean = false) {
         val state = _uiState.value
         if (
@@ -226,6 +260,11 @@ internal class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Toggles the save/bookmark state of a post.
+     *
+     * @param postId The unique identifier of the post.
+     */
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         updatePostInState(postId = postId) { post ->
             val newSaveState = !post.isSavedByUser
@@ -248,6 +287,11 @@ internal class SearchViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Handles casting or updating a post's vote.
+     *
+     * @param postId The unique identifier of the post being voted on.
+     */
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
         updatePostInState(postId = postId) { post ->
             val diff = vote - currentVote
@@ -266,6 +310,11 @@ internal class SearchViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Updates the state of a post in the UI.
+     *
+     * @param postId The unique identifier of the post to update.
+     */
     private fun updatePostInState(postId: String, update: (Post) -> Post) {
         _uiState.update { state ->
             val updatedPosts = state.postsResults.items.map { post ->
@@ -276,6 +325,11 @@ internal class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Deletes a post.
+     *
+     * @param postId The unique identifier of the post to delete.
+     */
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onFailure { error ->
@@ -283,10 +337,20 @@ internal class SearchViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Emits a one-off side effect to the UI.
+     *
+     * @param effect The [SearchUiEffect] to emit.
+     */
     private fun emitEffect(effect: SearchUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }
 
+    /**
+     * Handles errors during a search request.
+     *
+     * @param e The [Throwable] representing the error.
+     */
     private fun handleSearchError(e: Throwable?) {
         _uiState.update {
             it.copy(

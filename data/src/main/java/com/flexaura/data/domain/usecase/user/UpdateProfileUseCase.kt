@@ -5,9 +5,24 @@ import com.flexaura.data.domain.util.isValidLength
 import com.flexaura.data.domain.util.isValidUsername
 import javax.inject.Inject
 
+/**
+ * Use case for updating the user's profile.
+ *
+ * @property repository The repository for user-related operations.
+ */
 class UpdateProfileUseCase @Inject constructor(
     private val repository: UserRepository
 ) {
+    /**
+     * Updates the user's profile.
+     *
+     * @param username The new username.
+     * @param displayName The new display name.
+     * @param imageBytes The new image bytes.
+     * @param bio The new bio.
+     * @param isImageRemoved Whether the image is removed.
+     * @return A [Result] indicating the success or failure of the operation.
+     */
     suspend operator fun invoke(
         username: String,
         displayName: String,

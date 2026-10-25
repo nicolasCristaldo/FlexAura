@@ -2,7 +2,7 @@ package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.CommentDao
 import com.flexaura.core.database.dao.PostDao
-import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.database.comment.CommentRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.Comment
@@ -18,10 +18,20 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [CommentRepository] utilizing local Room DAOs and remote data sources
+ * to manage comment workflows and cache consistency.
+ *
+ * @property commentDao Data Access Object for local comment caching and queries.
+ * @property postDao Data Access Object for updating local comment counters.
+ * @property dataSource Remote data source for comment operations.
+ * @property dispatcher The coroutine dispatcher for background thread execution.
+ * @property scope The coroutine scope used for concurrent asynchronous tasks.
+ */
 class CommentRepositoryImpl @Inject constructor(
     private val commentDao: CommentDao,
     private val postDao: PostDao,
-    private val networkDataSource: SupabaseRemoteDataSource,
+    private val dataSource: CommentRemoteDataSource,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ): CommentRepository {
@@ -32,7 +42,7 @@ class CommentRepositoryImpl @Inject constructor(
 
     override suspend fun syncComments(postId: String): Result<Unit> = withContext(dispatcher) {
         runCatching {
-            val remoteComments = networkDataSource.getComments(postId)
+            val remoteComments = dataSource.getComments(postId)
             val commentEntities = remoteComments.map { it.toEntity() }
 
             commentDao.insertComments(commentEntities)
@@ -44,7 +54,7 @@ class CommentRepositoryImpl @Inject constructor(
         content: String
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            networkDataSource.createComment(postId = postId, content = content)
+            dataSource.createComment(postId = postId, content = content)
             postDao.updateLocalCommentsCount(postId = postId, increment = 1)
 
             try {
@@ -68,7 +78,7 @@ class CommentRepositoryImpl @Inject constructor(
                     postDao.updateLocalCommentsCount(postId = it.postId, increment = -1)
                 }
 
-                networkDataSource.deleteComment(commentId)
+                dataSource.deleteComment(commentId)
             }
         }.await()
 }

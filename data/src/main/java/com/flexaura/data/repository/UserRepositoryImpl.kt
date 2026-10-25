@@ -1,7 +1,8 @@
 package com.flexaura.data.repository
 
 import com.flexaura.core.database.dao.UserDao
-import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.auth.UserSession
+import com.flexaura.core.network.datasource.database.user.UserRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.model.User
@@ -18,9 +19,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [UserRepository] utilizing local Room DAOs, remote data sources,
+ * user session management, and media repositories to handle user profiles and social workflows.
+ *
+ * @property userDao Data Access Object for local user caching and follower count updates.
+ * @property userSession Helper class to obtain the currently authenticated user's ID.
+ * @property dataSource Remote data source for user profile queries, updates, searches, and follow actions.
+ * @property mediaRepository Repository for handling avatar uploads and deletions.
+ * @property dispatcher The coroutine dispatcher for background thread execution.
+ * @property scope The coroutine scope used for executing asynchronous tasks.
+ */
 class UserRepositoryImpl @Inject constructor(
     private val userDao: UserDao,
-    private val networkDataSource: SupabaseRemoteDataSource,
+    private val userSession: UserSession,
+    private val dataSource: UserRemoteDataSource,
     private val mediaRepository: MediaRepository,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
@@ -33,7 +46,7 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun syncUserProfile(userId: String): Result<Unit> =
         withContext(dispatcher) {
             runCatching {
-                val remoteUser = networkDataSource.getUserProfile(userId)
+                val remoteUser = dataSource.getUserProfile(userId)
                     ?: throw Exception("No user found")
                 val userEntity = remoteUser.toEntity()
 
@@ -53,8 +66,8 @@ class UserRepositoryImpl @Inject constructor(
                 userDao.updateFollowState(targetUserId, newFollowState, countChange)
 
                 try {
-                    if (newFollowState) networkDataSource.followUser(targetUserId)
-                    else networkDataSource.unfollowUser(targetUserId)
+                    if (newFollowState) dataSource.followUser(targetUserId)
+                    else dataSource.unfollowUser(targetUserId)
                 }
                 catch (e: Exception) {
                     userDao.updateFollowState(targetUserId, wasFollowing, -countChange)
@@ -71,7 +84,7 @@ class UserRepositoryImpl @Inject constructor(
         isImageRemoved: Boolean
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
-            val currentId = networkDataSource.currentUserId ?: throw Exception("No user logged in")
+            val currentId = userSession.currentUserId ?: throw Exception("No user logged in")
 
             val newImage = when {
                 imageBytes != null -> {
@@ -88,7 +101,7 @@ class UserRepositoryImpl @Inject constructor(
                 }
             }
 
-            val updatedUserDto = networkDataSource.updateProfile(
+            val updatedUserDto = dataSource.updateProfile(
                 username = username,
                 displayName = displayName,
                 imageUrl = newImage,
@@ -107,7 +120,7 @@ class UserRepositoryImpl @Inject constructor(
         pageSize: Int
     ): Result<List<User>> = withContext(dispatcher) {
         runCatching {
-            val remoteUsers = networkDataSource.searchUsers(query, page, pageSize)
+            val remoteUsers = dataSource.searchUsers(query, page, pageSize)
 
             if(remoteUsers.isEmpty()) return@runCatching emptyList()
 

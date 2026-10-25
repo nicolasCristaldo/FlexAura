@@ -3,6 +3,21 @@ package com.flexaura.core.network.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Data Transfer Object (DTO) representing raw post data received from the remote backend.
+ *
+ * @property id The unique identifier of the post.
+ * @property authorId The unique identifier of the user who created the post.
+ * @property content The text content of the post, or `null` if it contains only media.
+ * @property imageUrl The public URL of the attached image, or `null` if none exists.
+ * @property createdAt The timestamp of when the post was created.
+ * @property commentsCount Total number of comments associated with the post.
+ * @property savesCount Total number of times the post has been bookmarked.
+ * @property votesMinus1 Count of negative votes or downvote weights.
+ * @property votes1 Count of tier 1 votes/aura points.
+ * @property votes3 Count of tier 3 votes/aura points.
+ * @property votes5 Count of tier 5 votes/aura points.
+ */
 @Serializable
 data class PostDto(
     @SerialName("id") val id: String,
