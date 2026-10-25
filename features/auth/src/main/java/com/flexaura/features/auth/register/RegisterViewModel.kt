@@ -14,6 +14,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing registration state, handling user UI intents,
+ * and executing the email registration use case.
+ *
+ * @property registerWithEmailUseCase Use case for registering a new user with email, password, username, and display name.
+ */
 @HiltViewModel
 internal class RegisterViewModel @Inject constructor(
     private val registerWithEmailUseCase: RegisterWithEmailUseCase
@@ -24,6 +30,11 @@ internal class RegisterViewModel @Inject constructor(
     private val _uiEffect: MutableSharedFlow<RegisterUiEffect> = MutableSharedFlow()
     val uiEffect: SharedFlow<RegisterUiEffect> get() = _uiEffect.asSharedFlow()
 
+    /**
+     * Processes incoming [RegisterUiIntent] actions from the UI and updates state or triggers effects accordingly.
+     *
+     * @param intent The [RegisterUiIntent] to handle.
+     */
     fun handleIntent(intent: RegisterUiIntent) = when(intent) {
         is RegisterUiIntent.OnEmailChanged -> _uiState.update { it.copy(email = intent.email) }
         is RegisterUiIntent.OnPasswordChanged -> _uiState.update {
@@ -42,6 +53,9 @@ internal class RegisterViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Initiates the registration process with the provided email, password, username, and display name.
+     */
     private fun registerWithEmail() {
         val currentState = _uiState.value
         _uiState.update { it.copy(isLoading = true) }
@@ -63,6 +77,11 @@ internal class RegisterViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Emits a one-off [RegisterUiEffect] to the UI.
+     *
+     * @param effect The [RegisterUiEffect] to emit.
+     */
     private fun emmitEffect(effect: RegisterUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }

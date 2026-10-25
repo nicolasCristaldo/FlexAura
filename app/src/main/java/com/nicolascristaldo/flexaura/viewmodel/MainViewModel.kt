@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing and providing the global authentication state of the application.
+ *
+ * @property authState A [StateFlow] representing the current [AuthState] used to control session flow and navigation.
+ */
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
     getAuthUserUseCase: GetAuthUserUseCase

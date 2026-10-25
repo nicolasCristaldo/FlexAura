@@ -36,6 +36,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing home screen feeds, pagination state for discover and following timelines,
+ * user authentication observation, post voting, bookmarking, and deletion workflows.
+ *
+ * @property getAuthUserUseCase Use case for observing the current authentication state.
+ * @property getPostsUseCase Use case for observing local discover posts.
+ * @property getFollowingPostsUseCase Use case for observing local following feed posts.
+ * @property syncPostsUseCase Use case for synchronizing discover posts from remote.
+ * @property syncFollowingPostsUseCase Use case for synchronizing following posts from remote.
+ * @property votePostUseCase Use case for casting or updating votes on posts.
+ * @property toggleSavePostUseCase Use case for toggling post bookmark/save states.
+ * @property deletePostUseCase Use case for deleting posts.
+ */
 @HiltViewModel
 internal class HomeViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
@@ -63,6 +76,11 @@ internal class HomeViewModel @Inject constructor(
         handleIntent(SyncPosts)
     }
 
+    /**
+     * Processes incoming [HomeUiIntent] actions from the UI and updates state or triggers workflows.
+     *
+     * @param intent The [HomeUiIntent] to handle.
+     */
     fun handleIntent(intent: HomeUiIntent) = when (intent) {
         is SyncPosts -> {
             loadDiscoverPosts()
@@ -84,6 +102,9 @@ internal class HomeViewModel @Inject constructor(
         is OnDeletePostClicked -> deletePost(intent.postId)
     }
 
+    /**
+     * Observes the local database for discover and following posts and updates the UI state accordingly.
+     */
     private fun observeLocalDataBase() = viewModelScope.launch {
         combine(
             getPostsUseCase(),
@@ -100,6 +121,9 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Observes the authenticated user and updates the UI state accordingly.
+     */
     private fun observeAuthUser() = viewModelScope.launch {
         getAuthUserUseCase().collect { authState ->
             when (authState) {
@@ -116,6 +140,11 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads discover posts from the remote data source and updates the UI state accordingly.
+     *
+     * @param isRetry Flag indicating whether this is a retry attempt after a pagination error.
+     */
     private fun loadDiscoverPosts(isRetry: Boolean = false) {
         val state = _uiState.value
         if (
@@ -164,6 +193,11 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads following posts from the remote data source and updates the UI state accordingly.
+     *
+     * @param isRetry Flag indicating whether this is a retry attempt after a pagination error.
+     */
     private fun loadFollowingPosts(isRetry: Boolean = false) {
         val state = _uiState.value
         if (
@@ -212,6 +246,9 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Refreshes the feeds (pull-to-refresh) and updates the UI state accordingly.
+     */
     private fun refresh() = viewModelScope.launch {
         _uiState.update {
             it.copy(
@@ -238,6 +275,13 @@ internal class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Votes on a post with the provided parameters and updates the UI state accordingly.
+     *
+     * @param postId The ID of the post to vote on.
+     * @param vote The target vote value.
+     * @param currentVote The user's current vote value prior to this action.
+     */
     private fun votePost(postId: String, vote: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = vote, currentVote = currentVote)
             .onFailure { error ->
@@ -245,6 +289,11 @@ internal class HomeViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Toggles the bookmark/save state of a post with the provided ID and updates the UI state accordingly.
+     *
+     * @param postId The ID of the post to toggle the bookmark/save state for.
+     */
     private fun toggleSavePost(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId = postId)
             .onFailure { error ->
@@ -252,6 +301,11 @@ internal class HomeViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Deletes a post with the provided ID and updates the UI state accordingly.
+     *
+     * @param postId The ID of the post to delete.
+     */
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onFailure { error ->
@@ -259,6 +313,11 @@ internal class HomeViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Emits a one-off [HomeUiEffect] to the UI.
+     *
+     * @param effect The [HomeUiEffect] to emit.
+     */
     private fun emitEffect(effect: HomeUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }

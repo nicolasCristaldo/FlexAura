@@ -92,12 +92,12 @@ private fun LoginScreen(
 ) {
     if (state.showVerificationDialog) {
         AlertDialog(
-            onDismissRequest = { onIntent(LoginUiIntent.OnDissmissVerificationDialog) },
+            onDismissRequest = { onIntent(LoginUiIntent.OnDismissVerificationDialog) },
             title = { Text(text = stringResource(AuthR.string.dialog_verify_email_title)) },
             text = { Text(text = stringResource(AuthR.string.dialog_verify_email_desc, state.email)) },
             confirmButton = {
                 TextButton(
-                    onClick = { onIntent(LoginUiIntent.OnDissmissVerificationDialog) }
+                    onClick = { onIntent(LoginUiIntent.OnDismissVerificationDialog) }
                 ) { Text(text = stringResource(AuthR.string.dialog_verify_email_confirm)) }
             }
         )

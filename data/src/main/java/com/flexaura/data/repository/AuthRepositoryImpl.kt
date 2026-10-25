@@ -3,7 +3,8 @@ package com.flexaura.data.repository
 import com.flexaura.core.database.dao.PostDao
 import com.flexaura.core.database.dao.UserDao
 import com.flexaura.core.network.datasource.auth.AuthRemoteDataSource
-import com.flexaura.core.network.datasource.database.SupabaseRemoteDataSource
+import com.flexaura.core.network.datasource.auth.UserSession
+import com.flexaura.core.network.datasource.database.user.UserRemoteDataSource
 import com.flexaura.data.di.ApplicationScope
 import com.flexaura.data.di.IoDispatcher
 import com.flexaura.data.domain.repository.AuthRepository
@@ -19,9 +20,22 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [AuthRepository] utilizing remote data sources, user session helpers,
+ * and local Room DAOs to manage authentication workflows and local cache persistence.
+ *
+ * @property authRemoteDataSource Remote source for handling authentication requests and session statuses.
+ * @property userSession Helper class to obtain the current user's ID.
+ * @property userRemoteDataSource Remote source for fetching user profile information.
+ * @property userDao Data Access Object for local user entity caching.
+ * @property postDao Data Access Object for local post caching and deletion.
+ * @property dispatcher The coroutine dispatcher for background operations.
+ * @property scope The coroutine scope used for executing asynchronous tasks.
+ */
 class AuthRepositoryImpl @Inject constructor(
     private val authRemoteDataSource: AuthRemoteDataSource,
-    private val supabaseRemoteDataSource: SupabaseRemoteDataSource,
+    private val userSession: UserSession,
+    private val userRemoteDataSource: UserRemoteDataSource,
     private val userDao: UserDao,
     private val postDao: PostDao,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
@@ -62,8 +76,8 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<Unit> = scope.async(dispatcher) {
         runCatching {
             authRemoteDataSource.signInWithEmail(email = email, password = password)
-            val userId = supabaseRemoteDataSource.currentUserId ?: throw Exception("Login failed")
-            val remoteUser = supabaseRemoteDataSource.getUser(userId = userId) ?: throw Exception("Login failed")
+            val userId = userSession.currentUserId ?: throw Exception("Login failed")
+            val remoteUser = userRemoteDataSource.getUser(userId = userId) ?: throw Exception("Login failed")
 
             userDao.upsertUser(user = remoteUser.toEntity())
         }
@@ -74,9 +88,9 @@ class AuthRepositoryImpl @Inject constructor(
             runCatching {
                 authRemoteDataSource.signInWithGoogle(idToken = idToken)
 
-                val userId = supabaseRemoteDataSource.currentUserId
+                val userId = userSession.currentUserId
                     ?: throw Exception("Login failed")
-                val remoteUser = supabaseRemoteDataSource.getUser(userId = userId)
+                val remoteUser = userRemoteDataSource.getUser(userId = userId)
                     ?: throw Exception("Login failed")
 
                 userDao.upsertUser(user = remoteUser.toEntity())
