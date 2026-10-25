@@ -16,6 +16,12 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Implementation of [PostRemoteDataSource] utilizing the Supabase client and user session for remote post management.
+ *
+ * @property supabaseClient The Supabase client instance used for database queries and mutations.
+ * @property userSession Helper class to obtain the currently authenticated user's ID.
+ */
 @Singleton
 class PostRemoteDataSourceImpl @Inject constructor(
     private val supabaseClient: SupabaseClient,

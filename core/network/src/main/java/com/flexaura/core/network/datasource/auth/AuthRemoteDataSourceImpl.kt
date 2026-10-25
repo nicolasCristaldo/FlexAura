@@ -12,6 +12,11 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
 
+/**
+ * Implementation of [AuthRemoteDataSource] utilizing the Supabase client for remote authentication workflows.
+ *
+ * @property supabaseClient The Supabase client instance used for auth and RPC operations.
+ */
 class AuthRemoteDataSourceImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
 ): AuthRemoteDataSource {

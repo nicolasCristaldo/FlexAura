@@ -23,6 +23,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing user profile editing state, loading initial user profile data,
+ * handling avatar compression, and executing profile update use cases.
+ *
+ * @property getAuthUserUseCase Use case for observing the current authentication state.
+ * @property getUserByIdUseCase Use case for fetching user profile details by ID.
+ * @property updateProfileUseCase Use case for updating profile information.
+ * @property context Application context used for resolving and compressing image URIs.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class EditProfileViewModel @Inject constructor(
@@ -39,6 +48,11 @@ internal class EditProfileViewModel @Inject constructor(
 
     init { onIntent(Init) }
 
+    /**
+     * Processes incoming [EditProfileUiIntent] actions from the UI and updates state or triggers workflows.
+     *
+     * @param intent The [EditProfileUiIntent] to handle.
+     */
     fun onIntent(intent: EditProfileUiIntent) = when(intent) {
         Init -> loadInitialUserData()
         is OnUsernameChanged -> _uiState.update { it.copy(username = intent.username) }
@@ -51,6 +65,9 @@ internal class EditProfileViewModel @Inject constructor(
         is OnSaveProfile -> saveProfile()
     }
 
+    /**
+     * Observes the authenticated user and initiates data fetching.
+     */
     private fun loadInitialUserData() = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true, error = null) }
 
@@ -68,6 +85,9 @@ internal class EditProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Fetches user profile details by ID and updates the UI state accordingly.
+     */
     private fun fetchUserData(userId: String) = viewModelScope.launch {
         try {
             getUserByIdUseCase(userId).collect { user ->
@@ -92,6 +112,9 @@ internal class EditProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Initiates the profile update process with the provided content and optional image bytes.
+     */
     private fun saveProfile() = viewModelScope.launch {
         val state = _uiState.value
         _uiState.update { it.copy(isLoading = true) }
@@ -118,6 +141,11 @@ internal class EditProfileViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Emits a one-off [EditProfileUiEffect] to the UI.
+     *
+     * @param effect The [EditProfileUiEffect] to emit.
+     */
     private fun emitEffect(effect: EditProfileUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }

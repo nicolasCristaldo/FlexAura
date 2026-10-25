@@ -11,6 +11,12 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Implementation of [CommentRemoteDataSource] utilizing the Supabase client and user session for remote comment workflows.
+ *
+ * @property supabaseClient The Supabase client instance used for PostgREST database operations.
+ * @property userSession Helper class to obtain the currently authenticated user's ID.
+ */
 @Singleton
 class CommentRemoteDataSourceImpl @Inject constructor(
     private val supabaseClient: SupabaseClient,

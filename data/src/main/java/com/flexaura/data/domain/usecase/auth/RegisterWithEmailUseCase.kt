@@ -7,9 +7,23 @@ import com.flexaura.data.domain.util.isValidPassword
 import com.flexaura.data.domain.util.isValidUsername
 import javax.inject.Inject
 
+/**
+ * Use case for registering a new user with email credentials.
+ *
+ * @property repository The repository for authentication-related operations.
+ */
 class RegisterWithEmailUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {
+    /**
+     * Registers a new user with the provided email, password, username, and display name.
+     *
+     * @param email The user's email address.
+     * @param password The user's password.
+     * @param username The user's desired username.
+     * @param displayName The user's chosen display name.
+     * @return A [Result] indicating success or containing an exception if registration fails.
+     */
     suspend operator fun invoke(
         email: String,
         password: String,

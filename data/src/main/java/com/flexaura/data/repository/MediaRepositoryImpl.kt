@@ -7,6 +7,12 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Implementation of [MediaRepository] utilizing storage remote data sources for image management.
+ *
+ * @property dataSource Remote data source for Supabase storage bucket operations.
+ * @property dispatcher The coroutine dispatcher for background thread execution.
+ */
 class MediaRepositoryImpl @Inject constructor(
     private val dataSource: StorageRemoteDataSource,
     @IoDispatcher private val dispatcher: CoroutineDispatcher

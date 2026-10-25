@@ -37,6 +37,25 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing user profile details, pagination states for user posts and saved items,
+ * follow actions, post voting, bookmarking, deletion, logout, and account deletion workflows.
+ *
+ * @property savedStateHandle Handle to saved state parameters used to extract target user navigation arguments.
+ * @property getUserByIdUseCase Use case for observing user profile details by ID.
+ * @property getPostsByAuthorUseCase Use case for observing posts authored by a user.
+ * @property getSavedPostsUseCase Use case for observing saved posts (if viewing own profile).
+ * @property syncUserUseCase Use case for synchronizing user profile data from remote.
+ * @property syncPostsByAuthorUseCase Use case for synchronizing author posts from remote.
+ * @property syncSavedPostsUseCase Use case for synchronizing saved posts from remote.
+ * @property toggleFollowUserUseCase Use case for toggling follow/unfollow states on users.
+ * @property toggleSavePostUseCase Use case for toggling post bookmark/save states.
+ * @property votePostUseCase Use case for casting or updating votes on posts.
+ * @property deletePostUseCase Use case for deleting posts.
+ * @property getAuthUserUseCase Use case for observing the current authentication state.
+ * @property logoutUseCase Use case for terminating the user session.
+ * @property deleteAccountUseCase Use case for deleting the user account.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class
@@ -71,6 +90,11 @@ ProfileViewModel @Inject constructor(
         handleIntent(ProfileUiIntent.LoadProfile)
     }
 
+    /**
+     * Processes incoming [ProfileUiIntent] actions from the UI and updates state or triggers workflows.
+     *
+     * @param intent The [ProfileUiIntent] to handle.
+     */
     fun handleIntent(intent: ProfileUiIntent) = when (intent) {
         is ProfileUiIntent.LoadProfile -> {
             observeProfileData()
@@ -97,6 +121,9 @@ ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Retrieves the target user ID for profile data synchronization.
+     */
     private suspend fun getTargetUserId(): String? =
         if (argumentUserId != null) argumentUserId
         else {
@@ -104,6 +131,9 @@ ProfileViewModel @Inject constructor(
             (authState as? AuthState.Authenticated)?.userId
         }
 
+    /**
+     * Observes the profile data and updates the UI state accordingly.
+     */
     private fun observeProfileData() = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -144,6 +174,9 @@ ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Initiates the profile data synchronization process.
+     */
     private fun syncProfileData() = viewModelScope.launch {
         val targetUserId = getTargetUserId() ?: return@launch
         val authState = getAuthUserUseCase().first()
@@ -188,6 +221,11 @@ ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads user posts with pagination support.
+     *
+     * @param isRetry Flag indicating whether this is a retry attempt after a pagination error.
+     */
     private fun loadUserPosts(isRetry: Boolean = false) {
         val state = _uiState.value
         if (
@@ -242,6 +280,11 @@ ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads saved posts with pagination support.
+     *
+     * @param isRetry Flag indicating whether this is a retry attempt after a pagination error.
+     */
     private fun loadSavedPosts(isRetry: Boolean = false) {
         val state = _uiState.value
         if (
@@ -293,6 +336,9 @@ ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Toggles the follow/unfollow state of a user.
+     */
     private fun toggleFollowUser() = viewModelScope.launch {
         val authState = getAuthUserUseCase().first()
         val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
@@ -305,6 +351,13 @@ ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Handles casting or updating a post's vote.
+     *
+     * @param postId The unique identifier of the post being voted on.
+     * @param value The target vote value.
+     * @param currentVote The user's current vote value prior to this action.
+     */
     private fun handleVote(postId: String, value: Int, currentVote: Int) = viewModelScope.launch {
         votePostUseCase(postId = postId, value = value, currentVote = currentVote)
             .onFailure { error ->
@@ -312,12 +365,22 @@ ProfileViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Toggles the save/bookmark state of a post.
+     *
+     * @param postId The unique identifier of the post.
+     */
     private fun toggleSave(postId: String) = viewModelScope.launch {
         toggleSavePostUseCase(postId).onFailure { error ->
             emitEffect(ShowSnackBar("Error saving post."))
         }
     }
 
+    /**
+     * Deletes a post.
+     *
+     * @param postId The unique identifier of the post to delete.
+     */
     private fun deletePost(postId: String) = viewModelScope.launch {
         deletePostUseCase(postId = postId)
             .onFailure { error ->
@@ -325,6 +388,9 @@ ProfileViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Initiates the user session logout process.
+     */
     private fun logout() = viewModelScope.launch {
         logoutUseCase().fold(
             onSuccess = { emitEffect(NavigateToAuth) },
@@ -335,6 +401,9 @@ ProfileViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Initiates the account deletion process.
+     */
     private fun deleteAccount() = viewModelScope.launch {
         deleteAccountUseCase().fold(
             onSuccess = { emitEffect(NavigateToAuth) },
@@ -345,10 +414,20 @@ ProfileViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Emits a one-off [ProfileUiEffect] to the UI.
+     *
+     * @param effect The [ProfileUiEffect] to emit.
+     */
     private fun emitEffect(effect: ProfileUiEffect) = viewModelScope.launch {
         _uiEffect.emit(effect)
     }
 
+    /**
+     * Handles any errors during profile data synchronization.
+     *
+     * @param e The [Throwable] error object.
+     */
     private fun handleSyncError(e: Throwable) {
         val errorMessage = e.localizedMessage ?: "Unknown error"
         val hasData = _uiState.value.user != null
