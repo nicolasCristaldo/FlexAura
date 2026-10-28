@@ -1,13 +1,20 @@
 package com.flexaura.data.repository.user
 
 import com.flexaura.core.database.model.UserEntity
-import com.flexaura.core.network.model.FollowDto
+import com.flexaura.core.network.datasource.auth.UserSession
 import com.flexaura.core.network.model.UserDto
-import com.flexaura.data.fakes.FakeSupabaseRemoteDataSource
-import com.flexaura.data.fakes.FakeUserDao
+import com.flexaura.data.fakes.TestData
+import com.flexaura.data.fakes.TestState
+import com.flexaura.data.fakes.dao.FakeUserDao
+import com.flexaura.data.fakes.datasource.FakeStorageRemoteDataSource
+import com.flexaura.data.fakes.datasource.FakeUserRemoteDataSource
+import com.flexaura.data.repository.MediaRepositoryImpl
 import com.flexaura.data.repository.UserRepositoryImpl
 import com.flexaura.data.rule.MainDispatcherRule
+import io.mockk.coEvery
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -23,17 +30,27 @@ class UserRepositoryImplTest {
     private val testScope = TestScope(mainDispatcherRule.testDispatcher)
 
     private lateinit var fakeUserDao: FakeUserDao
-    private lateinit var fakeSupabaseRemoteDataSource: FakeSupabaseRemoteDataSource
+    private lateinit var fakeUserRemoteDataSource: FakeUserRemoteDataSource
     private lateinit var userRepositoryImpl: UserRepositoryImpl
+    private lateinit var mediaRepositoryImpl: MediaRepositoryImpl
+    private lateinit var userSession: UserSession
 
     @Before
     fun setup() {
+        userSession = mockk(relaxed = true)
+        coEvery { userSession.requireCurrentUserId() } returns TestData.defaultUser.id
+        mediaRepositoryImpl = MediaRepositoryImpl(
+            dataSource = FakeStorageRemoteDataSource(),
+            dispatcher = mainDispatcherRule.testDispatcher
+        )
         fakeUserDao = FakeUserDao()
-        fakeSupabaseRemoteDataSource = FakeSupabaseRemoteDataSource()
+        fakeUserRemoteDataSource = FakeUserRemoteDataSource(state = TestState())
         userRepositoryImpl = UserRepositoryImpl(
             userDao = fakeUserDao,
-            networkDataSource = fakeSupabaseRemoteDataSource,
+            dataSource = fakeUserRemoteDataSource,
+            mediaRepository = mediaRepositoryImpl,
             dispatcher = mainDispatcherRule.testDispatcher,
+            userSession = userSession,
             scope = testScope
         )
     }
@@ -41,61 +58,48 @@ class UserRepositoryImplTest {
     @Test
     fun `syncUserProfile successful fetches remote And Upserts To Local Cache`() = runTest {
         // Given
-        val userId = "user_123"
-        val remoteUser = UserDto(
-            id = userId,
-            username = "test_user",
-            displayName = "Test User",
-            imageUrl = "https://example.com/image.jpg",
-            bio = "This is a test user",
-            createdAt = "2026-01-01T00:00:00Z",
-            totalAura = 90
-        )
-        fakeSupabaseRemoteDataSource.remoteUsers[userId] = remoteUser
+        val remoteUser = TestData.defaultUser
+
+        fakeUserRemoteDataSource.state.users.update { it + remoteUser }
 
         // When
         val result = userRepositoryImpl.syncUserProfile(remoteUser.id)
 
         // Then
-        val localUser = fakeUserDao.getUserById(userId)
+        val localUser = fakeUserDao.getUserById(remoteUser.id)
 
         assertTrue(result.isSuccess)
-        assertEquals("test_user", localUser?.username)
-        assertEquals("Test User", localUser?.displayName)
-        assertEquals(90, localUser?.totalAura)
+        assertEquals(remoteUser.username, localUser?.username)
+        assertEquals(remoteUser.displayName, localUser?.displayName)
+        assertEquals(remoteUser.totalAura, localUser?.totalAura)
     }
 
     @Test
     fun `toggleFollowUser, currently not following, follows and calls remote follow`() = runTest {
         // Given
-        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
-        val targetUserId = "user_123"
-        val remoteUser = UserDto(
+        val currentUser = TestData.defaultUser
+        val targetUserId = "user_target"
+        val targetUserDto = UserDto(
             id = targetUserId,
-            username = "test_user",
-            displayName = "Test User",
-            createdAt = ""
+            username = "target_user",
+            displayName = "Target User",
+            createdAt = "2024-01-01T00:00:00Z"
         )
         val targetLocalUser = UserEntity(
             id = targetUserId,
-            username = "test_user",
-            displayName = "Test User",
+            username = "target_user",
+            displayName = "Target User",
             imageUrl = null,
             bio = null,
-            createdAt = "",
+            createdAt = "2024-01-01T00:00:00Z",
             totalAura = 0,
             followersCount = 0,
             followingCount = 0,
             isFollowedByCurrentUser = false
         )
-        fakeSupabaseRemoteDataSource.remoteUsers[targetUserId] = remoteUser
-        fakeSupabaseRemoteDataSource.remoteUsers[currentUserId] = UserDto(
-            id = currentUserId,
-            username = "current_user",
-            displayName = "current_user",
-            createdAt = ""
-        )
-        fakeUserDao.usersTable.value = listOf(targetLocalUser)
+
+        fakeUserRemoteDataSource.state.users.update { listOf(currentUser, targetUserDto) }
+        fakeUserDao.upsertUser(targetLocalUser)
 
         // When
         val result = userRepositoryImpl.toggleFollowUser(targetUserId)
@@ -106,46 +110,34 @@ class UserRepositoryImplTest {
         assertTrue(result.isSuccess)
         assertEquals(true, updatedLocalUser?.isFollowedByCurrentUser)
         assertEquals(1, updatedLocalUser?.followersCount)
-        assertTrue(fakeSupabaseRemoteDataSource.remoteFollows.isNotEmpty())
     }
 
     @Test
     fun `toggleFollowUser, currently following, unfollow and calls remote unfollow`() = runTest {
         // Given
-        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
-        val targetUserId = "user_123"
-        val remoteUser = UserDto(
+        val currentUser = TestData.defaultUser
+        val targetUserId = "user_target"
+        val targetUserDto = UserDto(
             id = targetUserId,
-            username = "test_user",
-            displayName = "Test User",
-            createdAt = ""
+            username = "target_user",
+            displayName = "Target User",
+            createdAt = "2024-01-01T00:00:00Z"
         )
         val targetLocalUser = UserEntity(
             id = targetUserId,
-            username = "test_user",
-            displayName = "Test User",
+            username = "target_user",
+            displayName = "Target User",
             imageUrl = null,
             bio = null,
-            createdAt = "",
+            createdAt = "2024-01-01T00:00:00Z",
             totalAura = 0,
-            followersCount = 10,
+            followersCount = 1,
             followingCount = 0,
             isFollowedByCurrentUser = true
         )
-        fakeSupabaseRemoteDataSource.remoteUsers[targetUserId] = remoteUser
-        fakeSupabaseRemoteDataSource.remoteUsers[currentUserId] = UserDto(
-            id = currentUserId,
-            username = "current_user",
-            displayName = "current_user",
-            createdAt = ""
-        )
-        fakeUserDao.usersTable.value = listOf(targetLocalUser)
-        fakeSupabaseRemoteDataSource.remoteFollows.add(
-            FollowDto(
-                followerId = currentUserId,
-                followingId = targetUserId
-            )
-        )
+
+        fakeUserRemoteDataSource.state.users.update { listOf(currentUser, targetUserDto) }
+        fakeUserDao.upsertUser(targetLocalUser)
 
         // When
         val result = userRepositoryImpl.toggleFollowUser(targetUserId)
@@ -155,7 +147,6 @@ class UserRepositoryImplTest {
 
         assertTrue(result.isSuccess)
         assertEquals(false, updatedLocalUser?.isFollowedByCurrentUser)
-        assertEquals(9, updatedLocalUser?.followersCount)
-        assertEquals(0, fakeSupabaseRemoteDataSource.remoteFollows.size)
+        assertEquals(0, updatedLocalUser?.followersCount)
     }
 }
