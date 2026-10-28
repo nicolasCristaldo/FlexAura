@@ -1,4 +1,4 @@
-package com.flexaura.data.fakes
+package com.flexaura.data.fakes.dao
 
 import com.flexaura.core.database.dao.CommentDao
 import com.flexaura.core.database.model.CommentEntity
@@ -14,11 +14,27 @@ class FakeCommentDao : CommentDao {
             comments.filter { it.postId == postId }
         }
 
+    override suspend fun getCommentById(commentId: String): CommentEntity? {
+        commentsTable.value.forEach { comment ->
+            if (comment.id == commentId) {
+                return comment
+            }
+        }
+        return null
+    }
+
     override suspend fun insertComment(comment: CommentEntity) {
         val currentComments = commentsTable.value.toMutableList()
 
         currentComments.removeAll { it.id == comment.id }
         currentComments.add(comment)
+        commentsTable.value = currentComments
+    }
+
+    override suspend fun insertComments(comments: List<CommentEntity>) {
+        val currentComments = commentsTable.value.toMutableList()
+
+        currentComments.addAll(comments)
         commentsTable.value = currentComments
     }
 

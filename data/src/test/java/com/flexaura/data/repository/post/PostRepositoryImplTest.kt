@@ -1,19 +1,22 @@
 package com.flexaura.data.repository.post
 
-import com.flexaura.core.database.model.PostEntity
-import com.flexaura.core.network.model.PostDto
-import com.flexaura.core.network.model.PostWithInteractionsDto
-import com.flexaura.core.network.model.UserSaveIdDto
-import com.flexaura.data.fakes.FakePostDao
-import com.flexaura.data.fakes.FakeSupabaseRemoteDataSource
+import com.flexaura.core.network.model.SaveDto
+import com.flexaura.data.fakes.TestData
+import com.flexaura.data.fakes.TestState
+import com.flexaura.data.fakes.dao.FakePostDao
+import com.flexaura.data.fakes.dao.FakeUserDao
+import com.flexaura.data.fakes.datasource.FakePostRemoteDataSource
+import com.flexaura.data.fakes.datasource.FakeStorageRemoteDataSource
+import com.flexaura.data.mapper.toEntity
+import com.flexaura.data.repository.MediaRepositoryImpl
 import com.flexaura.data.repository.PostRepositoryImpl
 import com.flexaura.data.rule.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -26,17 +29,26 @@ class PostRepositoryImplTest {
     private val testScope = TestScope(mainDispatcherRule.testDispatcher)
 
     private lateinit var fakePostDao: FakePostDao
-    private lateinit var fakeSupabaseRemoteDataSource: FakeSupabaseRemoteDataSource
+    private lateinit var fakeUserDao: FakeUserDao
+    private lateinit var fakePostRemoteDataSource: FakePostRemoteDataSource
     private lateinit var postRepositoryImpl: PostRepositoryImpl
+    private lateinit var mediaRepositoryImpl: MediaRepositoryImpl
 
     @Before
     fun setup() {
-        fakePostDao = FakePostDao()
-        fakeSupabaseRemoteDataSource = FakeSupabaseRemoteDataSource()
+        fakeUserDao = FakeUserDao()
+        fakePostDao = FakePostDao(usersTable = fakeUserDao.usersTable)
+        mediaRepositoryImpl = MediaRepositoryImpl(
+            dataSource = FakeStorageRemoteDataSource(),
+            dispatcher = mainDispatcherRule.testDispatcher
+        )
+        fakePostRemoteDataSource = FakePostRemoteDataSource(state = TestState())
         postRepositoryImpl = PostRepositoryImpl(
             postDao = fakePostDao,
-            networkDataSource = fakeSupabaseRemoteDataSource,
+            userDao = fakeUserDao,
+            dataSource = fakePostRemoteDataSource,
             dispatcher = mainDispatcherRule.testDispatcher,
+            mediaRepository = mediaRepositoryImpl,
             scope = testScope
         )
     }
@@ -46,17 +58,9 @@ class PostRepositoryImplTest {
         // Given
         val page = 1
         val pageSize = 10
-        val mockRemotePost = PostWithInteractionsDto(
-            post = PostDto(
-                id = "post_123",
-                authorId = "author_123",
-                content = "Test post",
-                imageUrl = "https://example.com/image.jpg",
-                createdAt = "2026-01-01T00:00:00Z"
-            )
-        )
+        val remotePost = TestData.defaultPost
 
-        fakeSupabaseRemoteDataSource.remotePosts.add(mockRemotePost)
+        fakePostRemoteDataSource.state.posts.update { it + remotePost }
 
         // When
         val result = postRepositoryImpl.syncPosts(page, pageSize)
@@ -66,94 +70,65 @@ class PostRepositoryImplTest {
 
         assertTrue(result.isSuccess)
         assertEquals(1, localPosts.size)
-        assertEquals("post_123", localPosts.first().id)
-        assertEquals("Test post", localPosts.first().content)
+        assertEquals(remotePost.id, localPosts.first().post.id)
+        assertEquals(remotePost.content, localPosts.first().post.content)
     }
 
     @Test
     fun `toggleSavePost, currently unsaved, updates local post to saved and calls remote save`() = runTest {
         // Given
-        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
-        val postId = "post_123"
-        val remotePost = PostWithInteractionsDto(
-            post = PostDto(
-                id = "post_123",
-                authorId = "author_123",
-                content = "Test post",
-                imageUrl = "https://example.com/image.jpg",
-                createdAt = "2026-01-01T00:00:00Z"
-            )
-        )
-        val localPost = PostEntity(
-            id = postId,
-            authorId = "author_123",
-            content = "Test post",
-            imageUrl = "https://example.com/image.jpg",
-            createdAt = "2026-01-01T00:00:00Z",
-            commentsCount = 0,
-            savesCount = 0,
-            currentUserVote = 0,
-            totalAura = 0,
-            isSavedByUser = false
-        )
-        fakeSupabaseRemoteDataSource.remotePosts.add(remotePost)
+        val currentUser = TestData.defaultUser
+        val remotePost = TestData.defaultPost
+        val localPost = remotePost.toEntity()
+
+        fakePostRemoteDataSource.state.users.update { it + currentUser }
+        fakePostRemoteDataSource.state.posts.update { it + remotePost }
         fakePostDao.upsertPosts(listOf(localPost))
+        fakeUserDao.upsertUsers(listOf(currentUser.toEntity()))
 
         // When
-        val result = postRepositoryImpl.toggleSavePost(postId)
+        val result = postRepositoryImpl.toggleSavePost(remotePost.id)
 
         // Then
-        val updatedLocalPost = fakePostDao.getPostById(postId)
+        val updatedLocalPost = fakePostDao.getPostById(remotePost.id)
 
         assertTrue(result.isSuccess)
-        assertTrue(updatedLocalPost?.isSavedByUser == true)
-        assertEquals(1,fakeSupabaseRemoteDataSource.remoteSaves.size)
-        assertEquals(postId, fakeSupabaseRemoteDataSource.remoteSaves.first().postId)
-        assertTrue(fakeSupabaseRemoteDataSource.remotePosts.first().isSaved)
-        assertEquals(fakeSupabaseRemoteDataSource.remotePosts.first().userSave.first().id, currentUserId)
+        assertTrue(updatedLocalPost?.post?.isSavedByUser == true)
+        assertEquals(1,fakePostRemoteDataSource.state.saves.value.size)
+        assertEquals(remotePost.id, fakePostRemoteDataSource.state.saves.value.first().postId)
+        assertTrue(fakePostRemoteDataSource.state.posts.value.first().savesCount == 1)
+        assertEquals(fakePostRemoteDataSource.state.saves.value.first().userId, currentUser.id)
     }
 
     @Test
     fun `toggleSavePost, currently saved, updates local post to unsaved and calls remote unsave`() = runTest {
         // Given
-        val currentUserId = fakeSupabaseRemoteDataSource.currentUserId!!
-        val postId = "post_123"
-        val remotePost = PostWithInteractionsDto(
-            post = PostDto(
-                id = "post_123",
-                authorId = "author_123",
-                content = "Test post",
-                imageUrl = "https://example.com/image.jpg",
-                createdAt = "2026-01-01T00:00:00Z"
-            ),
-            userSave = listOf(UserSaveIdDto(id = currentUserId))
-        )
-        val localPost = PostEntity(
-            id = postId,
-            authorId = "author_123",
-            content = "Test post",
-            imageUrl = "https://example.com/image.jpg",
-            createdAt = "2026-01-01T00:00:00Z",
-            commentsCount = 0,
-            savesCount = 0,
-            currentUserVote = 0,
-            totalAura = 0,
-            isSavedByUser = true
-        )
-        fakeSupabaseRemoteDataSource.remotePosts.add(remotePost)
+        val currentUser = TestData.defaultUser
+        val remotePost = TestData.defaultPost.copy(savesCount = 1)
+        val localPost = remotePost.toEntity().copy(isSavedByUser = true)
+
+        fakePostRemoteDataSource.state.users.update { it + currentUser }
+        fakePostRemoteDataSource.state.posts.update { it + remotePost }
+        fakePostRemoteDataSource.state.saves.update {
+            it + SaveDto(
+                id = "save_1",
+                userId = currentUser.id,
+                postId = remotePost.id
+            )
+        }
         fakePostDao.upsertPosts(listOf(localPost))
+        fakeUserDao.upsertUsers(listOf(currentUser.toEntity()))
 
         // When
-        val result = postRepositoryImpl.toggleSavePost(postId)
+        val result = postRepositoryImpl.toggleSavePost(remotePost.id)
 
         // Then
-        val updatedLocalPost = fakePostDao.getPostById(postId)
+        val updatedLocalPost = fakePostDao.getPostById(remotePost.id)
 
         assertTrue(result.isSuccess)
-        assertTrue(updatedLocalPost?.isSavedByUser == false)
-        assertEquals(0,fakeSupabaseRemoteDataSource.remoteSaves.size)
-        assertTrue(fakeSupabaseRemoteDataSource.remoteSaves.isEmpty())
-        assertFalse(fakeSupabaseRemoteDataSource.remotePosts.first().isSaved)
-        assertTrue(fakeSupabaseRemoteDataSource.remotePosts.first().userSave.isEmpty())
+        assertTrue(updatedLocalPost?.post?.isSavedByUser == false)
+        assertEquals(0,fakePostRemoteDataSource.state.saves.value.size)
+        assertTrue(fakePostRemoteDataSource.state.saves.value.isEmpty())
+        assertEquals(0, fakePostRemoteDataSource.state.posts.value.first().savesCount)
     }
 }
