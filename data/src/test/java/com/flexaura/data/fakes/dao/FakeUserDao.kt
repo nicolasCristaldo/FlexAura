@@ -1,4 +1,4 @@
-package com.flexaura.data.fakes
+package com.flexaura.data.fakes.dao
 
 import com.flexaura.core.database.dao.UserDao
 import com.flexaura.core.database.model.UserEntity
@@ -20,6 +20,15 @@ class FakeUserDao : UserDao {
         val currentUsers = usersTable.value.toMutableList()
         currentUsers.removeAll { it.id == user.id }
         currentUsers.add(user)
+        usersTable.value = currentUsers
+    }
+
+    override suspend fun upsertUsers(users: List<UserEntity>) {
+        val currentUsers = usersTable.value.toMutableList()
+        users.forEach { user ->
+            currentUsers.removeAll { it.id == user.id }
+            currentUsers.add(user)
+        }
         usersTable.value = currentUsers
     }
 
