@@ -1,14 +1,16 @@
 package com.flexaura.data.repository.comment
 
-import com.flexaura.core.database.model.CommentEntity
-import com.flexaura.core.network.model.CommentDto
-import com.flexaura.core.network.model.UserDto
-import com.flexaura.data.fakes.FakeCommentDao
-import com.flexaura.data.fakes.FakeSupabaseRemoteDataSource
+import com.flexaura.data.fakes.TestData
+import com.flexaura.data.fakes.TestState
+import com.flexaura.data.fakes.dao.FakeCommentDao
+import com.flexaura.data.fakes.dao.FakePostDao
+import com.flexaura.data.fakes.datasource.FakeCommentRemoteDataSource
+import com.flexaura.data.mapper.toEntity
 import com.flexaura.data.repository.CommentRepositoryImpl
 import com.flexaura.data.rule.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -24,16 +26,19 @@ class CommentRepositoryImplTest {
     private val testScope = TestScope(mainDispatcherRule.testDispatcher)
 
     private lateinit var fakeCommentDao: FakeCommentDao
-    private lateinit var fakeSupabaseRemoteDataSource: FakeSupabaseRemoteDataSource
+    private lateinit var fakePostDao: FakePostDao
+    private lateinit var fakeCommentRemoteDataSource: FakeCommentRemoteDataSource
     private lateinit var repository: CommentRepositoryImpl
 
     @Before
     fun setup() {
         fakeCommentDao = FakeCommentDao()
-        fakeSupabaseRemoteDataSource = FakeSupabaseRemoteDataSource()
+        fakePostDao = FakePostDao()
+        fakeCommentRemoteDataSource = FakeCommentRemoteDataSource(state = TestState())
         repository = CommentRepositoryImpl(
             commentDao = fakeCommentDao,
-            networkDataSource = fakeSupabaseRemoteDataSource,
+            postDao = fakePostDao,
+            dataSource = fakeCommentRemoteDataSource,
             dispatcher = mainDispatcherRule.testDispatcher,
             scope = testScope
         )
@@ -42,27 +47,12 @@ class CommentRepositoryImplTest {
     @Test
     fun `syncComments successful fetches remote and save to local with author data`() = runTest {
         // Given
-        val postId = "post_123"
-        val authorId = "user_123"
-        val mockCommentDto = CommentDto(
-            id = "comment_123",
-            postId = postId,
-            authorId = authorId,
-            content = "Test comment",
-            createdAt = "2026-01-01T00:00:00Z"
-        )
-        val mockUserDto = UserDto(
-            id = authorId,
-            username = "test_user",
-            displayName = "Test User",
-            imageUrl = "https://example.com/avatar.jpg",
-            bio = null,
-            createdAt = "2026-01-01T00:00:00Z",
-            totalAura = 500
-        )
+        val postId = TestData.defaultPost.id
+        val author = TestData.defaultUser
+        val mockCommentDto = TestData.defaultComment
 
-        fakeSupabaseRemoteDataSource.remoteComments.add(mockCommentDto)
-        fakeSupabaseRemoteDataSource.remoteUsers[authorId] = mockUserDto
+        fakeCommentRemoteDataSource.state.comments.update { it + mockCommentDto }
+        fakeCommentRemoteDataSource.state.users.update { it + author }
 
         // When
         val result = repository.syncComments(postId = postId)
@@ -73,47 +63,31 @@ class CommentRepositoryImplTest {
 
         assertTrue(result.isSuccess)
         assertEquals(1, localComments.size)
-        assertEquals("comment_123", savedComment.id)
-        assertEquals("Test comment", savedComment.content)
-        assertEquals("test_user", savedComment.authorUsername)
-        assertEquals(500, savedComment.authorTotalAura)
+        assertEquals(mockCommentDto.id, savedComment.id)
+        assertEquals(mockCommentDto.postId, savedComment.postId)
+        assertEquals(author.username, savedComment.authorUsername)
+        assertEquals(author.totalAura, savedComment.authorTotalAura)
     }
 
     @Test
     fun `deleteComment removes from local cache and remote data source`() = runTest {
         // Given
-        val postId = "post_123"
-        val commentId = "comment_123"
-        val commentRemote = CommentDto(
-            id = commentId,
-            postId = postId,
-            authorId = "author_123",
-            content = "delete comment",
-            createdAt = "2026-01-01T00:00:00Z"
-        )
-        val commentLocal = CommentEntity(
-            id = commentId,
-            postId = postId,
-            userId = "author_123",
-            content = "delete comment",
-            createdAt = "2026-01-01T00:00:00Z",
-            authorUsername = "test_user",
-            authorDisplayName = "Test User",
-            authorAvatarUrl = "https://example.com/avatar.jpg",
-            authorTotalAura = 500
-        )
+        val postId = TestData.defaultPost.id
+        val author = TestData.defaultUser
+        val commentRemote = TestData.defaultComment
+        val commentLocal = commentRemote.toEntity(author = author)
 
         fakeCommentDao.insertComment(commentLocal)
-        fakeSupabaseRemoteDataSource.remoteComments.add(commentRemote)
+        fakeCommentRemoteDataSource.state.comments.update { it + commentRemote }
 
         // When
-        val result = repository.deleteComment(commentId)
+        val result = repository.deleteComment(commentRemote.id)
 
         //Then
         val localComments = fakeCommentDao.getCommentsByPostId(postId).first()
 
         assertTrue(result.isSuccess)
         assertTrue(localComments.isEmpty())
-        assertTrue(fakeSupabaseRemoteDataSource.remoteComments.isEmpty())
+        assertTrue(fakeCommentRemoteDataSource.state.comments.value.isEmpty())
     }
 }

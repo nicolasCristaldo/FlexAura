@@ -54,6 +54,10 @@ dependencies {
     implementation(libs.supabase.auth)
 
     testImplementation(libs.junit)
+
+    // Mockk
+    testImplementation(libs.mockk)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
