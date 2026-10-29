@@ -38,7 +38,7 @@ internal fun LoginButtonsSection(
             AuthButton(
                 title = stringResource(R.string.login_button),
                 onClick = onLoginWithEmailClicked,
-                modifier = Modifier.fillMaxWidth(.3f)
+                modifier = Modifier.fillMaxWidth(.6f)
             )
 
             Text(
