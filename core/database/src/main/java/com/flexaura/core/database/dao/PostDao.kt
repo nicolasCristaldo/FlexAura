@@ -63,6 +63,16 @@ interface PostDao {
     suspend fun getPostById(postId: String): PostWithAuthorRelation?
 
     /**
+     * Retrieves a reactive stream of a single post along with its author relation by its unique identifier.
+     *
+     * @param postId The unique identifier of the post to retrieve.
+     * @return A [Flow] emitting a single [PostWithAuthorRelation] matching the provided ID.
+     */
+    @Transaction
+    @Query("SELECT * FROM posts WHERE id = :postId")
+    fun getPostByIdFlow(postId: String): Flow<PostWithAuthorRelation?>
+
+    /**
      * Retrieves a reactive stream of posts authored by a specific user, ordered by creation date descending.
      *
      * @param userId The unique identifier of the author.

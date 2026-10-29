@@ -124,11 +124,11 @@ ProfileViewModel @Inject constructor(
     /**
      * Retrieves the target user ID for profile data synchronization.
      */
-    private suspend fun getTargetUserId(): String? =
+    private fun getTargetUserId(): String? =
         if (argumentUserId != null) argumentUserId
         else {
-            val authState = getAuthUserUseCase().first()
-            (authState as? AuthState.Authenticated)?.userId
+            val state = _uiState.value
+            state.currentUserId
         }
 
     /**
@@ -139,7 +139,10 @@ ProfileViewModel @Inject constructor(
 
         getAuthUserUseCase().flatMapLatest { authState ->
             val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
-            val targetUserId = argumentUserId ?: currentLoggedUserId
+
+            _uiState.update { it.copy(currentUserId = currentLoggedUserId) }
+
+            val targetUserId = getTargetUserId()
 
             if (targetUserId == null) { flowOf(null) }
             else {
@@ -179,8 +182,7 @@ ProfileViewModel @Inject constructor(
      */
     private fun syncProfileData() = viewModelScope.launch {
         val targetUserId = getTargetUserId() ?: return@launch
-        val authState = getAuthUserUseCase().first()
-        val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
+        val currentLoggedUserId = _uiState.value.currentUserId ?: return@launch
         val isOwnProfile = targetUserId == currentLoggedUserId
 
         _uiState.update {
@@ -340,8 +342,8 @@ ProfileViewModel @Inject constructor(
      * Toggles the follow/unfollow state of a user.
      */
     private fun toggleFollowUser() = viewModelScope.launch {
-        val authState = getAuthUserUseCase().first()
-        val currentLoggedUserId = (authState as? AuthState.Authenticated)?.userId
+        val state = _uiState.value
+        val currentLoggedUserId = state.currentUserId
         val targetUserId = argumentUserId ?: currentLoggedUserId ?: return@launch
 
         if (targetUserId != currentLoggedUserId) {

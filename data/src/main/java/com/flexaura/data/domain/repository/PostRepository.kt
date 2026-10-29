@@ -26,6 +26,14 @@ interface PostRepository {
     suspend fun getPostById(postId: String): Post?
 
     /**
+     * Retrieves a reactive stream of a single post by its ID mapped to a domain model.
+     *
+     * @param postId The unique identifier of the post.
+     * @return A [Flow] emitting a single domain [Post] item.
+     */
+    fun getPostByIdFlow(postId: String): Flow<Post?>
+
+    /**
      * Retrieves a reactive stream of posts authored by a specific user.
      *
      * @param userId The unique identifier of the author.
