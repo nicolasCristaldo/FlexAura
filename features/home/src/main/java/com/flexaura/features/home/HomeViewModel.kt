@@ -174,19 +174,28 @@ internal class HomeViewModel @Inject constructor(
                             endReached = isEndReached,
                             currentPage = state.discover.currentPage + 1
                         )
-                        state.copy(discover = updatedDiscoverPagination)
+                        state.copy(
+                            discover = updatedDiscoverPagination,
+                            isLoading = if (isInitialLoad) false else state.isLoading
+                        )
                     }
                 },
                 onFailure = { error ->
-                    if (isInitialLoad) _uiState.update { state ->
-                        state.copy(errorMessage = error.toUserReadableMessage(), isLoading = false)
-                    }
-                    else _uiState.update { state ->
-                        val updatedDiscoverPagination = state.discover.copy(
-                            isLoadingMore = false,
-                            hasPaginationError = true
-                        )
-                        state.copy(discover = updatedDiscoverPagination)
+                    _uiState.update { state ->
+                        if(isInitialLoad) {
+                            state.copy(
+                                errorMessage = error.toUserReadableMessage(),
+                                isLoading = false
+                            )
+                        }
+                        else {
+                            state.copy(
+                                discover = state.discover.copy(
+                                    isLoadingMore = false,
+                                    hasPaginationError = true
+                                )
+                            )
+                        }
                     }
                 }
             )
@@ -227,19 +236,28 @@ internal class HomeViewModel @Inject constructor(
                             endReached = isEndReached,
                             currentPage = state.following.currentPage + 1
                         )
-                        state.copy(following = updatedFollowingPagination)
+                        state.copy(
+                            following = updatedFollowingPagination,
+                            isLoading = if (isInitialLoad) false else state.isLoading
+                        )
                     }
                 },
                 onFailure = { error ->
-                    if (isInitialLoad) _uiState.update { state ->
-                        state.copy(errorMessage = error.toUserReadableMessage(), isLoading = false)
-                    }
-                    else _uiState.update { state ->
-                        val updatedFollowingPagination = state.following.copy(
-                            isLoadingMore = false,
-                            hasPaginationError = true
-                        )
-                        state.copy(following = updatedFollowingPagination)
+                    _uiState.update { state ->
+                        if(isInitialLoad) {
+                            state.copy(
+                                errorMessage = error.toUserReadableMessage(),
+                                isLoading = false
+                            )
+                        }
+                        else {
+                            state.copy(
+                                following = state.following.copy(
+                                    isLoadingMore = false,
+                                    hasPaginationError = true
+                                )
+                            )
+                        }
                     }
                 }
             )
