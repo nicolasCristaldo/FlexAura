@@ -47,6 +47,11 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun getPostById(postId: String): Post? =
         postDao.getPostById(postId)?.toDomain()
 
+    override fun getPostByIdFlow(postId: String): Flow<Post?> =
+        postDao.getPostByIdFlow(postId)
+            .map { it?.toDomain() }
+            .flowOn(dispatcher)
+
     override fun getPostsByAuthorFlow(userId: String): Flow<List<Post>> =
         postDao.getPostsByAuthorFlow(userId)
             .map { postEntities -> postEntities.map { it.toDomain() } }

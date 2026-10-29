@@ -10,7 +10,7 @@ import com.flexaura.data.domain.usecase.comment.DeleteCommentUseCase
 import com.flexaura.data.domain.usecase.comment.GetCommentsUseCase
 import com.flexaura.data.domain.usecase.comment.SyncCommentsUseCase
 import com.flexaura.data.domain.usecase.post.DeletePostUseCase
-import com.flexaura.data.domain.usecase.post.GetPostByIdUseCase
+import com.flexaura.data.domain.usecase.post.GetPostByIdFlowUseCase
 import com.flexaura.data.domain.usecase.post.ToggleSavePostUseCase
 import com.flexaura.data.domain.usecase.post.VotePostUseCase
 import com.flexaura.post.PostDetailUiEffect.NavigateBack
@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,7 +40,7 @@ import javax.inject.Inject
  * post voting, bookmarking, and deletion workflows.
  *
  * @property getAuthUserUseCase Use case for observing the current authentication state.
- * @property getPostByIdUseCase Use case for fetching a single post by ID.
+ * @property getPostByIdFlowUseCase Use case for fetching a single post by ID.
  * @property votePostUseCase Use case for casting or updating votes on posts.
  * @property toggleSavePostUseCase Use case for toggling post bookmark/save states.
  * @property getCommentsUseCase Use case for observing comments associated with a post.
@@ -51,7 +52,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class PostScreenViewModel @Inject constructor(
     private val getAuthUserUseCase: GetAuthUserUseCase,
-    private val getPostByIdUseCase: GetPostByIdUseCase,
+    private val getPostByIdFlowUseCase: GetPostByIdFlowUseCase,
     private val votePostUseCase: VotePostUseCase,
     private val toggleSavePostUseCase: ToggleSavePostUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
@@ -78,7 +79,7 @@ internal class PostScreenViewModel @Inject constructor(
     fun onIntent(intent: PostDetailUiIntent) = when(intent) {
         is Init -> {
             currentPostId = intent.postId
-            loadPost(intent.postId)
+            observePost(intent.postId)
             observeComments(intent.postId)
             syncComments(intent.postId)
         }
@@ -115,21 +116,19 @@ internal class PostScreenViewModel @Inject constructor(
     }
 
     /**
-     * Loads a single post by ID and updates the UI state accordingly.
+     * Observes a single post by ID and updates the UI state accordingly.
      *
-     * @param postId The unique identifier of the post to load.
+     * @param postId The unique identifier of the post to observe.
      */
-    private fun loadPost(postId: String) = viewModelScope.launch {
+    private fun observePost(postId: String) = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-        try {
-            val postResult = getPostByIdUseCase(postId)
-
-            _uiState.update { it.copy(isLoading = false, post = postResult) }
-        }
-        catch (e: Exception) {
-            _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserReadableMessage()) }
-        }
+        getPostByIdFlowUseCase(postId)
+            .catch { e ->
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserReadableMessage()) }
+            }
+            .collect { post ->
+                _uiState.update { it.copy(isLoading = false, post = post) }
+            }
     }
 
     /**
