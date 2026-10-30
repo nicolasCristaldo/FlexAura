@@ -30,6 +30,9 @@ class UpdateProfileUseCase @Inject constructor(
         bio: String?,
         isImageRemoved: Boolean
     ): Result<Unit> {
+        val finalBio = if (bio.isNullOrBlank()) null
+            else bio.replace(Regex("\\n+"), " ").trim()
+
         return when {
             !username.isValidUsername() -> {
                 Result.failure(IllegalArgumentException("Invalid username"))
@@ -37,7 +40,7 @@ class UpdateProfileUseCase @Inject constructor(
             !displayName.isValidLength(1, 25) -> {
                 Result.failure(IllegalArgumentException("Invalid display name"))
             }
-            bio?.isValidLength(0, 200) == false -> {
+            finalBio?.isValidLength(0, 200) == false -> {
                 Result.failure(IllegalArgumentException("Invalid bio"))
             }
             else -> {
@@ -45,7 +48,7 @@ class UpdateProfileUseCase @Inject constructor(
                     username = username.trim(),
                     displayName = displayName.trim(),
                     imageBytes = imageBytes,
-                    bio = bio?.replace(Regex("\\n+"), " ")?.trim(),
+                    bio = finalBio,
                     isImageRemoved = isImageRemoved
                 )
             }

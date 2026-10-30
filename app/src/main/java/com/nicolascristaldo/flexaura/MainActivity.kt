@@ -38,8 +38,8 @@ class MainActivity : ComponentActivity() {
                     when(authState) {
                         is AuthState.Loading -> {
                             Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
                             }
