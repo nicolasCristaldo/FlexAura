@@ -101,6 +101,18 @@ Flexaura
 - UI Intent: User actions emitted as sealed UiIntent interfaces processed by ViewModels.
 - UI Effect: One-shot side-effects (snackbars, navigation) handled via SharedFlow<UiEffect>.
 
+---
+
+## 📥 Installation
+
+Get the latest version of **FlexAura** directly:
+
+[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge&logo=android)](https://github.com/nicolasCristaldo/FlexAura/releases/download/v1.0.1/flexaura-v1.0.1.apk)
+
+> **Installation Note**: You may need to enable "Install from unknown sources" in your Android settings. After the download is complete, simply tap the file to install the app.
+
+---
+
 ## 🛠️ Built With
 - Kotlin 2.0.21
 - Jetpack Compose (BOM 2024.09.00)
