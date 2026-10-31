@@ -20,3 +20,23 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+#DTOs
+-keep class com.flexaura.core.network.model.** { *; }
+
+# Kotlinx serialization
+-keepattributes *Annotation*,InnerClasses,Signature
+-keepclassmembers class * {
+    @kotlinx.serialization.SerialName <fields>;
+}
+-keep,includedescriptorclasses class *$$serializer { *; }
+-keepclassmembers class * {
+    kotlinx.serialization.KSerializer companion(...);
+}
+
+# Navigation
+-keep class com.flexaura.features.auth.navigation.** { *; }
+-keep class com.flexaura.createpost.navigation.** { *; }
+-keep class com.flexaura.features.home.navigation.** { *; }
+-keep class com.flexaura.post.navigation.** { *; }
+-keep class com.flexaura.features.profile.navigation.** { *; }
+-keep class com.flexaura.search.navigation.** { *; }
